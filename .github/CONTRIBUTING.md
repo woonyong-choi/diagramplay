@@ -31,6 +31,8 @@ npm run check:package -- /absolute/new-consumer-path
 
 패키지 검사는 저장소 밖의 새 폴더를 만들고 검사 뒤 지운다. CI는 Node.js 20·22에서 검사하며 Node.js 22 작업에서 실제 Chrome으로 `npm run test:browser`도 실행한다. `npm run check:advisory`는 기존 유지보수 항목을 알리는 참고 검사다.
 
+실제 Chrome 화면은 `node scripts/shoot.mjs <html|svg> <png> [대기 ms] [--width 1400]`으로 캡처한다. SVG는 절대 길이를 CSS px로 읽고, 반응형 크기나 생략된 크기는 viewBox 비율로 채운다. 반응형 SVG의 `--width`는 캡처 폭을 지정하며, HTML은 지정 폭과 문서 높이를 사용한다. 캡처 높이는 200~4000px로 제한한다.
+
 ## 커밋과 PR
 
 | 항목 | 형식 | 예 |
