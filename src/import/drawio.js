@@ -1,5 +1,3 @@
-// draw.io(diagrams.net) 원본 읽기: 도형과 라벨, 연결선, 컨테이너(swimlane, container=1), 점선, 도형 모양(docs/design/import.md draw.io).
-// 좌표와 색, 글꼴은 옮기지 않고 뜻(카드, 그룹, 선)만 옮긴다. Torso가 다시 배치한다.
 import { decodeEntities, parseDrawio, styleOf } from './drawio-parse.js';
 import { flowDirection, shapeLabel, titleText } from './drawn.js';
 import { FAIL, change, skip, textOf } from './model.js';
@@ -107,7 +105,7 @@ function kindOf(cell, model) {
 // cost: time O(t), heap O(1), stack O(1)
 // vars: t = 자유 글 수
 // basis: estimate
-// 맨 위의 자유 글은 그림 제목이고, 나머지 자유 글은 Torso에 붙일 자리가 없어 알린다.
+// 맨 위의 자유 글은 그림 제목이고, 나머지 자유 글은 DiagramPlay에 붙일 자리가 없어 알린다.
 function readTitle(texts, boxes, model) {
   const title = titleText(texts.filter((t) => t.box && !t.parent), boxes);
   if (title) model.title = title.text;

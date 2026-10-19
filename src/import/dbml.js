@@ -4,7 +4,6 @@ import { change, nodeOf, skip, textOf } from './model.js';
 
 // 관계 기호 → [왼쪽 다중성, 오른쪽 다중성]
 const MULTIPLICITY = { '>': ['*', '1'], '<': ['1', '*'], '-': ['1', '1'], '<>': ['*', '*'] };
-// 삭제 동작 → Torso ondelete 값
 const DELETE = { cascade: 'cascade', restrict: 'restrict', 'set null': 'set-null', 'no action': 'no-action' };
 
 // cost: time O(t + r·c), heap O(t), stack O(d)
@@ -141,7 +140,7 @@ function readColumn(line, table, context) {
 // cost: time O(t), heap O(1), stack O(1)
 // vars: t = 설정 낱말 수
 // basis: estimate
-// 열 설정 하나. pk, unique, not null, null은 열 표시로 옮긴다. default, note, increment, check는 Torso 열에 자리가 없어 건너뛴다.
+// 열 설정 하나. pk, unique, not null, null은 열 표시로 옮긴다. default, note, increment, check는 DiagramPlay 열에 자리가 없어 건너뛴다.
 function readColumnSetting(item, { column, table, context }) {
   const { model } = context;
   const { key } = item;
@@ -150,7 +149,7 @@ function readColumnSetting(item, { column, table, context }) {
   else if (key === 'not null') column.required = true;
   else if (key === 'null') column.nullable = true;
   else if (key === 'ref') context.refs.push({ ...inlineRef(item, table, column), line: item.line });
-  else if (['default', 'note', 'increment', 'check'].includes(key)) skip(model, item.line, `the ${key} of column "${column.name}" is not imported. A Torso column shows its name, type, keys, and null rule`);
+  else if (['default', 'note', 'increment', 'check'].includes(key)) skip(model, item.line, `the ${key} of column "${column.name}" is not imported. A DiagramPlay column shows its name, type, keys, and null rule`);
   else skip(model, item.line, `the column setting "${key}" is not imported`);
 }
 

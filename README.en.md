@@ -1,16 +1,9 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/torso-logo-dark.png">
-    <img src="docs/assets/torso-logo.png" alt="Torso icon: a mannequin on a wooden stand with a yellow measuring tape" width="200">
-  </picture>
-</p>
-
-<h1 align="center">Torso</h1>
+<h1 align="center">DiagramPlay</h1>
 
 <p align="center">
   A documentation diagram tool that draws structure, flows, and value changes from text<br>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <a href="https://github.com/woonyong-choi/torso/actions/workflows/ci.yml"><img src="https://github.com/woonyong-choi/torso/actions/workflows/ci.yml/badge.svg" alt="CI"></a><br>
+  <a href="https://github.com/woonyong-choi/diagramplay/actions/workflows/ci.yml"><img src="https://github.com/woonyong-choi/diagramplay/actions/workflows/ci.yml/badge.svg" alt="CI"></a><br>
   <a href="README.md">한국어</a> | English
 </p>
 
@@ -21,28 +14,28 @@
   </picture>
 </p>
 
-Torso lays out elements and connections from a text source and turns timed movement and value changes into SVG and HTML. The demos in this repository use synthetic data.
+DiagramPlay lays out elements and connections from a text source and turns timed movement and value changes into SVG and HTML. The demos in this repository use synthetic data.
 
 ## Quick start
 
-Node.js 20 or later and Git are required. Run from source because `torso-diagram` is currently absent from the public npm registry (checked 2026-10-18).
+Node.js 20 or later and Git are required. Run from source before the npm release.
 
 ```sh
-git clone https://github.com/woonyong-choi/torso.git
-cd torso
+git clone https://github.com/woonyong-choi/diagramplay.git
+cd diagramplay
 npm ci
-cat > request.torso <<'EOF'
-torso
+cat > request.diagramplay <<'EOF'
+diagramplay
 box client "Client"
 box server "Server"
 client -> server "GET /orders"
 scene "Request"
   client -> server
 EOF
-node src/cli.js render request.torso --html
+node src/cli.js render request.diagramplay --html
 ```
 
-The command reads the request flow in `request.torso` and creates two files in the current directory.
+The command reads the request flow in `request.diagramplay` and creates two files in the current directory.
 
 ```text
 request.svg
@@ -55,14 +48,14 @@ To write your own source, read [Create your first figure](docs/usage.md#첫-그�
 
 ## Why
 
-To explain request movement and value changes in documentation, you need to show structure and execution order together. Torso lets you describe elements such as boxes and their connections in text, then add scenes with timed actions to the same figure. One source can combine structure, sequences, states, data relations, and charts.
+To explain request movement and value changes in documentation, you need to show structure and execution order together. DiagramPlay lets you describe elements such as boxes and their connections in text, then add scenes with timed actions to the same figure. One source can combine structure, sequences, states, data relations, and charts.
 
-A graphic editor is a better fit when you want to edit the layout and shapes of a static diagram directly. Torso is for text-based documentation that plays flows and value changes.
+A graphic editor is a better fit when you want to edit the layout and shapes of a static diagram directly. DiagramPlay is for text-based documentation that plays flows and value changes.
 
 ## How it works
 
-1. Write elements and connections in a `.torso` file, then add movement and value changes in scenes.
-2. Torso checks the source, measures text to lay out the elements, and builds a timeline for the scenes.
+1. Write elements and connections in a `.diagramplay` file, then add movement and value changes in scenes.
+2. DiagramPlay checks the source, measures text to lay out the elements, and builds a timeline for the scenes.
 3. SVG plays one scene, and HTML lets readers select scenes through tabs.
 
 <picture>
@@ -70,15 +63,15 @@ A graphic editor is a better fit when you want to edit the layout and shapes of 
   <img src="docs/assets/how-it-works-light.svg" alt="Synthetic data: a developer's question moves from Screen through Engine to Codex CLI">
 </picture>
 
-This question delivery example uses synthetic data. Read the [source](docs/assets/how-it-works.torso) alongside the [processing flow](docs/architecture.md#처리-흐름). [Choose a view for your task](docs/usage.md#목적에-맞는-보기-선택하기) explains which diagram type to use.
+This question delivery example uses synthetic data. Read the [source](docs/assets/how-it-works.diagramplay) alongside the [processing flow](docs/architecture.md#처리-흐름). [Choose a view for your task](docs/usage.md#목적에-맞는-보기-선택하기) explains which diagram type to use.
 
 ## Status
 
-The existing [GitHub Releases](https://github.com/woonyong-choi/torso/releases) predate the project rename. The current instructions use the source in this repository.
+The existing [GitHub Releases](https://github.com/woonyong-choi/diagramplay/releases) predate the project rename. The current instructions use the source in this repository.
 
-Torso supports SVG and HTML generation, Markdown figure updates, GitHub Action checks, a JavaScript API, and external diagram imports. [Supported expressions](docs/design/expression-coverage.md#지원하는-표현) lists features and examples by diagram type.
+DiagramPlay supports SVG and HTML generation, Markdown figure updates, GitHub Action checks, a JavaScript API, and external diagram imports. [Supported expressions](docs/design/expression-coverage.md#지원하는-표현) lists features and examples by diagram type.
 
-Remaining work is tracked in [visual defects before release #364](https://github.com/woonyong-choi/torso/issues/364), [player figure downloads #150](https://github.com/woonyong-choi/torso/issues/150), and [full inspection and source cleanup #251](https://github.com/woonyong-choi/torso/issues/251). The demos explain features with synthetic data and do not report performance measurements from a real service. Check the [verification scope](docs/design/expression-coverage.md#예제와-검증-범위) and [unsupported expressions](docs/design/expression-coverage.md#전용-표현이-없는-범위).
+Remaining work is tracked in [visual defects before release #364](https://github.com/woonyong-choi/diagramplay/issues/364), [player figure downloads #150](https://github.com/woonyong-choi/diagramplay/issues/150), and [full inspection and source cleanup #251](https://github.com/woonyong-choi/diagramplay/issues/251). The demos explain features with synthetic data and do not report performance measurements from a real service. Check the [verification scope](docs/design/expression-coverage.md#예제와-검증-범위) and [unsupported expressions](docs/design/expression-coverage.md#전용-표현이-없는-범위).
 
 Before 1.0, the source format and commands may change without notice.
 
@@ -86,7 +79,7 @@ Before 1.0, the source format and commands may change without notice.
 
 The design documents are written in Korean.
 
-- [Torso usage](docs/usage.md)
+- [DiagramPlay usage](docs/usage.md)
   - [Architecture](docs/architecture.md)
   - [Glossary](docs/glossary.md)
 

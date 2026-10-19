@@ -72,7 +72,7 @@ function readFrontmatter(lines, model) {
     if (!line.trim() || /^\s/.test(line)) continue;
     const pair = /^([\w-]+)\s*:\s*(.*)$/.exec(line.trim());
     if (pair?.[1] === 'title' && pair[2]) model.title = textOf(model, unquote(pair[2]), i + 2);
-    else skip(model, i + 2, `the front matter "${pair?.[1] ?? line.trim()}" is not imported. Torso reads only title`);
+    else skip(model, i + 2, `the front matter "${pair?.[1] ?? line.trim()}" is not imported. DiagramPlay reads only title`);
   }
 }
 
@@ -90,7 +90,7 @@ export function unquote(raw) {
 // cost: time O(r), heap O(r), stack O(1)
 // vars: r = 조각 수
 // basis: estimate
-// 원 차트: `pie [showData] [title 글]`, `title 글`, `"이름" : 값`. 값 표시(showData)는 Torso 원 차트가 늘 하므로 그대로다.
+// 원 차트: `pie [showData] [title 글]`, `title 글`, `"이름" : 값`. 값 표시(showData)는 DiagramPlay 원 차트가 늘 하므로 그대로다.
 function readPie({ head, lines }, model) {
   const titled = /^pie\b(?:\s+showData)?(?:\s+title\s+(.+))?$/.exec(head.text);
   const chart = { kind: 'pie', title: titled?.[1] ? textOf(model, titled[1], head.line) : undefined, rows: [], line: head.line };

@@ -1,5 +1,3 @@
-// 가져오기의 공개 진입점. 다른 도구의 그림 원본(Mermaid, DBML, D2, draw.io, Excalidraw)을 Torso 원본 글로 옮긴다(docs/design/import.md).
-// 파일은 다루지 않는다. 명령은 src/import-run.js다.
 import { readD2 } from './d2.js';
 import { readDbml } from './dbml.js';
 import { readDrawio } from './drawio.js';
@@ -18,7 +16,7 @@ export const IMPORT_FORMATS = Object.keys(READERS);
 // vars: n = 원본 글자 수, emit = 모형을 쓰는 비용(emit.js), d = 원본의 중첩 깊이
 // basis: estimate
 /**
- * 다른 도구의 원본 글을 Torso 원본 글로 옮긴다.
+ * 다른 도구의 원본 글을 DiagramPlay 원본 글로 옮긴다.
  * 받지 않는 문장은 건너뛰고 줄 번호가 있는 경고로 알린다(code `import-skip`). 모양이나 글을 바꿔 옮긴 문장도 경고한다(code `import-change`).
  * 형식이나 그림 종류를 모르거나 옮길 카드가 하나도 없으면 FigureError(code `import`)다.
  * @param format 'mermaid' | 'dbml' | 'd2' | 'drawio' | 'excalidraw'

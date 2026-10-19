@@ -1,11 +1,10 @@
-// torso import: Mermaid, DBML, D2, draw.io, Excalidraw 원본을 Torso 원본으로 옮긴다. 공개 진입점(importDiagram, 명령)으로 형식별 대표 예, 경고의 줄 번호, 왕복(옮긴 원본의 strict 빌드), 결과 파일 쓰기를 본다.
 // 시험 이름 첫 낱말(IM1~IM14)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/import.md 요구사항 표에 있다.
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { FigureError, importDiagram } from 'torso-diagram';
+import { FigureError, importDiagram } from 'diagramplay';
 import { build, cli, lineOf, read, snapshot, workspace } from './support.js';
 
 /** 옮긴 결과와 경고. 옮긴 원본은 늘 strict로 만들어진다(왕복). */
@@ -40,7 +39,7 @@ flowchart LR
   gw --> auth
 `;
 
-test('IM1 a Mermaid flowchart keeps node shapes, edge labels, dashed edges, and nested subgraphs as one Torso grammar each', async () => {
+test('IM1 a Mermaid flowchart keeps node shapes, edge labels, dashed edges, and nested subgraphs as one DiagramPlay grammar each', async () => {
   const { source, warnings, lines } = await roundTrip('mermaid', FLOW);
   assert.equal(lines[1], 'title "Order flow"');
   for (const line of ['box client "Client"', 'box gw "API Gateway"', 'decision auth "Signed in?"', 'store db "Orders DB"', 'box reject "Reject" shape=circle', 'box worker "Worker"']) assert.ok(lines.includes(line), line);
@@ -49,7 +48,7 @@ test('IM1 a Mermaid flowchart keeps node shapes, edge labels, dashed edges, and 
   assert.ok(!lines.includes('view graph down'), 'LR is the default right graph');
   assert.deepEqual(warningsAt(warnings, lineOf(FLOW, 'gw ==> worker')), [
     'import-change: the node shape of "worker" is drawn as a box',
-    'import-change: the thick edge gw -> worker is drawn as a normal edge. Torso has one edge weight',
+    'import-change: the thick edge gw -> worker is drawn as a normal edge. DiagramPlay has one edge weight',
   ]);
   assert.match(warningsAt(warnings, lineOf(FLOW, 'classDef'))[0], /^import-skip: style classes \("classDef"\) are not imported/);
   assert.match(warningsAt(warnings, lineOf(FLOW, 'gw --> backend') + 1)[0], /^import-change: this edge repeats an edge on line 7 and is merged into it/);
@@ -95,10 +94,10 @@ test('IM2 a Mermaid sequence keeps participants, solid and dashed messages, note
   assert.ok(lines.includes('fragment loop "until done" times=1 {') && lines.includes('fragment opt "receipt" run=on {') && lines.includes('fragment par "notify" {'));
   assert.ok(lines.includes('branch "push" {'));
   assert.match(source, /api -> web "done" dashed\n {2}deactivate api\n/);
-  assert.deepEqual(warningsAt(warnings, lineOf(SEQUENCE, 'autonumber')), ['import-skip: autonumber is not imported. Torso numbers edges with no=, not messages']);
+  assert.deepEqual(warningsAt(warnings, lineOf(SEQUENCE, 'autonumber')), ['import-skip: autonumber is not imported. DiagramPlay numbers edges with no=, not messages']);
 });
 
-test('IM2 participants are listed in the order they first send, which Torso requires, and the change is reported', async () => {
+test('IM2 participants are listed in the order they first send, which DiagramPlay requires, and the change is reported', async () => {
   const text = 'sequenceDiagram\n  participant db\n  participant app\n  app->>db: query\n  db-->>app: rows\n';
   const { source, warnings } = await roundTrip('mermaid', text);
   assert.match(source, /view sequence \{\n {2}app db\n\}/);
@@ -131,7 +130,7 @@ test('IM3 a Mermaid state diagram keeps start and final states, events, composit
   assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'Failed --> Idle')), ['import-change: a transition needs an event label, so "…" is written. Write the event in place of it']);
   assert.ok(lines.includes('idle -> warm "warm up"'));
   assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'Idle --> Active')), ['import-change: the transition into "Active" goes to its start state "Warm"']);
-  assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'note right')), ['import-skip: the note is not imported. A Torso state has no notes']);
+  assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'note right')), ['import-skip: the note is not imported. A DiagramPlay state has no notes']);
 });
 
 const ER = `erDiagram
@@ -170,7 +169,7 @@ test('IM4 a Mermaid ER diagram becomes tables with keys and relations with both 
 test('IM5 a Mermaid pie becomes a pie chart card; a slice that is not above 0 is reported and left out', async () => {
   const text = 'pie showData title Storage by service\n  "Images" : 42\n  "Logs" : 31.5\n  "Empty" : 0\n';
   const { source, warnings } = await roundTrip('mermaid', text);
-  assert.equal(source, 'torso\n\nchart storage-by-service "Storage by service" pie {\n  row "Images" value=42\n  row "Logs" value=31.5\n}\n');
+  assert.equal(source, 'diagramplay\n\nchart storage-by-service "Storage by service" pie {\n  row "Images" value=42\n  row "Logs" value=31.5\n}\n');
   assert.deepEqual(warningsAt(warnings, 4), ['import-skip: the slice value "0" is not imported. A pie slice is a number above 0']);
 });
 
@@ -223,8 +222,8 @@ test('IM11 a Mermaid class diagram keeps classes, interfaces, members, generics,
   assert.ok(lines.includes('view graph down'), 'a class diagram flows down like Mermaid');
   assert.deepEqual(warningsAt(warnings, lineOf(CLASSES, '"many"')), ['import-change: the cardinality "1" to "many" is written as "1" to "*"']);
   assert.deepEqual(warningsAt(warnings, lineOf(CLASSES, 'quack(times)')), ['import-change: member "quack" is written as "quack_2". A member name uses letters, digits, and "_", starting with a letter, once per class']);
-  assert.deepEqual(warningsAt(warnings, lineOf(CLASSES, 'note for')), ['import-skip: the note is not imported. A Torso class has no notes']);
-  assert.deepEqual(warningsAt(warnings, lineOf(CLASSES, '<<service>>')), ['import-change: the annotation "<<service>>" of "Keeper" is not drawn. Torso marks interface and abstract only']);
+  assert.deepEqual(warningsAt(warnings, lineOf(CLASSES, 'note for')), ['import-skip: the note is not imported. A DiagramPlay class has no notes']);
+  assert.deepEqual(warningsAt(warnings, lineOf(CLASSES, '<<service>>')), ['import-change: the annotation "<<service>>" of "Keeper" is not drawn. DiagramPlay marks interface and abstract only']);
 });
 
 test('IM6 an unsupported Mermaid diagram is an import error on its line; an unknown statement is a warning on its line, never dropped silently', async () => {
@@ -285,7 +284,7 @@ test('IM7 DBML tables, keys, null rules, inline and separate refs, enums, and ta
   assert.ok(lines.includes('email "varchar(255)" unique required') && lines.includes('bio text nullable'));
   assert.match(source, /box user-status "user_status" "enum" \{\n {2}text "active" mono\n {2}text "banned" mono\n\}/);
   assert.ok(lines.includes('users.status -> user-status'));
-  assert.deepEqual(warningsAt(warnings, lineOf(DBML, 'status user_status')), ['import-skip: the default of column "status" is not imported. A Torso column shows its name, type, keys, and null rule']);
+  assert.deepEqual(warningsAt(warnings, lineOf(DBML, 'status user_status')), ['import-skip: the default of column "status" is not imported. A DiagramPlay column shows its name, type, keys, and null rule']);
   assert.deepEqual(warningsAt(warnings, lineOf(DBML, "Note: 'All users'")), ['import-skip: the note of table "users" is not imported. A table card has no note']);
   assert.deepEqual(warningsAt(warnings, lineOf(DBML, 'update: cascade')), ['import-skip: the reference setting "update: cascade" is not imported']);
 });
@@ -366,7 +365,7 @@ dot: Dot {shape: circle}
 hex: Hex {shape: hexagon}
 `;
 
-test('IM8 D2 nodes, labels, the four edge forms, containers, shapes, direction, and sql_table map to one Torso grammar each', async () => {
+test('IM8 D2 nodes, labels, the four edge forms, containers, shapes, direction, and sql_table map to one DiagramPlay grammar each', async () => {
   const { source, warnings, lines } = await roundTrip('d2', D2);
   assert.match(source, /group cloud "AWS" \{\n {2}box cloud-lb "Load Balancer"\n {2}box cloud-api "API"\n {2}store cloud-db "Orders"\n {2}queue cloud-jobs "jobs" slots=4\n\}/);
   for (const line of ['person user "Customer"', 'decision ok "Ready?"', 'box dot "Dot" shape=circle', 'box hex "Hex"']) assert.ok(lines.includes(line), line);
@@ -397,11 +396,11 @@ test('IM9 import prints the source, takes the format from the extension when it 
       assert.equal(run.stdout, expected, args.join(' '));
       assert.match(run.stderr, new RegExp(`^${file.replace('.', '\\.')}:\\d+: warning: `, 'm'));
     }
-    const written = cli(['import', file, '--out', 'out/result.torso'], { cwd: dir });
+    const written = cli(['import', file, '--out', 'out/result.diagramplay'], { cwd: dir });
     assert.equal(written.status, 0, written.stderr);
-    assert.equal(written.stdout, `${join('out', 'result.torso')}\n`);
-    assert.equal(read(dir, 'out/result.torso'), expected);
-    const render = cli(['render', 'out/result.torso', '--strict', '--out', 'svg'], { cwd: dir });
+    assert.equal(written.stdout, `${join('out', 'result.diagramplay')}\n`);
+    assert.equal(read(dir, 'out/result.diagramplay'), expected);
+    const render = cli(['render', 'out/result.diagramplay', '--strict', '--out', 'svg'], { cwd: dir });
     assert.equal(render.status, 0, render.stderr);
   }
 });
@@ -410,18 +409,18 @@ test('IM9 standard input (-) needs the format, and --json gives the diagnostics 
   const dir = workspace(t, { 'a.mmd': 'flowchart LR\n  a --> b\n  style a fill:#f00\n' });
   const piped = cli(['import', 'd2', '-'], { cwd: dir, input: 'a -> b: go\n' });
   assert.equal(piped.status, 0);
-  assert.equal(piped.stdout, 'torso\n\nbox a "a"\nbox b "b"\n\na -> b "go"\n\nview graph down\n');
+  assert.equal(piped.stdout, 'diagramplay\n\nbox a "a"\nbox b "b"\n\na -> b "go"\n\nview graph down\n');
   const json = cli(['import', 'a.mmd', '--json'], { cwd: dir });
   assert.equal(json.status, 0);
   const [diagnostic, result] = json.stdout.trim().split('\n').map((line) => JSON.parse(line));
   assert.deepEqual(diagnostic, { file: 'a.mmd', line: 3, message: 'the colors and sizes in the style of "a" are not imported. They come from the design tokens', severity: 'warning', code: 'import-skip', column: 3 });
-  assert.deepEqual(result, { file: 'a.mmd', source: 'torso\n\nbox a "a"\nbox b "b"\n\na -> b\n' });
+  assert.deepEqual(result, { file: 'a.mmd', source: 'diagramplay\n\nbox a "a"\nbox b "b"\n\na -> b\n' });
 });
 
 test('IM9 a source that cannot be imported is exit 1 on its line with nothing written, and wrong usage is exit 2', (t) => {
   const dir = workspace(t, { 'bad.mmd': 'gantt\n  title x\n', 'a.txt': 'a -> b\n' });
   const before = snapshot(dir);
-  const bad = cli(['import', 'bad.mmd', '--out', 'bad.torso'], { cwd: dir });
+  const bad = cli(['import', 'bad.mmd', '--out', 'bad.diagramplay'], { cwd: dir });
   assert.equal(bad.status, 1);
   assert.equal(bad.stdout, '');
   assert.match(bad.stderr, /^bad\.mmd:1: the Mermaid diagram "gantt" is not imported/);
@@ -433,31 +432,31 @@ test('IM9 a source that cannot be imported is exit 1 on its line with nothing wr
     [['import', 'a.txt'], 'cannot tell the format of "a.txt"'],
     [['import', '-'], 'cannot tell the format of standard input'],
     [['import', 'mermaid', 'bad.mmd', 'a.txt'], 'import takes one file, not 2'],
-    [['import', 'bad.mmd', '--out', 'bad.svg'], '--out names a .torso file'],
+    [['import', 'bad.mmd', '--out', 'bad.svg'], '--out names a .diagramplay file'],
     [['import', 'bad.mmd', '--html'], '--html'],
     [['import', 'bad.mmd', '--budget', 'events=9'], '--budget is not for import'],
   ]) {
     const run = cli(args, { cwd: dir });
     assert.equal(run.status, 2, args.join(' '));
     assert.ok(run.stderr.includes(message), `${args.join(' ')}: ${run.stderr}`);
-    assert.match(run.stderr, /torso import \[mermaid\|dbml\|d2\|drawio\|excalidraw\]/);
+    assert.match(run.stderr, /diagramplay import \[mermaid\|dbml\|d2\|drawio\|excalidraw\]/);
   }
   assert.deepEqual(snapshot(dir), before);
 });
 
-test('IM10 an imported figure that Torso lays out with a figure check error is still written, with the check as a warning on the result line', (t) => {
+test('IM10 an imported figure that DiagramPlay lays out with a figure check error is still written, with the check as a warning on the result line', (t) => {
   // 한 열로 들어오는 외래 키 선 셋과 다대다 관계선의 다중성 글이 겹친다. 원본은 맞고 배치를 손볼 곳이라 파일을 쓴다.
   const text = 'Table a {\n  id int [pk]\n}\nTable b {\n  id int [pk]\n  a1 int [ref: > a.id]\n  a2 int [ref: > a.id]\n  a3 int [ref: > a.id]\n}\nRef: a.id <> b.id\n';
   const dir = workspace(t, { 'x.dbml': text });
-  const run = cli(['import', 'x.dbml', '--out', 'x.torso'], { cwd: dir });
+  const run = cli(['import', 'x.dbml', '--out', 'x.diagramplay'], { cwd: dir });
   assert.equal(run.status, 0);
-  assert.equal(run.stdout, 'x.torso\n');
-  assert.match(run.stderr, /^x\.torso:\d+: warning: edge label "1" overlaps edge label "1"/m);
-  assert.ok(existsSync(join(dir, 'x.torso')));
-  assert.equal(cli(['render', 'x.torso'], { cwd: dir }).status, 1, 'render still refuses the figure until the source is fixed');
+  assert.equal(run.stdout, 'x.diagramplay\n');
+  assert.match(run.stderr, /^x\.diagramplay:\d+: warning: edge label "1" overlaps edge label "1"/m);
+  assert.ok(existsSync(join(dir, 'x.diagramplay')));
+  assert.equal(cli(['render', 'x.diagramplay'], { cwd: dir }).status, 1, 'render still refuses the figure until the source is fixed');
 });
 
-test('IM12 dashed outlines and lines carry over as Torso dashes, and the D2 title convention becomes the figure title', () => {
+test('IM12 dashed outlines and lines carry over as DiagramPlay dashes, and the D2 title convention becomes the figure title', () => {
   const d2 = importDiagram('d2', 'title: 흐름 {shape: text; near: top-center}\nzone: 영역 {style.stroke-dash: 3\n  a: A\n}\npartner: 제휴사 {style.stroke-dash: 3}\nzone.a -> partner: 요청 {style.stroke-dash: 3}\nzone.a -> c: 다시\n');
   assert.deepEqual(d2.warnings, []);
   assert.match(d2.source, /^title "흐름"$/m);
@@ -493,7 +492,7 @@ const DRAWIO_MODEL = `<mxGraphModel>
 </mxGraphModel>`;
 const DRAWIO = `<mxfile>\n<diagram id="a" name="Page-1">\n${DRAWIO_MODEL}\n</diagram>\n<diagram id="b" name="Page-2">\n${DRAWIO_MODEL}\n</diagram>\n</mxfile>\n`;
 
-test('IM13 draw.io shapes, containers, labels (HTML and label cells), dashes and arrow ends map to one Torso grammar each; pages after the first and loose edges are reported on their line', async () => {
+test('IM13 draw.io shapes, containers, labels (HTML and label cells), dashes and arrow ends map to one DiagramPlay grammar each; pages after the first and loose edges are reported on their line', async () => {
   const { lines, warnings } = await roundTrip('drawio', DRAWIO);
   for (const expected of ['title "Content site"', 'group content "Content" dashed {', 'store cms "CMS"', 'box mdx "MDX"', 'box reader-browser "Reader Browser"', 'reader-browser -> cloudflare "HTTPS"', 'cloudflare -> cms "query" dashed', 'cloudflare -> mdx']) assert.ok(lines.includes(expected), `${expected}\n${lines.join('\n')}`);
   assert.ok(!lines.some((line) => line.startsWith('view graph down')), 'a figure drawn left to right flows right');
@@ -527,7 +526,7 @@ const EXCALIDRAW = JSON.stringify({ type: 'excalidraw', version: 2, elements: [
   { id: 'gone', type: 'rectangle', x: 0, y: 0, isDeleted: true },
 ] }, null, 2);
 
-test('IM14 Excalidraw shapes with their text, frames, bound arrows and arrow text map to one Torso grammar each; the top free text is the title and what cannot be placed is reported on its line', async () => {
+test('IM14 Excalidraw shapes with their text, frames, bound arrows and arrow text map to one DiagramPlay grammar each; the top free text is the title and what cannot be placed is reported on its line', async () => {
   const { lines, warnings } = await roundTrip('excalidraw', EXCALIDRAW);
   for (const expected of ['title "Login flow"', 'group client "Client" {', 'box web "Web"', 'decision valid "Valid?"', 'box done "Done" shape=circle', 'external auth-api "Auth API"', 'web -> valid "submit"', 'valid -> done dashed', 'valid -> auth-api', 'view graph down']) assert.ok(lines.includes(expected), `${expected}\n${lines.join('\n')}`);
   for (const [needle, message] of [['"loose"', /not bound to two shapes/], ['"aside"', /free text "note"/], ['"scribble"', /freehand stroke/]]) assert.ok(warningsAt(warnings, lineOf(EXCALIDRAW, needle)).some((w) => message.test(w)), needle);

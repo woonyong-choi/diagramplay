@@ -15,7 +15,7 @@ const DIRECTIONS = { TB: 'down', TD: 'down', BT: 'down', LR: 'right', RL: 'right
 // cost: time O(n·e), heap O(n), stack O(1)
 // vars: n = 줄 수, e = 개체 수
 // basis: estimate
-/** 개체 관계 그림 하나를 모형에 읽는다. 속성이 있는 개체는 테이블, 없는 개체는 상자다(Torso 테이블은 열이 하나 이상이다). */
+/** 개체 관계 그림 하나를 모형에 읽는다. 속성이 있는 개체는 테이블, 없는 개체는 상자다(DiagramPlay 테이블은 열이 하나 이상이다). */
 export function readEr({ lines }, model) {
   model.direction = 'down';
   const context = { model, open: undefined };
@@ -70,7 +70,7 @@ function entityOf(raw, line, model) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 속성 줄 `타입 이름 [PK|FK|UK, ...] ["설명"]`. FK는 가리키는 열이 없어 표시하지 않고, 설명은 Torso 열에 자리가 없다.
+// 속성 줄 `타입 이름 [PK|FK|UK, ...] ["설명"]`. FK는 가리키는 열이 없어 표시하지 않고, 설명은 DiagramPlay 열에 자리가 없다.
 function readAttribute(text, line, { model, open }) {
   const attribute = ATTRIBUTE.exec(text);
   if (!attribute) return void skip(model, line, `the attribute "${text}" is not imported. Write it as: type name [PK|FK|UK] ["comment"]`);

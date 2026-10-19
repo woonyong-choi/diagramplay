@@ -11,8 +11,8 @@
 Node.js 20 이상과 Git이 필요하다.
 
 ```sh
-git clone https://github.com/woonyong-choi/torso.git
-cd torso
+git clone https://github.com/woonyong-choi/diagramplay.git
+cd diagramplay
 npm ci
 ```
 

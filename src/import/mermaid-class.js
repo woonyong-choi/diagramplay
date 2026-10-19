@@ -44,8 +44,8 @@ function readLine(text, line, context) {
     return;
   }
   if (word === 'namespace') return void openNamespace(text, line, context);
-  if (/^note\b/.test(word)) return void skip(model, line, 'the note is not imported. A Torso class has no notes');
-  if (IGNORED.test(word)) return void skip(model, line, `"${word}" is not imported. Colors, links, and accessibility text are not part of a Torso class`);
+  if (/^note\b/.test(word)) return void skip(model, line, 'the note is not imported. A DiagramPlay class has no notes');
+  if (IGNORED.test(word)) return void skip(model, line, `"${word}" is not imported. Colors, links, and accessibility text are not part of a DiagramPlay class`);
   const annotation = ANNOTATION.exec(text);
   if (annotation) {
     if (!annotation[2]) return void skip(model, line, `the annotation "<<${annotation[1]}>>" outside a class is not imported. Write it as <<${annotation[1]}>> ClassName`);
@@ -105,7 +105,7 @@ function classOf(raw, line, { model, namespace }) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 클래스 주석. interface와 abstract는 Torso에 같은 뜻이 있고, enumeration은 enum 상자, 나머지는 그리지 않는다.
+// 클래스 주석. interface와 abstract는 DiagramPlay에 같은 뜻이 있고, enumeration은 enum 상자, 나머지는 그리지 않는다.
 function annotate(node, word, line) {
   node.annotation = { word: word.toLowerCase(), line };
 }
@@ -122,7 +122,7 @@ function finishClass(node, model) {
   }
   if (word === 'interface') node.classifier = 'interface';
   else if (word === 'abstract') node.abstract = true;
-  else if (word) change(model, node.annotation.line, `the annotation "<<${word}>>" of "${node.label}" is not drawn. Torso marks interface and abstract only`);
+  else if (word) change(model, node.annotation.line, `the annotation "<<${word}>>" of "${node.label}" is not drawn. DiagramPlay marks interface and abstract only`);
   for (const { text, line } of node.rawMembers) {
     const member = readMember(text, line, model);
     if (member) node.members.push(member);
@@ -133,7 +133,7 @@ function finishClass(node, model) {
 // vars: n = 멤버 글자 수
 // basis: estimate
 // 멤버 한 줄. 메서드는 `[보임]이름(매개변수)[*|$] [반환 타입]`, 필드는 `[보임][타입 ]이름[$]`이나 `[보임]이름: 타입`이다.
-// `*`는 추상, `$`는 정적이다. 타입이 없는 필드는 Torso 필드에 타입이 있어야 해서 `…`를 쓰고 알린다.
+// `*`는 추상, `$`는 정적이다. 타입이 없는 필드는 DiagramPlay 필드에 타입이 있어야 해서 `…`를 쓰고 알린다.
 function readMember(raw, line, model) {
   const visibility = VISIBILITY[raw[0]];
   const text = visibility ? raw.slice(1).trim() : raw;
@@ -168,7 +168,7 @@ const HEAD_KIND = { '<|': 'parent', '|>': 'parent', '*': 'whole', o: 'whole', '<
 // cost: time O(c), heap O(1), stack O(1)
 // vars: c = 클래스 수
 // basis: estimate
-// 관계 하나. Torso 선은 자식 → 부모, 전체 → 부분, 출발 → 대상으로 쓰므로 표기에 따라 두 끝을 정한다.
+// 관계 하나. DiagramPlay 선은 자식 → 부모, 전체 → 부분, 출발 → 대상으로 쓰므로 표기에 따라 두 끝을 정한다.
 function readRelation([, rawA, multA, leftEnd, line_, rightEnd, multB, rawB, label = ''], line, context) {
   const { model } = context;
   const a = classOf(rawA, line, context);
@@ -178,7 +178,7 @@ function readRelation([, rawA, multA, leftEnd, line_, rightEnd, multB, rawB, lab
   let isFromA = true;
   if (leftEnd && rightEnd) {
     if (leftEnd === '<' && rightEnd === '>') end = 'both';
-    else change(model, line, `the two-ended relation ${leftEnd}${line_}${rightEnd} is drawn with its right end only. A Torso relation has one kind`);
+    else change(model, line, `the two-ended relation ${leftEnd}${line_}${rightEnd} is drawn with its right end only. A DiagramPlay relation has one kind`);
   } else if (leftEnd) {
     end = leftEnd;
     isFromA = false;
@@ -197,7 +197,6 @@ function readRelation([, rawA, multA, leftEnd, line_, rightEnd, multB, rawB, lab
   model.edges.push(edge);
 }
 
-// Torso 다중성 꼴: 0 이상의 정수, `*`, `0..1`·`1..*` 같은 범위(src/source의 다중성 규칙)
 const MULTIPLICITY = /^(\d+|\*)(?:\.\.(\d+|\*))?$/;
 
 // cost: time O(1), heap O(1), stack O(1)
@@ -210,14 +209,13 @@ function multiplicity(rawFrom, rawTo, line, model) {
     change(model, line, `the cardinality "${rawFrom ?? ''}" to "${rawTo ?? ''}" is not drawn. A cardinality is a number, *, or a range such as 0..1 or 1..*`);
     return undefined;
   }
-  if ((rawFrom === undefined) !== (rawTo === undefined)) change(model, line, 'a relation with cardinality on one end only is drawn with "*" on the other end. Torso writes both ends');
+  if ((rawFrom === undefined) !== (rawTo === undefined)) change(model, line, 'a relation with cardinality on one end only is drawn with "*" on the other end. DiagramPlay writes both ends');
   else if (mult.from !== rawFrom.trim() || mult.to !== rawTo.trim()) change(model, line, `the cardinality "${rawFrom}" to "${rawTo}" is written as "${mult.from}" to "${mult.to}"`);
   return mult;
 }
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 끝 표기와 선 모양 → Torso 관계 종류
 function relationOf(kind, end, isDashed) {
   if (kind === 'parent') return isDashed ? 'realization' : 'inheritance';
   if (kind === 'whole') return end === '*' ? 'composition' : 'aggregation';

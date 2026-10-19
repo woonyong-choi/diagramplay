@@ -4,8 +4,8 @@
 
 ## 최소 예제
 
-```torso name=minimal
-torso
+```diagramplay name=minimal
+diagramplay
 title "잠금을 쥔 시간"
 pace 500ms
 
@@ -28,7 +28,7 @@ scene "쥐고 풀기"
   worker -> lock "해제" set="holder=none"
 ```
 
-![잠금을 쥔 시간](timing-minimal.svg)<!-- torso -->
+![잠금을 쥔 시간](timing-minimal.svg)<!-- diagramplay -->
 
 보기 블록의 이름은 줄이다. 값 이름은 값 줄이고 카드 이름은 카드 줄이다. 값이 모든 장면에서 `0`과 `1`만 가지면 높낮이 선이고, 그 밖에는 값 글을 담은 띠이다.
 
@@ -44,7 +44,7 @@ scene "쥐고 풀기"
 
 ## 장면과 움직임
 
-타이밍 보기는 따로 사건을 적지 않는다. 같은 원본의 이동(`a -> b`)과 값 바꾸기(`set=`, `on`)가 그리는 시간표를 읽으므로, 순서 보기나 그래프 보기의 점이 닿는 순간에 띠가 바뀐다. 장면 탭은 그 장면의 시간 축으로 바꾸고, 재생 중에는 재생 막대가 지나간 만큼 드러난다. 장면 상태(`status=`)는 카드 줄 이름 옆 알약이다. 잠금과 시간 초과는 [timing 예제](../../examples/timing.torso), 요청·응답 핸드셰이크는 [handshake 예제](../../examples/handshake.torso)가 보인다.
+타이밍 보기는 따로 사건을 적지 않는다. 같은 원본의 이동(`a -> b`)과 값 바꾸기(`set=`, `on`)가 그리는 시간표를 읽으므로, 순서 보기나 그래프 보기의 점이 닿는 순간에 띠가 바뀐다. 장면 탭은 그 장면의 시간 축으로 바꾸고, 재생 중에는 재생 막대가 지나간 만큼 드러난다. 장면 상태(`status=`)는 카드 줄 이름 옆 알약이다. 잠금과 시간 초과는 [timing 예제](../../examples/timing.diagramplay), 요청·응답 핸드셰이크는 [handshake 예제](../../examples/handshake.diagramplay)가 보인다.
 
 ## 흔한 오류
 
@@ -55,4 +55,4 @@ scene "쥐고 풀기"
 | 카드 줄을 가리키는 구간 표시 | `"a" is a card row. A timing note marks the times a value holds a state` | `syntax` | 값 줄을 가리킨다 |
 | 블록 없는 보기 | `a timing view lists its rows in a block: view timing {` | `syntax` | 블록에 줄을 적는다 |
 
-`code`는 `torso check figure.torso --json`으로 본다.
+`code`는 `diagramplay check figure.diagramplay --json`으로 본다.

@@ -4,8 +4,8 @@
 
 ## 최소 예제
 
-```torso name=minimal
-torso
+```diagramplay name=minimal
+diagramplay
 title "웹 서비스 구성"
 
 group edge "엣지" dashed {
@@ -31,7 +31,7 @@ scene "요청"
   server -> db time=700ms
 ```
 
-![웹 서비스 구성](architecture-minimal.svg)<!-- torso -->
+![웹 서비스 구성](architecture-minimal.svg)<!-- diagramplay -->
 
 `group`이 중첩 구역을 만든다. 기본 그룹 면은 투명하고, `tone`과 `appearance=filled`를 함께 쓰면 해당 계열의 옅은 면을 칠한다. `shape=tile`은 아이콘 카드이고 `icon=`은 내장 아이콘 이름이다.
 
@@ -55,7 +55,7 @@ scene "요청"
 
 ## 장면과 움직임
 
-구조 그림과 같은 박자와 흐름을 쓴다. 번호는 읽는 순서일 뿐 재생 장면과 따로이다. 대표 예는 [architecture 예제](../../examples/architecture.torso)이고, 복제본으로 넘어가는 `quiet` 선과 `status="db=fail, replica=ok"` 장면도 거기 있다. 동시에 들어오는 흐름과 값 변화는 [구조 그림](flow.md)의 `track`을 본다.
+구조 그림과 같은 박자와 흐름을 쓴다. 번호는 읽는 순서일 뿐 재생 장면과 따로이다. 대표 예는 [architecture 예제](../../examples/architecture.diagramplay)이고, 복제본으로 넘어가는 `quiet` 선과 `status="db=fail, replica=ok"` 장면도 거기 있다. 동시에 들어오는 흐름과 값 변화는 [구조 그림](flow.md)의 `track`을 본다.
 
 ## 흔한 오류
 
@@ -71,4 +71,4 @@ scene "요청"
 | 도형 밖으로 넘치는 글 | 번호 1 검사의 메시지 | `check-1` | 이름을 줄인다 |
 | 문서 폭에서 너무 작은 글 | 번호 10 검사의 메시지 | `check-10` | 도형을 줄이거나 그림을 나눈다(경고) |
 
-`code`는 `torso check figure.torso --json`으로 본다. 항목 전체는 [그림 검사](../design/figure-check.md)에 있다.
+`code`는 `diagramplay check figure.diagramplay --json`으로 본다. 항목 전체는 [그림 검사](../design/figure-check.md)에 있다.

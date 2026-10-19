@@ -50,7 +50,7 @@ function readLine(text, line, context) {
   const word = text.split(/\s+/)[0];
   if (/^note$/i.test(word)) {
     if (!text.includes(':')) context.inNote = line;
-    return skip(model, line, 'the note is not imported. A Torso state has no notes');
+    return skip(model, line, 'the note is not imported. A DiagramPlay state has no notes');
   }
   if (word === 'state') return readStateLine(text.slice(5).trim(), line, context);
   if (word === 'direction') {
@@ -66,7 +66,7 @@ function readLine(text, line, context) {
   const described = /^([^:\s]+)\s*:\s*(.+)$/.exec(text);
   if (described) {
     mention(cleanKey(described[1], line, context), line, context);
-    return skip(model, line, `the description of "${described[1]}" is not imported. A Torso state shows its name`);
+    return skip(model, line, `the description of "${described[1]}" is not imported. A DiagramPlay state shows its name`);
   }
   if (/^[\w-]+$/.test(text)) return void mention(cleanKey(text, line, context), line, context);
   return skip(model, line, `"${text}" is not imported. It is not a Mermaid state statement`);
@@ -94,7 +94,7 @@ function readStateLine(rest, line, context) {
   if (label) node.label = label;
   if (special?.[2] === 'choice') node.kind = 'decision';
   else if (special) change(model, line, `the ${special[2]} state "${key}" is drawn as a state`);
-  if (described) skip(model, line, `the description of "${key}" is not imported. A Torso state shows its name`);
+  if (described) skip(model, line, `the description of "${key}" is not imported. A DiagramPlay state shows its name`);
 }
 
 // cost: time O(1), heap O(1), stack O(1)
@@ -148,7 +148,7 @@ function readTransition([, rawFrom, rawTo, event], line, context) {
 // cost: time O(g), heap O(1), stack O(1)
 // vars: g = 묶은 상태 수
 // basis: estimate
-// 전이를 선으로 놓는다. Torso 그룹은 전이의 끝이 될 수 없어서, 묶음으로 들어오는 전이는 그 묶음의 처음 상태로 보내고 묶음에서 나가는 전이는 건너뛴다.
+// 전이를 선으로 놓는다. DiagramPlay 그룹은 전이의 끝이 될 수 없어서, 묶음으로 들어오는 전이는 그 묶음의 처음 상태로 보내고 묶음에서 나가는 전이는 건너뛴다.
 function placeTransition({ from, to, label, line }, model) {
   const group = groupOf(model, from);
   if (group) return skip(model, line, `the transition from the composite state "${group.label}" is not imported. A transition starts at a state`);
