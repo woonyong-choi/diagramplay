@@ -328,6 +328,37 @@ test('U7 in a drawn figure each head a line points at exists once, and ordinary 
 
 // ---- 아이콘 ----
 
+test('U8 a brand has the same measured and drawn size in a card, tile, store and group title while a person tile keeps its role size', async () => {
+  const { groupHead } = await import('../src/measure/sizes.js');
+  const result = await build(torso(`
+    group g "G" icon=redis {
+      box a "A" icon=redis
+      box t "T" shape=tile icon=redis
+      store s "S" icon=redis
+      box p "P" shape=tile icon=user
+    }
+  `));
+  const dom = parseMarkup(await toSvg(result, { isStatic: true }));
+  const brandDecor = [groupHead(result.scene.groups[0]).decor, ...result.scene.items.slice(0, 3).map(item => item.decor)];
+  const measured = brandDecor.map(decor => decor.items.find(item => item.kind === 'icon'));
+  const drawn = findAll(dom, node => hasClass(node, 'fl-symbol-brand'));
+  assert.equal(drawn.length, measured.length);
+  for (const [index, symbol] of drawn.entries()) {
+    const icon = measured[index];
+    const transform = findOne(symbol, node => hasClass(node, 'fl-icon')).attrs.transform;
+    const scale = Number(/scale\(([^)]+)\)/.exec(transform)[1]);
+    assert.ok(Math.abs(scale * values.icon['size-small'] - icon.w) < EPS, 'SVG uses the measured brand width');
+    assert.equal(icon.h, icon.w);
+  }
+  const person = result.scene.items.find(item => item.id === 'p').decor.items.find(item => item.kind === 'icon');
+  assert.equal(person.w, values.spacing.figure.icon.tile);
+  assert.equal(person.h, person.w);
+  const personSymbol = findOne(dom, node => hasClass(node, 'fl-symbol-concept'));
+  const personTransform = findOne(personSymbol, node => hasClass(node, 'fl-icon')).attrs.transform;
+  assert.ok(Math.abs(Number(/scale\(([^)]+)\)/.exec(personTransform)[1]) * values.icon['size-small'] - person.w) < EPS, 'SVG preserves the person tile size');
+  assert.deepEqual(measured.map(icon => icon.w), measured.map(() => measured[0].w), 'the same brand size across all four contexts');
+});
+
 test('U8 a concept icon is one symbol: the card header, the tile and the group title draw the same shapes in the same role, a brand keeps its own glyph', async () => {
   for (const name of ['admin', 'user']) {
     const result = await build(torso(`
