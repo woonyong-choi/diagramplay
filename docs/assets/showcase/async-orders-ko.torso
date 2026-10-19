@@ -2,15 +2,15 @@ torso
 title "주문 이벤트가 퍼져 나간다"
 subtitle "네 곳의 주문이 이벤트 큐에 쌓이고, 재고, 결제, 알림 소비자가 각자 속도로 꺼내 간다. 메일 하나는 도중에 사라진다"
 
-box web "웹" icon=desktop
-box app "앱" icon=mobile
-box partner "제휴사" icon=apigw
-box batch "배치" icon=server
-box api "주문 API" icon=server
+box web "웹"
+box app "앱"
+box partner "제휴사"
+box batch "배치"
+box api "주문 API"
 queue q "주문 이벤트" slots=10 from=6
-box stock "재고" icon=db
+box stock "재고"
 box pay "결제"
-box notify "알림" icon=mobile
+box notify "알림"
 
 value left "남은 수" on=stock from=120
 value paid "결제 수" on=pay

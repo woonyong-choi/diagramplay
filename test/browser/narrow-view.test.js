@@ -85,6 +85,43 @@ test('HTML figures fill the frame width without horizontal scroll in standalone 
   }
 });
 
+test('administrator illustrations accompany visible role labels in the shipped examples', async () => {
+  const documents = [];
+  for (const [path, label] of [
+    ['examples/queue.torso', '운영자'],
+    ['docs/assets/showcase/cloud-architecture-ko.torso', '운영자'],
+    ['docs/assets/showcase/cloud-architecture-en.torso', 'Operator'],
+  ]) {
+    const source = new URL(`../../${path}`, import.meta.url);
+    const built = await buildFigure(await readFile(source, 'utf8'), { baseDir: fileURLToPath(new URL('.', source)), strict: true });
+    documents.push({ path, label, html: await toHtml(built, path) });
+  }
+  const browser = await launchBrowser();
+  try {
+    for (const colorScheme of ['light', 'dark']) for (const width of [390, 1280]) {
+      const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme, reducedMotion: 'reduce' });
+      try {
+        const errors = [];
+        for (const document of documents) {
+          const page = await context.newPage();
+          page.on('pageerror', error => errors.push(error.message));
+          await page.setContent(document.html);
+          await page.evaluate(() => window.document.fonts.ready);
+          const label = page.locator('.fl-canvas .fl-node[data-id="admin"] text.label').first();
+          assert.equal(await label.textContent(), document.label, `${document.path}: role is explicit`);
+          assert(await label.isVisible(), `${document.path}: role label is visible at ${width}px in ${colorScheme}`);
+          await page.close();
+        }
+        assert.deepEqual(errors, []);
+      } finally {
+        await context.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
 function measure() {
   const canvas = document.querySelector('.fl-canvas');
   const panels = canvas.querySelector('.dp-panels');

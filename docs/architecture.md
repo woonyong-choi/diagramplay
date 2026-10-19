@@ -78,8 +78,8 @@
 ### 공통 디자인 가져오기
 
 1. 디자인은 `@woonyong-choi/design-tokens` 패키지다. `peerDependencies`(`^0.1.1` 같은 semver 범위)로 선언하므로 Torso를 설치한 앱이 고른 commit 하나를 그림도 읽는다. 홈페이지 같은 호스트의 그림은 호스트의 토큰·CSS·아이콘으로 그려진다.
-2. 이 저장소는 자체 시험·그림 생성을 위해 `devDependencies`에 `github:woonyong-choi/design-tokens#<commit>`을 고정한다. 코드는 패키지 이름으로 가져오고(`@woonyong-choi/design-tokens/ui/index.mjs`) 파일은 `createRequire(import.meta.url).resolve`로 찾는다. 저장소에 디자인 사본을 두지 않는다.
-3. 디자인을 올릴 때는 `npm install --save-dev github:woonyong-choi/design-tokens#<commit>` 뒤 `npm run figures`, `npm test`, `npm run check`를 실행해 PR로 반영한다. Torso에서 토큰을 합치거나 다시 생성하지 않는다.
+2. 이 저장소는 자체 시험·그림 생성을 위해 공통 정본이 생성한 `diagram` 배포 tarball을 `devDependencies`에 Git commit URL로 고정한다. 공통 패키지의 이름과 peer 계약은 같다. 코드는 패키지 이름으로 가져오고(`@woonyong-choi/design-tokens/ui/index.mjs`) 파일은 `createRequire(import.meta.url).resolve`로 찾는다. 저장소에 디자인 사본을 두지 않는다.
+3. 디자인을 올릴 때는 정본의 새 `diagram` tarball URL로 개발 의존성과 잠금 파일을 갱신한 뒤 `npm run figures`, `npm test`, `npm run check`를 실행해 PR로 반영한다. Torso에서 토큰을 합치거나 다시 생성하지 않는다. 전체 카탈로그를 쓰는 호스트는 공통 전체 패키지를 직접 선택할 수 있다.
 4. 다른 저장소로 파일을 밀어 넣는 자동 전달은 없다. 소비자 저장소는 자기 `package.json`에서 렌더러와 디자인의 commit을 고른다. 홈페이지는 이름 변경 전 `thinkflow` 버전을 사용할 수 있어 현재 Torso 문법과 일치한다고 가정하지 않는다.
 
 ### 재생하기

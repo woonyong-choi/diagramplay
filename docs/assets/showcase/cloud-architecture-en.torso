@@ -4,20 +4,20 @@ subtitle "Web requests reach the app server through DNS, a CDN, a load balancer,
 
 person user "Web user"
 person admin "Operator" icon=admin
-group net "Internet" icon=cdn dashed direction=right {
-  box dns "DNS" shape=tile icon=dns
-  box cdn "CDN" shape=tile icon=cdn
+group net "Internet" dashed direction=right {
+  box dns "DNS"
+  box cdn "CDN"
 }
-group cloud "Cloud" icon=region direction=down dashed {
-  box lb "Balancer" shape=tile icon=lb
-  box web "Web server" shape=tile icon=server count=3
-  box app "App server" shape=tile icon=server
+group cloud "Cloud" direction=down dashed {
+  box lb "Balancer"
+  box web "Web server" count=3
+  box app "App server"
   group data "Data" direction=right {
-    store db "DB primary" icon=db badge="RW"
-    store cache "Cache" icon=cache badge="RW"
+    store db "DB primary" badge="RW"
+    store cache "Cache" badge="RW"
   }
-  box vpn "VPN" shape=tile icon=vpn
-  box bastion "Bastion" shape=tile icon=bastion
+  box vpn "VPN"
+  box bastion "Bastion"
 }
 
 user -> dns no=1

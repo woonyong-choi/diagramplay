@@ -2,15 +2,15 @@ torso
 title "Order events fan out"
 subtitle "Orders from four sources fill an event queue while stock, payment, and notification consumers take them at their own pace. A mail is lost on the way"
 
-box web "Web" icon=desktop
-box app "App" icon=mobile
-box partner "Partner" icon=apigw
-box batch "Batch" icon=server
-box api "Order API" icon=server
+box web "Web"
+box app "App"
+box partner "Partner"
+box batch "Batch"
+box api "Order API"
 queue q "Order events" slots=10 from=6
-box stock "Stock" icon=db
+box stock "Stock"
 box pay "Payment"
-box notify "Notify" icon=mobile
+box notify "Notify"
 
 value left "Left" on=stock from=120
 value paid "Paid" on=pay

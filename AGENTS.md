@@ -42,7 +42,7 @@ npm run check:package -- /absolute/new-consumer-path
 
 `npm run check:sources`는 예제, 문서 그림, showcase 원본(`examples`, `docs/assets`, `docs/assets/showcase`의 `.torso`)을 `--strict`로 확인하고, `npm run check:figures`는 폴더를 걸어 찾은 모든 마크다운 문서(`scripts/run-md.mjs`, 울타리 모양과 상관없고 블록을 모두 지운 문서도 포함)의 `md --check --strict`와 showcase·how-it-works SVG가 원본에서 다시 만든 결과와 같은지(`build-showcase.mjs --check`), 탭 아이콘 PNG가 README 로고에서 다시 줄인 화소와 같은지(`build-favicon.mjs --check`) 본다. 고칠 때는 `npm run figures`다.
 
-`npm run check`는 design-tokens의 `design-tokens-check`로 소스의 하드코딩을 검사한다. 디자인은 peer 의존성이고 이 저장소는 `devDependencies`에 commit을 고정한다. 공통 정본 변경 후 `npm install --save-dev github:woonyong-choi/design-tokens#<commit>`, `npm run figures`, `npm test`, `npm run check` 순서로 확인한다.
+`npm run check`는 design-tokens의 `design-tokens-check`로 소스의 하드코딩을 검사한다. 디자인은 peer 의존성이고 이 저장소는 `devDependencies`에 commit을 고정한다. 공통 정본 변경 후 새 commit의 `diagram` 배포 tarball URL로 개발 의존성과 잠금 파일을 갱신하고 `npm run figures`, `npm test`, `npm run check` 순서로 확인한다.
 
 `npm run check:advisory`는 유지보수 힌트를 알린다. 파일 300줄, 함수 40줄, 매개변수 3개(`check-size.mjs`)와 비용 주석 누락(`check-cost-comments.mjs`)을 찾고 항목이 있어도 0으로 끝난다. 두 검사는 줄 시작 모양을 정규식으로 읽어서 여러 줄 매개변수, 블록 주석 안의 중괄호, 메서드 호출 이름이 같은 재귀 판정 등을 틀리게 읽는다. 설계나 정확성의 증거가 아니므로 항목을 없애려고 일관된 코드를 쪼개거나 근거 없는 점근 표기를 적지 않는다. 실행 오류(없는 경로, 잘못된 옵션)는 이 명령도 2로 실패한다. 알고리즘의 실제 복잡도를 설명하는 비용 주석은 계속 쓴다.
 

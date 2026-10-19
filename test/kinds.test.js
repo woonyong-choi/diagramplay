@@ -25,8 +25,8 @@ test('K-arch a group holds boxes with badges, replica counts, icons and numbered
   const source = (scene) => torso(`
     person u "User"
     group cloud "Cloud" direction=down badge="Zone" {
-      box web "Web" count=3 badge="L7" icon=server
-      store db "DB" icon=db
+      box web "Web" count=3 badge="L7" icon=nginx
+      store db "DB" icon=postgresql
     }
     u -> web "req" no=1
     web -> db "sql" no=2 quiet

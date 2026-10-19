@@ -169,7 +169,7 @@ test('T5 the fit check reads the measured texts: a text outside its card is an i
 // 구조를 보이는 내용(관계 그래프)은 카드 종류와 상관없이 같은 하한 폭으로 카드를 넓힌다: 이름은 줄이거나 자르지 않고 열 사이는 겹치지 않는다.
 const GRAPH_CARDS = {
   plain: 'box a "A"',
-  headed: 'box a "A" icon=server',
+  headed: 'box a "A" icon=nginx',
   table: 'table a "A" {\n id bigint pk\n}',
   api: 'api a "GET /a" {\n amount "int"\n}',
 };

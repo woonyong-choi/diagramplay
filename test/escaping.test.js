@@ -261,18 +261,21 @@ test('I2 icon references that are missing, from an unknown set, or that reach ou
 
 test('I2 built-in icons: concept names and technology brands draw shapes; an unknown name is an error', async () => {
   const plain = await toSvg(await build(torso('box a "A"\n')), { isStatic: true });
-  for (const name of ['server', 'server-detail', 'db', 'user', 'git', 'postgresql']) {
+  const drawn = new Map();
+  for (const name of ['admin', 'user', 'git', 'github', 'redis', 'postgresql']) {
     const svg = await toSvg(await build(torso(`box a "A" icon=${name}\n`)), { isStatic: true });
+    drawn.set(name, svg);
     assert.notEqual(svg, plain, `${name} changes the picture`);
     parseMarkup(svg);
   }
-  for (const name of ['not-an-icon', 'serve']) {
+  assert.notEqual(drawn.get('admin'), drawn.get('user'), 'the administrator keeps its manager marker');
+  for (const name of ['not-an-icon', 'admi']) {
     const unknown = torso(`box a "A" icon=${name}\n`);
     const problem = (await reject(unknown)).find(p => p.line === lineOf(unknown, 'icon='));
     assert.ok(problem);
     assert.match(problem.message, /assets\/icons\/catalog\.json/);
     assert.doesNotMatch(problem.message, /Declared:/, 'an icon typo does not print the entire shared library');
-    if (name === 'serve') assert.match(problem.message, /Did you mean "server"/);
+    if (name === 'admi') assert.match(problem.message, /Did you mean "admin"/);
   }
 });
 

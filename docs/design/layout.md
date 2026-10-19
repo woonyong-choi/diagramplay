@@ -161,7 +161,8 @@
 
 ### 아이콘
 
-- 기본 세트 `builtin`은 공통 `ui/build/icons.mjs`가 읽는 배포 카탈로그(`@woonyong-choi/design-tokens/assets/icons/catalog.json`)의 이름과 별칭을 사용한다. 각 이름은 `assets/icons/<의미 범주>/<이름>.svg` 하나를 가리킨다. `src/icons/index.js`가 `ICON_NAMES`를 만들며 접두사 없이 사용한다. 없는 이름은 가까운 이름과 카탈로그 위치를 안내하며 전체 등록명을 오류에 나열하지 않는다.
+- Torso의 기본 `diagram` 배포는 사용자와 관리자(`user`, `admin`), 상태·조작과 아키텍처 서비스 아이콘만 포함한다. 서버·DB·캐시·큐·API와 그 밖의 기술 역할은 도형과 라벨로 구분한다. 제외된 아이콘을 쓰던 소스는 사용자 SVG 세트를 등록하거나 전체 공통 패키지를 설치한 호스트에서 실행한다.
+- 기본 세트 `builtin`은 설치한 공통 `ui/build/icons.mjs`가 읽는 배포 카탈로그(`@woonyong-choi/design-tokens/assets/icons/catalog.json`)의 이름과 별칭을 사용한다. 각 이름은 `assets/icons/<의미 범주>/<이름>.svg` 하나를 가리킨다. `src/icons/index.js`가 `ICON_NAMES`를 만들며 접두사 없이 사용한다. 없는 이름은 가까운 이름과 카탈로그 위치를 안내하며 전체 등록명을 오류에 나열하지 않는다.
 - 개념 아이콘과 브랜드는 홈페이지와 같은 SVG 원본과 `ui/svg.mjs` 렌더러를 사용한다. 공통 `iconBody`가 `icon.size-small` 격자에 맞추고, Torso는 측정한 정사각 칸에 배치한다. 같은 도형이 반복되어도 내부 마스크 ID는 삽입마다 구분하며, 재생·정지 층도 서로 다른 ID를 쓴다. 내장 SVG의 색과 모양은 보존하며 별도 도형이나 팔레트를 두지 않는다. 출처와 라이선스는 카탈로그의 `libraries`, `brands`와 `assets/icons/licenses/`, 저장소의 `NOTICE`에 있다. 사용자 세트만 아래의 단색 SVG 제약을 따른다.
 - 재생기 조작 아이콘은 같은 카탈로그의 `controls` 역할과 공통 `ui/icons.mjs`의 `ControlIcon`을 사용한다. 단일 HTML도 공통 렌더러와 조작부에 필요한 SVG만 포함한다. 색은 단추의 글자색을 따르고 크기는 공통 조작 토큰이 정한다. 문법 복사, HTML 내려받기, 전체화면과 확대·맞춤을 제공하며 재생·일시정지·배속·반복 단추는 없다([재생](playback.md)).
 - 사용자 세트: `icons 이름 "폴더"`로 등록하고 `icon=이름:파일이름`으로 쓴다. 저장소에는 넣지 않는다(라이선스가 불명확한 세트를 사용자가 직접 쓰는 경우). 렌더 때 파일을 읽어 `g`, `path`, `circle`, `ellipse`, `rect`, `line`, `polyline`, `polygon`과 좌표, 변환, 칠하기 속성만 다시 쓰고(색은 모두 `currentColor`나 `none`) 나머지(script, image, style, use, 그라디언트 등)는 오류다. 크기는 루트 `viewBox`(유한한 숫자 넷, 폭과 높이는 양수)가 정하고, `viewBox`를 적었는데 틀리면 `width`와 `height`로 넘어가지 않고 오류다. `viewBox`가 없을 때만 `width`와 `height`(둘 다 유한한 양수, `px` 허용)를 쓴다. 숫자 속성은 무한대로 넘치는 값(`1e309`)도 오류다. 읽을 때 틀을 24 격자 한가운데에 맞추는 변환을 아이콘 안에 한 번 적어 두므로(반올림 없이), 그릴 때는 격자만 본다. 격자에 맞추는 배율이나 이동이 유한한 0 아닌 수로 나타나지 않는 크기(`1e-320`)는 `icon=` 줄의 오류다. 64KB, 요소 600개 상한이다.

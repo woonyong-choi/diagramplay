@@ -2,10 +2,10 @@ torso
 title "트래픽 급증과 지표"
 subtitle "요청이 몰리면 서버 카드의 값이 바뀌고, 같은 값에 묶인 차트가 함께 움직인다"
 
-box lb "로드 밸런서" icon=lb
-box a1 "API 1" icon=server
-box a2 "API 2" icon=server
-box a3 "API 3" icon=server
+box lb "로드 밸런서"
+box a1 "API 1"
+box a2 "API 2"
+box a3 "API 3"
 
 value p95 "p95 지연(ms)" on=lb from=110
 value board "대시보드 p95" on=lb ref=p95
