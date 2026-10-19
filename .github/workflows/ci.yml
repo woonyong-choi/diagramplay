@@ -7,13 +7,13 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         node: [20, 22]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -23,7 +23,7 @@ jobs:
       - run: npm run check:docs
       - run: npm run check:sources
       - run: npm run check:figures
-      # 좁은 화면 HTML의 자연 글자 크기·가로 스크롤·삽입 높이(#272). ubuntu-latest에 설치된 Chrome을 쓴다.
+      # 좁은 화면 HTML의 자연 글자 크기·가로 스크롤·삽입 높이(#272). ubuntu-24.04에 설치된 Chrome을 쓴다.
       - if: matrix.node == 22
         run: npm run test:browser
       - name: Check installed npm package
@@ -31,9 +31,9 @@ jobs:
 
   # 저장소 루트 action.yml을 이 저장소에서 한 번 써서 동작을 확인한다. 추적하는 모든 .diagramplay와 .md(기본 paths)를 보므로 원본에 오류나 경고가 있거나 마크다운 그림이 낡으면 실패한다.
   action:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./
         with:
           mode: check
