@@ -34,7 +34,7 @@ test('K-arch a group holds boxes with badges, replica counts, icons and numbered
   `);
   const walked = source('scene "s" mode=static\n  u -> web\n  web -> db\n');
   const texts = textsOf(await stillDom(walked));
-  for (const word of ['User', 'Cloud', 'Zone', 'Web', 'L7', 'DB', 'req', 'sql', '1', '2', '(3)']) assert.ok(texts.includes(word), `${word} in ${JSON.stringify(texts)}`);
+  for (const word of ['User', 'Cloud', 'Zone', 'Web', 'L7', 'DB', 'req', 'sql', '1', '2', '×3']) assert.ok(texts.includes(word), `${word} in ${JSON.stringify(texts)}`);
   await rejectedAt(source(''), 'quiet', /never/);
   for (const [line, pattern] of [
     ['box a "A" badge="toolongbadge"', /badge|8/],
