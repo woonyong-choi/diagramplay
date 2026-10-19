@@ -42,7 +42,8 @@ Torso는 `torso` 원본 하나로 구조, 순서, 상태, 스키마, API, 클래
 
 | 표현 | 문법 | 예제 | 확인 |
 |---|---|---|---|
-| 구성도: 사용자, 외부 시스템, 저장소, 중첩 그룹, 아이콘, 배지, 복제 개수, 타일, 번호 선, 등록한 아이콘 세트, 조용한 선 | `person`, `external`, `store`, `group`, `icons`, `icon=`, `badge=`, `count=`, `shape=tile`, `no=`, `quiet` | `architecture` | `test/kinds.test.js`(K-arch), `test/escaping.test.js`(사용자 아이콘), `test/examples.test.js` |
+| 구성도: 사용자, 외부 시스템, 저장소, 중첩 그룹, 아이콘, 배지, 복제 개수, 타일, 번호 선, 조용한 선 | `person`, `external`, `store`, `group`, `icon=`, `badge=`, `count=`, `shape=tile`, `no=`, `quiet` | `architecture` | `test/kinds.test.js`(K-arch), `test/examples.test.js` |
+| 사용자 SVG 세트 | `icons`, `icon=세트:이름` | 배포 예제 없음 | `test/escaping.test.js`(사용자 아이콘) |
 | 색: 한 낱말 색과 표현 방식 | `tone=`, `appearance=plain\|filled\|outline`(도형, 그룹, `show`) | `architecture`, `flow` | `test/authoring.test.js`, `test/examples.test.js` |
 | 흐름: 동시 이동, 흐름 줄, 구간별 시간, 손실, 갈림길, 카드 바꾸기 | `&`, `track`, `legs`, `lost`, `decision`, `show`, `clear`, `light` | `flow`, `architecture` | `test/values.test.js`, `test/examples.test.js` |
 | 값: 증감, 대입, 참조, 읽기, 장면 사이 유지와 재설정 | `value`, `on`, `set=`, `ref=`, `:=`, `keep=` | `flow`, `metric`, `donut`, `stack`, `pointer` | `test/values.test.js`, `test/examples.test.js` |

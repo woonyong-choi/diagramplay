@@ -2,10 +2,10 @@ torso
 title "주문 요청 분산 추적"
 subtitle "한 요청이 서비스를 지나는 호출 관계와 구간별 실제 소요 시간을 함께 본다"
 
-box gw "Gateway" icon=apigw
-box order "주문 서비스" icon=server
-box pay "결제 서비스" icon=server
-store db "주문 DB" icon=db
+box gw "Gateway"
+box order "주문 서비스"
+box pay "결제 서비스"
+store db "주문 DB"
 
 trace t "POST /orders" unit=ms {
   span root "요청 전체" lane=gw at=0 dur=420

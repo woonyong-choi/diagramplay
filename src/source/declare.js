@@ -13,9 +13,6 @@ const COLUMN_WORDS = [...Object.keys(optionsOf('column')), 'ondelete', 'from', '
 
 // API 카드의 제목. `메서드 경로`이고 경로는 `/`로 시작하거나 전체 주소다.
 const API_LABEL = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) (\/\S*|https?:\/\/\S+)$/;
-// 표와 API 카드가 아이콘을 따로 받지 않으므로 공통 카드 머리에 놓는 의미 아이콘(데이터, 게이트웨이). 클래스는 UML 표기라 아이콘이 없다.
-const TABLE_ICON = 'db';
-const API_ICON = 'apigw';
 // 블록을 여는 줄 뒤에 올 수 있는 것은 `{`뿐이다.
 const OPEN_FORM = (word, id) => `write ${word} as: ${word} ${id} "name" {`;
 
@@ -72,7 +69,7 @@ export function readTable({ tokens, line }, ctx) {
     skipBlock('table', { id: id.value, columns: [] }, { tokens, line }, ctx);
     return;
   }
-  pushBlockCard({ id: id.value, shape: 'table', label: label.value, icon: TABLE_ICON, columns: [], keys: [], foreignKeys: [], parent: parentFor(id, ctx), line }, 'table', ctx);
+  pushBlockCard({ id: id.value, shape: 'table', label: label.value, columns: [], keys: [], foreignKeys: [], parent: parentFor(id, ctx), line }, 'table', ctx);
 }
 
 // cost: time O(t), heap O(t), stack O(1)
@@ -93,7 +90,7 @@ export function readApi({ tokens, line }, ctx) {
   }
   const form = API_LABEL.exec(label.value);
   if (!form) ctx.problems.error(line, `an api title is a method and a path such as "POST /orders". Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS. Found "${label.value}"`);
-  pushBlockCard({ id: id.value, shape: 'api', label: label.value, icon: API_ICON, method: form?.[1], url: form?.[2], columns: [], parent: parentFor(id, ctx), line }, 'api', ctx);
+  pushBlockCard({ id: id.value, shape: 'api', label: label.value, method: form?.[1], url: form?.[2], columns: [], parent: parentFor(id, ctx), line }, 'api', ctx);
 }
 
 // cost: time O(t), heap O(1), stack O(1)

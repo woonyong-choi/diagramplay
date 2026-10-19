@@ -292,9 +292,11 @@ GitHub 마크다운은 ` ```torso ` 블록을 코드로 보이고 아래 이미�
 
 ### 패키지
 
+저장소와 설치 검사는 공통 정본이 생성한 `diagram` tarball을 Git commit URL로 고정한다. 이 배포물에는 그림·상태·조작과 아키텍처 서비스에 쓰는 아이콘만 있다. 생활·장식·소셜 등 전체 공통 카탈로그의 나머지 아이콘은 설치하지 않는다. 선정 목록은 설치된 디자인 패키지의 `designTokensProfile`과 아이콘 카탈로그가 정본이다. 다른 호스트가 공통 전체 패키지를 직접 선택하면 그 호스트의 카탈로그를 그대로 읽는다. 생성 HTML은 호스트의 카탈로그 크기와 관계없이 실제 조작에 필요한 아이콘 9개만 내장한다.
+
 `package.json`의 `files`는 `src`, 탭 아이콘 PNG(`docs/assets/torso-favicon*.png`), `LICENSE`, `NOTICE`다. README와 `package.json`은 npm이 늘 넣는다. 글꼴은 의존 패키지(`pretendard`, `@expo-google-fonts/*`, `jetbrains-mono`)로 설치된다. 내장 아이콘·공통 스타일·그 라이선스는 peer 의존성인 `@woonyong-choi/design-tokens` 패키지에 있고 `src/icons`는 공통 카탈로그 읽기와 사용자 SVG 검증을 맡는다. 시험, 문서, 예제, 스크립트는 올라가지 않는다. 실행 파일은 `bin`의 `torso` 하나다. 라이브러리는 `buildFigure`, `toSvg`, `toHtml`, `FigureError`를 내보낸다. Node.js ESM API의 입력 옵션과 진단 형식은 [공개 선언](../../src/index.d.ts)이 정본이고 [사용법](../usage.md#javascript에서-조립하기)에 호출 예시가 있다. 빌드 결과는 경고 목록만 공개하며 내부 모형을 변경하거나 직렬화하는 API는 제공하지 않는다.
 
-`npm run check:package -- /absolute/new-consumer-path`는 저장소 밖의 새 소비 환경을 만들고 실제 `npm pack` 산출물을 설치한다. 경로가 이미 있으면 거절하며 자신이 만든 경로는 성공·실패 뒤 모두 지운다. npm 공개 레지스트리에 접근해야 한다. 사용자 npm 설정과 인증 환경을 제외하고 공개 런타임 의존성과 peer 의존성인 디자인(개발 의존성에 고정한 commit)만 설치한다. 검사 입력은 기존 flow 예제이고 CLI와 공개 API가 같은 SVG·HTML을 만드는지, Markdown 반영과 내장 디자인·글꼴을 확인한다. TypeScript 소비자는 설치된 선언을 `NodeNext`로 컴파일한 뒤 실행하고, 잘못된 옵션과 임의 객체를 빌드 결과로 전달하는 호출은 컴파일에서 거부하는지 확인한다. 컴파일러는 개발 의존성으로만 두고 소비 환경에는 설치하지 않는다. 실제 npm 발행과 사용자 인증 권한은 이 검사에 포함하지 않는다.
+`npm run check:package -- /absolute/new-consumer-path`는 저장소 밖의 새 소비 환경을 만들고 실제 `npm pack` 산출물을 설치한다. 경로가 이미 있으면 거절하며 자신이 만든 경로는 성공·실패 뒤 모두 지운다. npm 공개 레지스트리에 접근해야 한다. 사용자 npm 설정과 인증 환경을 제외하고 공개 런타임 의존성과 peer 의존성인 디자인(개발 의존성에 고정한 `diagram` tarball)만 설치한다. 설치된 모든 SVG가 선정 카탈로그와 일치하고 미사용 아이콘이 없는지도 확인한다. 검사 입력은 기존 flow 예제이고 CLI와 공개 API가 같은 SVG·HTML을 만드는지, Markdown 반영과 내장 디자인·글꼴을 확인한다. TypeScript 소비자는 설치된 선언을 `NodeNext`로 컴파일한 뒤 실행하고, 잘못된 옵션과 임의 객체를 빌드 결과로 전달하는 호출은 컴파일에서 거부하는지 확인한다. 컴파일러는 개발 의존성으로만 두고 소비 환경에는 설치하지 않는다. 실제 npm 발행과 사용자 인증 권한은 이 검사에 포함하지 않는다.
 
 ### README 로고의 출처
 

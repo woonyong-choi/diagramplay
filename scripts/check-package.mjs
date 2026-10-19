@@ -47,11 +47,26 @@ try {
   assert.match(readFileSync(join(consumer, 'document.md'), 'utf8'), /<!-- torso -->/);
   writeFileSync(join(consumer, 'consumer.mjs'), `
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { getIconCatalog, readIcon } from '@woonyong-choi/design-tokens/ui/build/icons.mjs';
 import { buildFigure, toSvg, toHtml } from 'torso-diagram';
 const require = createRequire(import.meta.url);
 assert.equal(require.resolve('@woonyong-choi/design-tokens/package.json'), process.argv[2]);
+const designRoot = dirname(process.argv[2]);
+const profile = JSON.parse(readFileSync(process.argv[2], 'utf8')).designTokensProfile;
+assert.equal(profile?.name, 'diagram', 'the tested provider is the diagram distribution');
+const catalog = getIconCatalog();
+assert.deepEqual(Object.keys(catalog.icons).sort(), profile.icons);
+assert.deepEqual(Object.keys(catalog.controls).sort(), profile.controls);
+const retained = new Set(['user', 'user-settings', 'check', 'warning', 'close', 'ellipsis', ...Object.values(catalog.controls)]);
+for (const [name, icon] of Object.entries(catalog.icons)) assert.ok(retained.has(name) || icon.category === 'brands', 'no general illustration ships: ' + name);
+for (const group of ['articles', 'social', 'kinds']) assert.deepEqual(catalog[group], {});
+for (const name of [...profile.icons, ...Object.keys(catalog.aliases)]) assert.match(readIcon(name), /<svg\\b/);
+const svgFiles = readdirSync(designRoot, { recursive: true }).filter(name => name.endsWith('.svg')).sort();
+assert.deepEqual(svgFiles, Object.values(catalog.icons).map(icon => join('dist', 'assets', 'icons', icon.file)).sort(), 'only catalog SVG files ship');
+console.log('최소 아이콘 배포 ' + svgFiles.length + '개와 전체 카탈로그 미포함 확인');
 const source = readFileSync('flow.torso', 'utf8');
 const result = await buildFigure(source, { strict: true, allowFileAccess: false });
 const svg = await toSvg(result);

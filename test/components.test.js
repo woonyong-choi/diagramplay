@@ -6,10 +6,11 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 
 import { figureFrame } from '../src/html/player-script.js';
-import { getIconCatalog, readIcon } from '@woonyong-choi/design-tokens/ui/build/icons.mjs';
+import { readIcon } from '@woonyong-choi/design-tokens/ui/build/icons.mjs';
 import { ToolIcon } from '@woonyong-choi/design-tokens/ui/toolbar.mjs';
 import { iconBody } from '@woonyong-choi/design-tokens/ui/svg.mjs';
 import { drawTexts } from '../src/draw/texts.js';
+import { drawDecor } from '../src/draw/decor.js';
 import { edgeMarker } from '../src/draw/arrow.js';
 import { TEXT } from '../src/chart/metrics.js';
 import { pulseOverlay } from '../src/chart/pulse-overlay.js';
@@ -102,8 +103,8 @@ function iconShape(svg) {
 // ---- 카드 ----
 
 const CARDS = torso(`
-  person u "Order" icon=server
-  box a "Order" "Accepted" icon=server
+  person u "Order" icon=user
+  box a "Order" "Accepted" icon=user
   box r "Replica" count=3
   table t "Order" {
     id bigint pk
@@ -128,12 +129,13 @@ test('U1 a card is drawn exactly where it was measured: its surfaces fill the me
   assert.equal(items.length, 7);
   items.forEach((item, index) => {
     const group = nodeGroup(dom, index);
+    if (['t', 'ap'].includes(item.id)) assert.equal(findAll(group, node => hasClass(node, 'fl-symbol')).length, 0, 'table and API headers need no illustration');
     const surfaces = descendants(group).filter((n) => n.tag === 'rect' && hasClass(n, 'fl-stroke'));
     assert.ok(surfaces.length >= 1, `${item.id}: a surface`);
     const edge = (side) => surfaces.map((rect) => (side === 'x' ? num(rect, 'x') + num(rect, 'width') : num(rect, 'y') + num(rect, 'height')));
     // 복제 개수가 있는 상자는 뒤 윤곽 겹이 오른쪽 아래로 비치므로 윤곽들이 모여 측정한 상자를 정확히 채운다.
     assert.ok(Math.abs(Math.min(...surfaces.map((rect) => num(rect, 'x'))) - item.x) < EPS && Math.abs(Math.min(...surfaces.map((rect) => num(rect, 'y'))) - item.y) < EPS, `${item.id}: top-left`);
-    assert.ok(Math.abs(Math.max(...edge('x')) - (item.x + item.w)) < EPS && Math.abs(Math.max(...edge('y')) - (item.y + item.h)) < EPS, `${item.id}: ${item.w}x${item.h} box`);
+    assert.ok(Math.abs(Math.max(...edge('x')) - (item.x + item.w)) < EPS * 2 && Math.abs(Math.max(...edge('y')) - (item.y + item.h)) < EPS * 2, `${item.id}: serialized origin plus size rounds twice`);
     const measured = allTexts(item);
     const drawn = descendants(group).filter((n) => n.tag === 'text' && !hasClass(n, 'badge'));
     assert.equal(drawn.length, measured.length, `${item.id}: as many drawn texts as measured texts`);
@@ -151,13 +153,11 @@ test('U2 every kind of card has the same header: the title is centered, with an 
   const { result } = await rendered(CARDS);
   const byId = Object.fromEntries(result.scene.items.map((item) => [item.id, item]));
   const title = (item) => item.texts.find((t) => t.role === 'label');
-  // 아이콘이 없는 카드(클래스, 인터페이스)는 제목이 카드 가운데다.
-  for (const id of ['port', 'k']) {
+  for (const id of ['t', 'ap', 'port', 'k']) {
     assert.equal(byId[id].decor, undefined, `${id}: no icon`);
     assert.ok(Math.abs(title(byId[id]).x - byId[id].w / 2) < EPS && title(byId[id]).anchor === 'middle', `${id}: title centered`);
   }
-  // 아이콘이 있는 카드(사람, 상자, 표, API)는 아이콘과 제목 묶음이 가운데이고 제목은 아이콘 칸 절반만큼 오른쪽이며 아이콘 가운데가 제목 가운데다. 이름과 종류가 달라도 같다.
-  const offsets = ['u', 'a', 't', 'ap'].map((id) => {
+  const offsets = ['u', 'a'].map((id) => {
     const item = byId[id];
     const icon = item.decor.items.find((entry) => entry.kind === 'icon');
     assert.ok(Math.abs(item.decor.x * 2 + item.decor.w - item.w) < EPS, `${id}: header block centered`);
@@ -329,7 +329,7 @@ test('U7 in a drawn figure each head a line points at exists once, and ordinary 
 // ---- 아이콘 ----
 
 test('U8 a concept icon is one symbol: the card header, the tile and the group title draw the same shapes in the same role, a brand keeps its own glyph', async () => {
-  for (const name of ['server', 'flag-add']) {
+  for (const name of ['admin', 'user']) {
     const result = await build(torso(`
       group g "G" icon=${name} {
         box a "A" icon=${name}
@@ -361,7 +361,6 @@ test('U8 a concept icon is one symbol: the card header, the tile and the group t
       for (const layout of layouts) {
         const masks = findAll(layout, (node) => node.tag === 'mask').map(node => node.attrs.id);
         assert.equal(new Set(masks).size, masks.length, 'repeated icons and motion layers have unique masks');
-        if (name === 'flag-add') assert.ok(masks.length >= 3, 'the built-in mask survives rendering');
         for (const symbol of findAll(layout, (node) => hasClass(node, 'fl-symbol'))) {
           const local = findAll(symbol, (node) => node.tag === 'mask').map(node => node.attrs.id);
           for (const node of descendants(symbol)) if (node.attrs.mask) assert.ok(local.includes(/^url\(#(.+)\)$/.exec(node.attrs.mask)?.[1]), 'an icon only uses its own mask');
@@ -435,6 +434,22 @@ test('U10 a chart is drawn on the surface it sits on: in a plot view and inside 
   assert.ok(findAll(dom, (n) => n.tag === 'rect' && hasClass(n, 'fl-canvas-surface')).length > 0);
 });
 
+test('U8 repeated masked symbols keep their definitions and use local IDs', () => {
+  const iconData = { role: 'concept', svg: '<svg viewBox="0 0 24 24"><defs><mask id="cut"><rect width="24" height="24" fill="white"/></mask></defs><rect width="24" height="24" mask="url(#cut)"/></svg>' };
+  const decor = { items: [{ kind: 'icon', x: 0, y: 0, w: values.icon['size-small'] }] };
+  const symbols = ['icon-g-0', 'icon-n-0', 'icon-n-1'].map(prefix => drawDecor(decor, { x: 0, y: 0, iconData, prefix }));
+  const dom = parseMarkup(`<svg>${symbols.join('')}</svg>`);
+  const masks = findAll(dom, node => node.tag === 'mask').map(node => node.attrs.id);
+  assert.equal(masks.length, 3, 'all repeated masks survive rendering');
+  assert.equal(new Set(masks).size, 3, 'each insertion has its own mask');
+  for (const symbol of findAll(dom, node => hasClass(node, 'fl-symbol'))) {
+    const [mask] = findAll(symbol, node => node.tag === 'mask');
+    const references = findAll(symbol, node => Boolean(node.attrs.mask));
+    assert.equal(references.length, 1);
+    assert.equal(references[0].attrs.mask, `url(#${mask.attrs.id})`);
+  }
+});
+
 test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits in the drawing, the tab row below it, and neither depends on the figure', async () => {
   const frame = parseMarkup(figureFrame({ canvas: '<p>x</p>', source: 'torso\n' }), { html: true });
   const figure = findOne(frame, (n) => n.tag === 'figure' && hasClass(n, 'fl-figure'), 'figure');
@@ -478,7 +493,10 @@ test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits
   // 단일 HTML도 공통 조작 아이콘을 외부 모듈 없이 그린다.
   const html = await toHtml(await build(torso('box a "A"\n')), 'doc');
   const script = textContent(findAll(parseMarkup(html, { html: true }), node => node.tag === 'script').at(-1));
-  const names = Object.keys(getIconCatalog().controls);
+  const names = ['copy', 'download', 'maximize-2', 'minimize-2', 'check', 'alert', 'zoom-in', 'zoom-out', 'scan'];
+  const data = JSON.parse(/const ICON_DATA = (.*);\n/.exec(script)[1]);
+  assert.equal(Object.keys(data).length, names.length, 'only the nine player controls ship in HTML');
+  assert.equal(Object.hasOwn(data, 'play'), false, 'unused playback artwork is omitted');
   const drawn = runInNewContext(`${script}\nfunction figurePlay() {}\n${JSON.stringify(names)}.map(ToolIcon);`, { document: { querySelector: () => null }, matchMedia: () => ({ matches: false }) });
   assert.deepEqual(Array.from(drawn, iconShape), names.map((name) => iconShape(ToolIcon(name))));
   for (const [, name] of html.matchAll(/getPropertyValue\(['"](--[\w-]+)['"]\)/g)) {

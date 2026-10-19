@@ -4,20 +4,20 @@ subtitle "웹 요청은 DNS, CDN, 로드 밸런서, 웹 서버를 지나 앱 서
 
 person user "웹 사용자"
 person admin "운영자" icon=admin
-group net "인터넷" icon=cdn dashed direction=right {
-  box dns "DNS" shape=tile icon=dns
-  box cdn "CDN" shape=tile icon=cdn
+group net "인터넷" dashed direction=right {
+  box dns "DNS"
+  box cdn "CDN"
 }
-group cloud "클라우드" icon=region direction=down dashed {
-  box lb "로드 밸런서" shape=tile icon=lb
-  box web "웹 서버" shape=tile icon=server count=3
-  box app "앱 서버" shape=tile icon=server
+group cloud "클라우드" direction=down dashed {
+  box lb "로드 밸런서"
+  box web "웹 서버" count=3
+  box app "앱 서버"
   group data "데이터" direction=right {
-    store db "DB 주 서버" icon=db badge="RW"
-    store cache "캐시" icon=cache badge="RW"
+    store db "DB 주 서버" badge="RW"
+    store cache "캐시" badge="RW"
   }
-  box vpn "VPN" shape=tile icon=vpn
-  box bastion "배스천" shape=tile icon=bastion
+  box vpn "VPN"
+  box bastion "배스천"
 }
 
 user -> dns no=1

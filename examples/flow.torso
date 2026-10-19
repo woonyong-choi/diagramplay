@@ -3,14 +3,14 @@ title "주문이 몰릴 때의 흐름"
 subtitle "웹, 앱, 제휴사 주문이 겹치면 처리 중 개수와 재고가 연달아 바뀐다"
 pace 1.5s
 
-box web "웹" icon=desktop
-box app "앱" icon=mobile
+box web "웹"
+box app "앱"
 external partner "제휴사"
-box api "주문 API" icon=server
+box api "주문 API"
 decision stocked "재고 있음?"
 box lock "재고 잠금"
-store db "재고 DB" icon=db
-box pay "결제" icon=server
+store db "재고 DB"
+box pay "결제"
 box notice "대기 안내" tone=yellow appearance=filled
 
 value stock "재고" on=db from=120

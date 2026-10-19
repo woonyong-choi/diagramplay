@@ -3,7 +3,7 @@ title "주문 한 건이 남기는 흔적"
 subtitle "같은 사건이 구조, 호출 순서, 지표 차트, 실제 시간에 한 번씩 반영된다"
 
 person user "고객"
-box gw "Gateway" icon=apigw {
+box gw "Gateway" {
   text "주문 요청을 결제 서비스로 전달합니다"
   value p95 "p95(ms)" from=120
   chart trend "결제 p95 추이" line "예시 데이터. 마지막 점이 Gateway 카드의 p95 값이다" {
@@ -17,7 +17,7 @@ box gw "Gateway" icon=apigw {
     point x=3 ms=p95
   }
 }
-box pay "결제 서비스" icon=server {
+box pay "결제 서비스" {
   text "결제 요청을 처리합니다"
   value pending "결제 대기"
 }

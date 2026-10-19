@@ -1,4 +1,3 @@
-// 그룹 선언(`group id "이름" [direction=down] [dashed] [badge="LB"] [icon=server] [tone=red] [appearance=plain|filled|outline] {`)과 닫는 `}`를 읽는다.
 import { checkId, parentFor, rejectName } from './names.js';
 import { readLook, readOptions } from './options.js';
 import { ID_PATTERN } from './words.js';

@@ -14,9 +14,10 @@ const PLAYER_FILES = ['view', 'export', 'play', 'controls', 'stage', 'effects', 
 // 내려받기용 정본 템플릿을 넣어 두는 문서 머리 meta 칸의 이름. 재생기 스크립트(player/export.js)가 같은 이름을 읽는다.
 export const CANONICAL_NAME = 'torso-canonical';
 const UI_MODULES = [['html', ['escape', 'out']], ['svg', ['renderSvgIcon']], ['icons', ['ControlIcon']]];
-const CONTROL_DATA = Object.fromEntries([...new Set(Object.values(ICON_ROLES.controls))].map(name => [name, ICON_DATA[name]]));
-// 공통 모듈마다 비공개 이름을 격리하고, 단일 문서에는 조작부가 쓰는 SVG만 넣는다.
-const UI_ICON_SCRIPT = `const ToolIcon = (() => {\nconst ICON_DATA = ${JSON.stringify(CONTROL_DATA).replace(/</g, '\\u003c')};\nconst ICON_ROLES = ${JSON.stringify(ICON_ROLES)};\n${UI_MODULES.map(([name, exports]) => moduleScript(name, exports)).join('\n')}\n${ToolIcon.toString()}\nreturn ToolIcon;\n})();\nconst CANONICAL_NAME = ${JSON.stringify(CANONICAL_NAME)};\n`;
+const CONTROL_NAMES = ['copy', 'download', 'maximize-2', 'minimize-2', 'check', 'alert', 'zoom-in', 'zoom-out', 'scan'];
+const PLAYER_ROLES = { controls: Object.fromEntries(CONTROL_NAMES.map(name => [name, ICON_ROLES.controls[name]])), articles: {}, social: {} };
+const CONTROL_DATA = Object.fromEntries([...new Set(Object.values(PLAYER_ROLES.controls))].map(name => [name, ICON_DATA[name]]));
+const UI_ICON_SCRIPT = `const ToolIcon = (() => {\nconst ICON_DATA = ${JSON.stringify(CONTROL_DATA).replace(/</g, '\\u003c')};\nconst ICON_ROLES = ${JSON.stringify(PLAYER_ROLES)};\n${UI_MODULES.map(([name, exports]) => moduleScript(name, exports)).join('\n')}\n${ToolIcon.toString()}\nreturn ToolIcon;\n})();\nconst CANONICAL_NAME = ${JSON.stringify(CANONICAL_NAME)};\n`;
 const MOTION_SCRIPT = `const { progressAt, timeAt: timeAtProgress } = (${motionMath.toString()})();\n`;
 export const PLAYER_SCRIPT = UI_ICON_SCRIPT + MOTION_SCRIPT + cssTimeMs.toString() + '\n' + bindToolbar.toString() + '\n' + bindTabs.toString() + '\n' + PLAYER_FILES.map((name) => readFileSync(new URL(`../player/${name}.js`, import.meta.url), 'utf8')).join('\n');
 

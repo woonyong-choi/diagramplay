@@ -2,11 +2,11 @@ torso
 title "큐 적체와 역압"
 subtitle "생산이 소비보다 빠르면 큐가 차고, 가득 차면 생산자는 기다리다 보관함으로 돌린다"
 
-box prod "주문 접수" icon=apigw
+box prod "주문 접수"
 queue jobs "결제 큐" slots=8 from=3
-box worker "결제 워커" icon=function
-box dlq "재시도 보관함" icon=db
-box admin "운영자" icon=monitoring
+box worker "결제 워커"
+box dlq "재시도 보관함"
+box admin "운영자" icon=admin
 
 value len "큐 길이" on=prod ref=jobs
 value done "처리 완료" on=worker

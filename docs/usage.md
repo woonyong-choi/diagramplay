@@ -54,7 +54,7 @@ npm ci
 node --input-type=module -e "import {createRequire} from 'node:module'; console.log(createRequire(import.meta.url)('torso-diagram/package.json').version)"
 ```
 
-Torso 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 peer 의존성인 `@woonyong-choi/design-tokens`에서 읽는다. 소비자 프로젝트가 이 패키지의 버전을 선택한다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
+Torso 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 peer 의존성인 `@woonyong-choi/design-tokens`에서 읽는다. 저장소 설치는 Torso용 `diagram` 배포물만 받으므로 공통 전체 아이콘 카탈로그를 내려받지 않는다. 별도 소비자 프로젝트도 이 저장소의 개발 의존성에 고정한 tarball URL을 디자인 패키지 설치에 사용한다. 전체 카탈로그가 필요한 호스트는 공통 전체 패키지를 직접 선택할 수 있다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
 
 ## 첫 그림 만들기
 
@@ -150,12 +150,12 @@ node src/cli.js md guide.md --check --strict
 
 ```text
 group backend "주문 시스템" direction=down {
-  box service "주문 서비스" icon=server
-  store records "저장소" icon=db
+  box service "주문 서비스"
+  store records "저장소"
 }
 ```
 
-전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `icon=server`는 내장 아이콘 이름이고 `tone=blue`는 색 역할이다. 기본 중성 카드로 충분하면 둘 다 생략한다. `appearance=filled|outline`에 `tone`을 생략하면 무채색 `gray` 계열을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
+전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `tone=blue`는 색 역할이다. 기본 중성 카드로 충분하면 생략한다. 사람과 서비스 브랜드 외의 기술 역할은 카드 이름으로 구분한다. `appearance=filled|outline`에 `tone`을 생략하면 무채색 `gray` 계열을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
 
 [구성도 레퍼런스](reference/architecture.md)는 그룹, 아이콘과 번호 선을 설명한다. 내장 아이콘과 파일 기반 사용자 아이콘을 고르는 규칙은 [번호, 배지, 아이콘, 복제 개수](design/figure-syntax.md#번호-배지-아이콘-복제-개수)에 있다.
 
@@ -433,10 +433,10 @@ scene "요청 처리"
 ```torso name=queue
 torso
 title "접수와 처리가 독립적으로 진행되는 큐"
-box producer "접수" icon=apigw
+box producer "접수"
 queue jobs "대기 작업" slots=4 from=1
-box worker "처리" icon=server
-box retry "재시도 보관" icon=db
+box worker "처리"
+box retry "재시도 보관"
 value done "완료" on=worker from=0
 on worker done+1
 producer -> jobs

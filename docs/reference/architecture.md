@@ -9,14 +9,14 @@ torso
 title "웹 서비스 구성"
 
 group edge "엣지" dashed {
-  box cdn "CDN" shape=tile icon=cdn
+  box cdn "CDN"
 }
-group app "애플리케이션" icon=region direction=down {
+group app "애플리케이션" direction=down {
   group web "웹 계층" direction=down {
-    box lb "로드 밸런서" shape=tile icon=lb
-    box server "웹 서버" shape=tile icon=server count=3
+    box lb "로드 밸런서"
+    box server "웹 서버" count=3
   }
-  store db "주 DB" icon=db badge="RW"
+  store db "주 DB" badge="RW"
 }
 
 cdn -> lb "요청" no=1
@@ -61,7 +61,7 @@ scene "요청"
 
 | 원인 | 메시지 | code | 고치는 방법 |
 |---|---|---|---|
-| 없는 아이콘 이름 | `unknown icon "nope". Declared: admin, ansible, apigw, ...` | `syntax` | 목록의 이름을 고르거나 `icon=`을 빼고 `badge=`를 쓴다 |
+| 없는 아이콘 이름 | `unknown icon "nope". See assets/icons/catalog.json` | `syntax` | 목록의 이름을 고르거나 `icon=`을 빼고 `badge=`를 쓴다 |
 | 선언하지 않은 이름 | `unknown card "c". Did you mean "a"? Declared: a, b` | `syntax` | 이름을 고친다 |
 | 쓸 수 없는 색 이름 | `tone is one of blue, yellow, red, green, orange, purple, cyan, gray. Found "bleu". Colors are names, not hex, so the contrast rules hold. Did you mean "blue"?` | `syntax` | 목록의 이름을 고른다 |
 | 그룹의 `border=dashed` | `a group takes direction=, dashed, ... Found "border". A dashed border is the word dashed: write dashed instead of border=dashed` | `syntax` | `dashed`로 쓴다 |

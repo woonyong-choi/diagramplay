@@ -33,7 +33,7 @@ test('G2 a CSS /* */ comment hides its values and the declaration after it is st
 test('G3 the design is the peer package the host installs, pinned to a commit for this repository, with no copy in src', () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
   assert.match(pkg.peerDependencies['@woonyong-choi/design-tokens'], /^\^\d+\.\d+\.\d+$/);
-  assert.match(pkg.devDependencies['@woonyong-choi/design-tokens'], /^github:woonyong-choi\/design-tokens#[0-9a-f]{40}$/);
+  assert.match(pkg.devDependencies['@woonyong-choi/design-tokens'], /^https:\/\/raw\.githubusercontent\.com\/woonyong-choi\/design-tokens\/[0-9a-f]{40}\/artifacts\/diagram\.tgz$/);
   assert.equal(pkg.dependencies['@woonyong-choi/design-tokens'], undefined);
   assert.equal(existsSync(join(ROOT, 'src/vendor/theme')), false);
   const resolved = createRequire(join(ROOT, 'src/styles.js')).resolve('@woonyong-choi/design-tokens/tokens.css');

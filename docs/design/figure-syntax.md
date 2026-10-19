@@ -44,8 +44,8 @@ title "주문 한 건"
 subtitle "고객 요청이 API 칸에서 스키마 칸으로 저장되고, 같은 사건이 호출 순서, 지연 그래프, 실제 시간에 함께 보인다"
 
 person user "고객"
-box gw "Gateway" icon=server
-box pay "Payment" icon=server
+box gw "Gateway"
+box pay "Payment"
 api create "POST /orders" {
   body "OrderRequest"
   created "201 Order"
@@ -375,7 +375,7 @@ scene "소비자 하나가 느려진다" for=6s status="slow=warn"
 - `badge="글"`(8자 이하)은 카드 윗줄과 그룹 제목 줄에 글자 알약을 단다. 흑백에서도 구성 요소의 종류가 글자로 남는다. 배지는 면과 테두리 색을 바꾸지 않는다. 원(`shape=circle`)은 배지와 아이콘이 오류다.
 - `shape=tile`(`box`만, `icon=` 필수)은 아이콘 카드다. 같은 흰 카드에 아이콘을 크게(`spacing.figure.icon.tile`) 위에 놓고 이름을 아래에 두며, 최소 너비와 이름 양옆 간격이 작아(`spacing.figure.node.tile-width`, `spacing.figure.node.tile-pad`) 가로로 퍼진 구성도가 캔버스 폭 안에 든다.
 - 그룹 `dashed`는 경계 그룹의 점선 테두리다. 그룹 아이콘은 틀 왼쪽 위 모서리에 딱 붙는 정사각 탭(`spacing.figure.group.title`)이다. 기본 그룹 면은 투명하다. `tone`과 `appearance=filled`를 함께 적으면 해당 계열의 옅은 면을 칠하고, `appearance=outline`은 경계에 색을 쓴다. `light`가 켠 그룹은 틀의 경계 색만 강조 색이 되고 굵기, 면, 모서리는 그대로다.
-- `icon=이름`은 기본 세트의 이름이다. 범용 개념(`server`, `db`, `user`)과 기술 브랜드(`git`, `postgresql`)가 한 표에 있다. 등록한 세트는 `icon=세트:이름`이다. 이름이 없거나 파일이 없으면 오류이고, 아이콘 없이 배지로 같은 뜻을 낸다.
+- `icon=이름`은 기본 세트의 이름이다. 기본 배포는 사용자·관리자(`user`, `admin`)와 기술 브랜드(`git`, `postgresql` 등)를 제공한다. 등록한 세트는 `icon=세트:이름`이다. 이름이 없거나 파일이 없으면 오류이고, 아이콘 없이 배지로 같은 뜻을 낸다.
 - `count=N`(2 이상, `box`만)은 같은 역할 복제 개수다. 상자 뒤에 윤곽 두 겹이 겹쳐 보이고 윗줄에 `(N)` 알약이 붙는다. 복제는 이름으로 가리킬 수 없고 선은 상자 하나에 닿는다.
 
 #### 도형 색

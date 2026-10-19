@@ -282,10 +282,10 @@ test('X9 one panel per view, in the order declared, and the same panels in the n
 
 test('X9 siblings keep their declared order when the narrow-screen layout stacks them one per layer, and the wide layout is unchanged', async () => {
   const source = torso(`
-    box lb "LB" icon=lb
-    box a1 "API 1" icon=server
-    box a2 "API 2" icon=server
-    box a3 "API 3" icon=server
+    box lb "LB"
+    box a1 "API 1" icon=nginx
+    box a2 "API 2" icon=nginx
+    box a3 "API 3" icon=nginx
     value p95 "p95" on=lb from=110
     value cpu1 "CPU" on=a1 from=34
     value cpu2 "CPU" on=a2 from=41

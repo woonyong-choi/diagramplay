@@ -1,4 +1,3 @@
-// 도형 선언(`box id "이름" ["부제"] [shape=circle|tile] [badge="LB"] [icon=server] [count=3] [tone=red] [appearance=plain|filled|outline]`)을 읽는다.
 import { CARD_SHAPES, STATEMENTS } from './grammar.js';
 import { checkId, parentFor, rejectName, skipBlock } from './names.js';
 import { readLook, readOptions } from './options.js';

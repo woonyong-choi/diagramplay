@@ -19,7 +19,7 @@ const cache = new Map();
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-/** `server`나 `nhn:lb`를 { set, name }으로 가른다. 세트를 적지 않으면 기본 세트다. */
+/** `user`나 `nhn:lb`를 { set, name }으로 가른다. 세트를 적지 않으면 기본 세트다. */
 export function splitIconRef(ref) {
   const [set, name] = ref.includes(':') ? ref.split(/:(.*)/s) : [DEFAULT_SET, ref];
   return { set, name };
