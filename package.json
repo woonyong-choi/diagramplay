@@ -67,10 +67,10 @@
     "subset-font": "^2.9.0"
   },
   "peerDependencies": {
-    "@woonyong-choi/design-tokens": "^0.1.1"
+    "@woonyong-choi/design-tokens": "^0.2.0"
   },
   "devDependencies": {
-    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/51d51be0fde753d686d9efc5b0b775d46ac858ff/artifacts/diagram.tgz",
+    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/11f716711ef10017b5953a371a0d66571ad0ef04/artifacts/diagram.tgz",
     "playwright-core": "^1.63.0",
     "typescript": "7.0.2"
   },

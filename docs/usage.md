@@ -54,7 +54,7 @@ npm ci
 node --input-type=module -e "import {createRequire} from 'node:module'; console.log(createRequire(import.meta.url)('torso-diagram/package.json').version)"
 ```
 
-Torso 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 peer 의존성인 `@woonyong-choi/design-tokens`에서 읽는다. 저장소 설치는 Torso용 `diagram` 배포물만 받으므로 공통 전체 아이콘 카탈로그를 내려받지 않는다. 별도 소비자 프로젝트도 이 저장소의 개발 의존성에 고정한 tarball URL을 디자인 패키지 설치에 사용한다. 전체 카탈로그가 필요한 호스트는 공통 전체 패키지를 직접 선택할 수 있다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
+Torso 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 peer 의존성인 `@woonyong-choi/design-tokens`(`^0.2.0`)에서 읽는다. 브랜드 크기 역할 `spacing.figure.icon.brand`가 없는 구버전은 가져오기 단계에서 호환 오류로 중단한다. 저장소 설치는 Torso용 `diagram` 배포물만 받으므로 공통 전체 아이콘 카탈로그를 내려받지 않는다. 별도 소비자 프로젝트도 이 저장소의 개발 의존성에 고정한 tarball URL을 디자인 패키지 설치에 사용한다. 전체 카탈로그가 필요한 호스트는 공통 전체 패키지를 직접 선택할 수 있다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
 
 ## 첫 그림 만들기
 

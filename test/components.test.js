@@ -356,7 +356,7 @@ test('U8 a brand has the same measured and drawn size in a card, tile, store and
   const personSymbol = findOne(dom, node => hasClass(node, 'fl-symbol-concept'));
   const personTransform = findOne(personSymbol, node => hasClass(node, 'fl-icon')).attrs.transform;
   assert.ok(Math.abs(Number(/scale\(([^)]+)\)/.exec(personTransform)[1]) * values.icon['size-small'] - person.w) < EPS, 'SVG preserves the person tile size');
-  assert.deepEqual(measured.map(icon => icon.w), measured.map(() => measured[0].w), 'the same brand size across all four contexts');
+  assert.deepEqual(measured.map(icon => icon.w), measured.map(() => values.spacing.figure.icon.brand), 'the same brand size across all four contexts');
 });
 
 test('U8 a concept icon is one symbol: the card header, the tile and the group title draw the same shapes in the same role, a brand keeps its own glyph', async () => {
