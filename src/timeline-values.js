@@ -1,4 +1,5 @@
 // 값 바꾸기(`on` 줄과 `set=`)를 시각 순서로 적용해 값 줄마다 값이 바뀌는 시각과 새 값을 구한다. 박자 단계와 흐름 단계가 같은 규칙을 쓴다(docs/design/playback.md 값 변화).
+import { indicatorTypeProblem } from './value-indicators.js';
 import { arrivalOffsetMs } from './easing.js';
 import { isPassed } from './lost.js';
 import { MAX_VALUE, RANGE_MESSAGE } from './source/chart-limits.js';
@@ -32,11 +33,15 @@ function applyChecked(e, { state, reads, byId }) {
   if (e.op === ':=') {
     const text = reads.get(e.operand);
     if (isQueue && !(NUMBER_PATTERN.test(text) && Number.isInteger(Number(text)))) throw typeError(e, `"${e.id}" is a queue and counts filled slots in whole numbers, but "${e.operand}" holds "${text}". Read a whole number into a queue`);
+    const message = indicatorTypeProblem(byId.get(e.id), text);
+    if (message) throw typeError(e, message);
     return text;
   }
   const next = applyExpression(e, state);
   if (next === undefined) throw typeError(e, `"${e.id}${e.op}${e.operand}" does a sum, but "${e.id}" holds the word "${state.get(e.id)}". Use = to set a word`);
   if (e.op !== '=' && !(Math.abs(Number(next)) < MAX_VALUE)) throw typeError(e, `"${e.id}${e.op}${e.operand}" gives ${next}; ${RANGE_MESSAGE}`);
+  const message = indicatorTypeProblem(byId.get(e.id), next);
+  if (message) throw typeError(e, message);
   return next;
 }
 

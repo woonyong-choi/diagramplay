@@ -1,5 +1,6 @@
 // 값 카드 줄의 값 글자와 바뀔 때 밝히는 테두리. 줄의 이름은 카드 층이 그리고, 값은 시간표(timeline.values)의 변화 목록대로 글자 요소를 값마다 하나씩 두고 불투명도로 바꾼다(docs/design/playback.md 값 변화).
 // 같은 카드가 여러 보기에 그려지면 도형마다 같은 값 글자를 한 벌씩 그린다(data-v는 같다). 카드에 놓이지 않은 값(`on=` 없음)은 그리지 않는다.
+import { indicatorText } from '../value-indicators.js';
 import { CONTENT, valueText } from '../measure/content.js';
 import { filledSlots, queueSlots } from '../measure/queue.js';
 import { escapeXml, roundCoord as r } from '../text.js';
@@ -82,10 +83,15 @@ export function drawValues(scene, timeline, { glyphs, windows, isStatic = false 
       const layout = item.content.layouts[row.card];
       const at = layout.rows.findIndex((laid) => laid.row.valueId === row.id);
       if (at < 0) return '';
-      const slot = layout.rows[at].valueSlot;
+      const laid = layout.rows[at];
+      const slot = laid.valueSlot;
       const texts = [...new Set(row.periods.map(([, , text]) => text))].map((text) => {
         const spans = row.periods.filter(([, , t]) => t === text).map(([start, end]) => [start, end]);
         const extra = { attrs: ` opacity="${shown}"${hiddenAttr(shown)} data-v="${vi}" data-t="${escapeXml(text)}"`, inner: windows(spans, { holdEnd: isLastText(row, text) }) };
+        if (laid.indicator) {
+          const label = drawText(valueText(slot, indicatorText(laid.indicator, text)), box, glyphs);
+          return `<g${extra.attrs}>${label}${drawIndicator(laid.indicator, text, box)}${extra.inner}</g>`;
+        }
         return drawText(valueText(slot, text), box, glyphs, extra);
       });
       return `<g class="fl-value">${texts.join('')}</g>`;
@@ -160,4 +166,12 @@ function drawCellValue(row, { item, cell, vi, shown, glyphs }, windows) {
     const spans = row.periods.filter(([, , t]) => t === text).map(([start, end]) => [start, end]);
     return `<g opacity="${shown}"${hiddenAttr(shown)} data-v="${vi}" data-t="${escapeXml(text)}">${variant.texts.map((t) => drawText(t, item, glyphs)).join('')}${windows(spans, { holdEnd: isLastText(row, text) })}</g>`;
   }).join('')}</g>`;
+}
+
+function drawIndicator(indicator, text, box) {
+  const { kind, max } = indicator;
+  const rects = indicator.rects.map((rect) => ({ ...rect, x: rect.x + box.x, y: rect.y + box.y }));
+  const count = Math.min(max, Math.max(0, Number(text)));
+  const filled = kind === 'slots' ? rects.slice(0, count) : count > 0 ? [{ ...rects[0], w: rects[0].w * count / max }] : [];
+  return rects.map(drawSlot).join('') + `<g class="queue-fill">${filled.map(drawSlot).join('')}</g>`;
 }

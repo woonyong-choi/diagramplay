@@ -1,4 +1,5 @@
 // 값 선언(`value id "이름" on=도형 [from=값 | ref=값]`)과 값 바꾸기 식(`set="id+1@도형, id=낱말"`)을 읽는다. 이름이 선언됐는지는 value-check.js가 확인한다.
+import { readIndicator } from '../value-indicators.js';
 import { MAX_VALUE, RANGE_MESSAGE } from './chart-limits.js';
 import { checkId } from './names.js';
 import { readOptions } from './options.js';
@@ -25,8 +26,11 @@ export function readValue({ tokens, line }, ctx, owner) {
   if (owner !== undefined && found.on !== undefined) ctx.problems.error(line, `a value inside "${owner}" belongs to that card. Remove on=`);
   // on=이 없는 값은 카드에 보이지 않고 조건과 차트 묶음이 읽는다.
   if (found.from !== undefined && found.ref !== undefined) ctx.problems.error(line, 'a value takes from= or ref=, not both. A reference always shows the value it points at');
-  const from = found.ref === undefined ? readLiteral(found.from ?? '0', { line, key: 'from', ctx }) : undefined;
-  const value = { id: id.value, label: label.value, on: owner ?? found.on, from, ref: found.ref, line };
+  const fromLiteral = found.ref === undefined ? found.from ?? '0' : undefined;
+  const from = fromLiteral === undefined ? undefined : readLiteral(fromLiteral, { line, key: 'from', ctx });
+  const value = { id: id.value, label: label.value, on: owner ?? found.on, from, fromLiteral, ref: found.ref, line };
+  const indicator = readIndicator(found, { line, problems: ctx.problems });
+  if (indicator) value.indicator = indicator;
   ctx.figure.values.push(value);
   return value;
 }
@@ -85,11 +89,11 @@ function readExpression(raw, { ids, line, ctx }) {
   if (op !== '=') {
     if (!SIGNED_STEP.test(operand)) return fail(`"${raw}" needs a number after ${op}`, { line, ctx });
     // 차트 숫자와 같은 기준. 무한대가 되는 글과 1e15 이상은 글자로 쓸 수 없다.
-    return Math.abs(Number(operand)) < MAX_VALUE ? { ...expression, operand: String(Number(operand)) } : fail(RANGE_MESSAGE, { line, ctx });
+    return Math.abs(Number(operand)) < MAX_VALUE ? { ...expression, operand: String(Number(operand)), operandLiteral: operand } : fail(RANGE_MESSAGE, { line, ctx });
   }
   if (operand === '') return fail(`"${raw}" needs a value after =`, { line, ctx });
   const literal = readLiteral(operand, { line, key: 'a set value', ctx });
-  return literal === undefined ? undefined : { ...expression, operand: literal };
+  return literal === undefined ? undefined : { ...expression, operand: literal, operandLiteral: operand };
 }
 
 // cost: time O(n), heap O(1), stack O(1)

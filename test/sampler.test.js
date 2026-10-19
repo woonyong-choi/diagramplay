@@ -317,3 +317,25 @@ test('shared motion math preserves forward and inverse browser results', () => {
     }
   }
 });
+
+
+test('sampleScene_value_indicators_keep_raw_values_across_loop_reset_and_settled_static', async () => {
+  const doc = await player(diagramplay(`
+    box a "A"
+    box b "B" {
+      value n "N" display=slots max=4
+    }
+    a -> b
+    scene "Loop" mode=loop
+      a -> b time=1s set="n+2"
+      a -> b time=1s set="n+2"
+    scene "Static" mode=static
+      a -> b time=1s set="n+3"
+  `));
+  assert.deepEqual(doc.sample(0, 0).values.filter((value) => value !== null), ['0']);
+  assert.deepEqual(doc.sample(0, 1001).values.filter((value) => value !== null), ['2']);
+  assert.deepEqual(doc.sample(0, doc.total(0) - 1).values.filter((value) => value !== null), ['4']);
+  assert.deepEqual(doc.sample(0, doc.total(0)).values.filter((value) => value !== null), ['0']);
+  assert.deepEqual(doc.sample(0, 0, true).values.filter((value) => value !== null), ['4']);
+  assert.deepEqual(doc.sample(1, 0).values.filter((value) => value !== null), ['3']);
+});

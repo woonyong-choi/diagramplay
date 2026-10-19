@@ -47,6 +47,7 @@ DiagramPlay는 `diagramplay` 원본 하나로 구조, 순서, 상태, 스키마,
 | 색: 한 낱말 색과 표현 방식 | `tone=`, `appearance=plain\|filled\|outline`(도형, 그룹, `show`) | `architecture`, `flow` | `test/authoring.test.js`, `test/examples.test.js` |
 | 흐름: 동시 이동, 흐름 줄, 구간별 시간, 손실, 갈림길, 카드 바꾸기 | `&`, `track`, `legs`, `lost`, `decision`, `show`, `clear`, `light` | `flow`, `architecture` | `test/values.test.js`, `test/examples.test.js` |
 | 값: 증감, 대입, 참조, 읽기, 장면 사이 유지와 재설정 | `value`, `on`, `set=`, `ref=`, `:=`, `keep=` | `flow`, `metric`, `donut`, `stack`, `pointer` | `test/values.test.js`, `test/examples.test.js` |
+| 값 표시: 현재값과 최댓값, 막대와 칸 채움 | `value display=bar 또는 slots max=N` | `value-indicators` | `test/value-indicators.test.js`, `test/sampler.test.js` |
 | 카드 본문: 정지 설명, 값, 작은 관계 그래프, 차트를 한 카드에 합성 | `box { text …; value …; graph …; chart … }`(실제 줄은 줄바꿈으로 구분) | `integration` | `test/authoring.test.js`(#186, #188) |
 | 조건과 대기: 조건, 기다림, 시간 초과, 대체 경로, 의도한 막힘, 원자적 예약 | `when=`, `wait=`, `timeout=`, `else=`, `stuck`, `reserve=` | `flow`, `queue` | `test/values.test.js`, `test/examples.test.js` |
 | 큐: 용량, 채움, 역압, 보관 | `queue slots= from=` | `queue`, `architecture`, `sequence` | `test/kinds.test.js`(K-queue) |

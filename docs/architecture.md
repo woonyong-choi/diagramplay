@@ -43,6 +43,10 @@
 | 아이콘 | `measure/decor.js`의 `layoutDecor`가 아이콘 칸 자리를 정한다 | 공통 SVG 원본과 `icons/index.js`의 `loadIcon`이 `iconData`를 만들고 `draw/decor.js`이 상자 머리, 그룹 탭, 타일에서 같은 도형을 그린다 | `test/components.test.js`(U8), `test/escaping.test.js`(I2, 사용자 SVG의 안전) |
 | 장면 탭과 도구 막대 | 없음 | 공통 `DiagramFrame`·`TabList`가 마크업을 만들고 `bindTabs`가 선택·키보드를 연결한다. DiagramPlay는 장면 재생만 연결한다 | `test/components.test.js`(U9), `test/exports.test.js`(X10, X11) |
 
+값의 `display`와 `max`는 `source/value.js`가 `indicator: { kind, max }`로 합친다. `source/value-check.js`는 참조 선언을 먼저 확인하고 표시가 요구하는 숫자 형식을 참조 사슬 끝의 원천에 모은다. 공통 갱신 경로(`timeline-values.js`)가 이 형식을 확인하므로 `set`, `on`, 단계 초기화와 원자적 예약이 같은 제약을 따른다. 예약은 복사본의 모든 식이 통과한 뒤 상태에 반영한다.
+
+표시 글은 `value-indicators.js`의 `indicatorText`가 만들고 원시 값 집합과 시간표에는 붙이지 않는다. `measure/content.js`가 현재값과 최댓값을 실제 글꼴로 재고 행에 표시 기하를 담는다. 칸은 큐의 `measure/queue.js` 배치를 공유하고 막대는 같은 칸 높이를 쓴다. `draw/values.js`는 그 행을 찾아 글과 채움을 같은 `data-v`와 원시 `data-t` 묶음에 넣는다. 빈 칸과 채움은 기존 `drawSlot`, `fl-queue-slot`, `queue-fill` 역할을 쓴다. SVG의 기간별 창과 HTML 재생기가 이 묶음 전체를 바꾼다. `timeline.values`나 재생기에 표시 메타데이터나 별도 시계를 넣지 않는다.
+
 카드 본문과 `show`는 `source/content.js`의 글·관계 그래프 해석을 공유한다. `values.js`의 `initialCardRows`가 선언 본문과 값 줄의 순서를 합치고, 각 장면은 이 본문에서 시작한다. 차트는 독립 판, 차트 카드, 카드 본문에서 `draw/chart.js`의 `drawChartBody` 하나로 그리며 `chart-scene.js`가 세 자리의 프레임·효과를 함께 적용한다. 카드 안 차트는 별도 노드가 아니므로 연결과 보기에는 소유 카드를 쓴다.
 
 호출의 방향은 `build-scene.js` → `measure/` → `layout/` → `draw/` → `svg.js`, `html/content.js` → `html.js`다. `measure/`는 `draw/`를 부르지 않고, `draw/`가 `measure/`의 `texts.js`, `content.js`, `decor.js`, `sizes.js`의 값(`STYLE`, `CONTENT`)을 읽어 잰 값과 그린 값이 같은 출처를 갖는다.
