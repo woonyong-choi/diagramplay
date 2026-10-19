@@ -26,8 +26,8 @@ export function sizeQueue(node) {
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 // 칸 줄 배치. 선호 폭에 드는 최대 열 수로 줄 수를 정한 뒤, 줄마다 칸 수가 고르게 열 수를 다시 나눈다(10칸은 8+2가 아니라 5+5). 마지막 줄이 짧으면 가운데에 둔다(queueSlots).
-function slotLayout(slots) {
-  const most = Math.min(slots, Math.max(1, Math.floor((INNER_MAX + SLOT['slot-gap']) / (SLOT['slot-width'] + SLOT['slot-gap']))));
+export function slotLayout(slots, maxWidth = INNER_MAX) {
+  const most = Math.min(slots, Math.max(1, Math.floor((maxWidth + SLOT['slot-gap']) / (SLOT['slot-width'] + SLOT['slot-gap']))));
   const rows = Math.ceil(slots / most);
   const columns = Math.ceil(slots / rows);
   return { columns, w: columns * SLOT['slot-width'] + (columns - 1) * SLOT['slot-gap'], h: rows * SLOT['slot-height'] + (rows - 1) * SLOT['slot-gap'] };
@@ -37,10 +37,10 @@ function slotLayout(slots) {
 // vars: s = 칸 수
 // basis: estimate
 /** 칸 사각형 목록(행마다 왼쪽부터, 위에서 아래로). 빈 칸과 찬 칸이 같은 순서를 따른다. */
-export function queueSlots(it) {
-  const slots = slotLayout(it.slots);
+export function queueSlots(it, { maxWidth = INNER_MAX, padY = PAD.y } = {}) {
+  const slots = slotLayout(it.slots, maxWidth);
   const left = it.x + (it.w - slots.w) / 2;
-  const top = it.y + it.h - PAD.y - slots.h;
+  const top = it.y + it.h - padY - slots.h;
   const pitch = SLOT['slot-width'] + SLOT['slot-gap'];
   const lastRow = Math.floor((it.slots - 1) / slots.columns);
   const lastCount = it.slots - lastRow * slots.columns;

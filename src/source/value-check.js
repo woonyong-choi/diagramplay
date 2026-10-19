@@ -1,4 +1,5 @@
 // 값 선언과 값 바꾸기 식을 파일을 다 읽은 뒤 확인한다. 도형 이름, 참조 사슬, 식이 가리키는 값과 도형이 맞는지 본다.
+import { indicatorTypeProblem } from '../value-indicators.js';
 import { CARD_SHAPES } from './grammar.js';
 import { unknownName } from './problems.js';
 import { rootOf } from '../values.js';
@@ -15,6 +16,7 @@ export function checkValues(figure, names, problems) {
   const validDeclarations = problems.errors.length === beforeDeclarations;
   for (const { node, line } of figure.arrivals) if (!names.has(node) && !figure.rejectedNames.has(node)) problems.error(line, unknownName('node', node, names.keys()));
   if (validDeclarations) {
+    checkIndicators(byId, problems);
     checkKeeps(figure, byId, problems);
     checkSets(figure, byId, problems);
   }
@@ -68,9 +70,23 @@ function checkDeclaration(value, { byId, names, figure }, problems) {
     else if (cell.valueId !== undefined) problems.error(value.line, `"${value.on}" already holds value "${cell.valueId}". A cell holds one value`);
     else { cell.valueId = value.id; value.cell = part; }
   } else if (target && !CARD_SHAPES.includes(target.shape)) problems.error(value.line, `a ${target.shape} has no card. Put a value on ${CARD_SHAPES.join(', ')} or grid.cell`);
+  if (value.indicator && (value.on === undefined || part !== undefined)) problems.error(value.line, 'display= needs a visible card value; hidden values and grid cells do not take display=');
   if (value.ref === undefined) return;
   if (!byId.has(value.ref)) problems.error(value.line, unknownName('value', value.ref, byId.keys()));
   else checkChain(value, byId, problems);
+}
+
+function checkIndicators(byId, problems) {
+  for (const value of byId.values()) {
+    if (!value.indicator) continue;
+    const root = byId.get(rootOf(byId, value.id));
+    if (value.indicator.kind === 'slots' || root.numericType !== 'integer') root.numericType = value.indicator.kind === 'slots' ? 'integer' : 'number';
+  }
+  for (const value of byId.values()) {
+    const message = indicatorTypeProblem(value, value.fromLiteral ?? value.from);
+    delete value.fromLiteral;
+    if (message) problems.error(value.line, message);
+  }
 }
 
 // cost: time O(c), heap O(c), stack O(1)
@@ -96,6 +112,7 @@ function checkSets(figure, byId, problems) {
   const moves = movesOf(figure);
   const words = wordValues(moves, byId);
   for (const { sets, nodes } of moves) for (const e of sets) checkExpression(e, { nodes, byId, isWord: words.has(e.id) }, problems);
+  for (const { sets } of moves) for (const e of sets) delete e.operandLiteral;
 }
 
 // cost: time O(p), heap O(1), stack O(1)
@@ -104,6 +121,8 @@ function checkSets(figure, byId, problems) {
 // 식 하나. nodes는 경로의 도형 이름이고 `on` 줄의 식은 경로가 없다.
 function checkExpression(e, { nodes, byId, isWord }, problems) {
   const { ref, queue } = byId.get(e.id);
+  const message = e.op === ':=' ? undefined : indicatorTypeProblem(byId.get(e.id), e.operandLiteral ?? e.operand);
+  if (message) problems.error(e.line, message);
   const visits = nodes.filter((n) => n === e.at).length;
   if (e.op === ':=' && !byId.has(e.operand)) problems.error(e.line, unknownName('value', e.operand, byId.keys()));
   else if (queue && e.op !== ':=' && !Number.isInteger(Number(e.operand))) problems.error(e.line, `"${e.id}" is a queue, so it counts filled slots in whole numbers. Found "${e.id}${e.op}${e.operand}"`);

@@ -18,7 +18,11 @@ export function checkFlow({ figure, timeline }, problems) {
   });
   if (dots.length > DOTS_MAX) problems.warn(timeline.tracks?.[0]?.line ?? figure.line, `[check 14] the flows draw ${dots.length} dots, over the limit of ${DOTS_MAX}. Raise every=, shorten for=, or remove a track`);
   const warned = new Set();
-  for (const row of timeline.values ?? []) if (row.slots !== undefined) checkQueue(row, { figure, warned }, problems);
+  for (const row of timeline.values ?? []) {
+    if (row.slots !== undefined) checkQueue(row, { figure, warned }, problems);
+    const value = figure.values.find((value) => value.id === row.id);
+    if (value?.indicator) checkIndicator(row, { value, warned }, problems);
+  }
 }
 
 // cost: time O(c), heap O(c), stack O(1)
@@ -37,5 +41,16 @@ function checkQueue(row, { figure, warned }, problems) {
   if (over !== undefined && !warned.has(`${row.id}>`)) {
     warned.add(`${row.id}>`);
     problems.warn(line, `[check 14] queue "${row.id}" reaches ${over}, over its ${row.slots} slots. It draws as full. Raise slots= or put in less than is taken out`);
+  }
+}
+
+function checkIndicator(row, { value, warned }, problems) {
+  const reached = [row.initial, ...row.changes.map(([, text]) => text)];
+  const { max } = value.indicator;
+  for (const [side, text] of [['below', reached.find((text) => Number(text) < 0)], ['over', reached.find((text) => Number(text) > max)]]) {
+    const key = `${row.id}:${side}`;
+    if (text === undefined || warned.has(key)) continue;
+    warned.add(key);
+    problems.warn(value.line, `[check 14] value "${row.id}" reaches ${text}, ${side} its display range 0 to ${max}. Only the fill is clamped; the value is preserved`);
   }
 }

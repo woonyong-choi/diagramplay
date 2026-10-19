@@ -29,7 +29,7 @@ const TIME = { type: 'word', format: '시간' };
 const BADGE_MAX = 8;
 
 /** 큐 칸 수(`slots`)의 상한. 가장 넓은 큐(칸 폭 16px, 틈 4px)가 약 640px라 캔버스 폭(960) 안에 들고, 칸 수를 세어 읽을 수 있는 한계다. */
-const QUEUE_SLOTS_MAX = 32;
+export const QUEUE_SLOTS_MAX = 32;
 
 /** 카드를 쓰는 도형(`show`, `value`가 놓이는 곳). 이름 순서는 오류 안내 글에 그대로 나온다. */
 export const CARD_SHAPES = ['box', 'external', 'store', 'person', 'table', 'api'];
@@ -236,6 +236,8 @@ export const OPTIONS = table({
   'track.legs': { ...TEXT, format: '시간 또는 -의 목록' },
   'value.on': { type: 'word', format: '도형 이름 또는 격자.칸' },
   'value.from': { type: 'word', format: '숫자 또는 낱말' },
+  'value.display': { type: 'word', format: 'bar 또는 slots' },
+  'value.max': { type: 'word', format: `양수, slots는 1~${QUEUE_SLOTS_MAX} 정수` },
   'value.ref': { type: 'word', format: '값 이름' },
   'hop.dashed': FLAG,
   'hop.create': FLAG,

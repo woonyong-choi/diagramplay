@@ -3,6 +3,8 @@
 // 좌표는 내용 면 왼쪽 위가 원점이다. 내용 면의 도형 안 자리는 draw/content.js의 contentBox가 정한다.
 import { plainText } from '../text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { indicatorText } from '../value-indicators.js';
+import { queueSlots, slotLayout } from './queue.js';
 import { widestText } from '../value-slots.js';
 import { measure, wrap } from './fonts.js';
 import { layoutMiniGraph, miniGraphWidth } from './minigraph.js';
@@ -88,7 +90,7 @@ function placeRow(row, { width, top }) {
   const pillW = tag ? measure(tag, STYLE.tag.size, STYLE.tag.face) + TAG_PAD : 0;
   const tagW = tag && !isHeading ? pillW + TAG_GAP : 0;
   // 값 줄의 오른쪽 자리는 그 값이 모든 장면에서 가질 글의 실제 폭이다. 카드가 담을 수 있는 몫을 넘는 글은 이 폭에서 줄을 나눈다.
-  const valueSlot = row.isValue ? fitValueSlot(row.valueTexts, Math.floor(inner * VALUE_SHARE), { x: width - CONTENT.side, center: top + STYLE.row.line / 2 }) : undefined;
+  const valueSlot = row.isValue ? fitValueSlot(row.valueTexts.map((text) => indicatorText(row.indicator, text)), Math.floor(inner * VALUE_SHARE), { x: width - CONTENT.side, center: top + STYLE.row.line / 2 }) : undefined;
   const markW = valueSlot ? valueSlot.w + MARK_GAP : row.mark && !isHeading ? measure(row.mark, STYLE.mark.size, STYLE.mark.face) + MARK_GAP : 0;
   const style = row.isMono ? STYLE.mono : STYLE.row;
   const lines = wrap(rowBody(row), inner - tagW - markW, style);
@@ -100,8 +102,10 @@ function placeRow(row, { width, top }) {
     ...(row.mark && !row.isValue ? [textAt('mark', row.mark, STYLE.mark, { x: width - CONTENT.side, center, anchor: 'end' })] : []),
     ...lines.map((line, k) => textAt(row.isMono ? 'row mono' : 'row', line, style, { x: CONTENT.side + (k === 0 ? tagW : 0), center: first + (k + 0.5) * style.line }, row.meta === undefined ? {} : { mutedFrom: mutedAt[k] })),
   ];
-  const height = (isHeading ? STYLE.row.line : 0) + Math.max(lines.length, valueSlot?.lines ?? 0) * STYLE.row.line;
-  return { row, top, height, texts, ...(tag ? { tag: { x: CONTENT.side, center, w: pillW, h: values.spacing.figure.tag.height } } : {}), ...(valueSlot ? { valueSlot } : {}) };
+  let height = (isHeading ? STYLE.row.line : 0) + Math.max(lines.length, valueSlot?.lines ?? 0) * STYLE.row.line;
+  const indicator = row.indicator ? placeIndicator(row.indicator, { width: inner, top: top + height + CONTENT.gap }) : undefined;
+  if (indicator) height += CONTENT.gap + indicator.h;
+  return { row, top, height, texts, ...(indicator ? { indicator } : {}), ...(tag ? { tag: { x: CONTENT.side, center, w: pillW, h: values.spacing.figure.tag.height } } : {}), ...(valueSlot ? { valueSlot } : {}) };
 }
 
 // cost: time O(l·n), heap O(l), stack O(1)
@@ -147,4 +151,15 @@ export function valueText(slot, text) {
 function placeValue(slot, text) {
   const lines = wrap(text, slot.w, STYLE.value);
   return textAt('value', text, STYLE.value, { x: slot.x, center: slot.center, anchor: 'end' }, lines.length > 1 ? { lines } : {});
+}
+
+function placeIndicator(indicator, { width, top }) {
+  const { kind, max } = indicator;
+  if (kind === 'bar') {
+    const h = values.spacing.figure.queue['slot-height'];
+    return { ...indicator, h, rects: [{ x: CONTENT.side, y: top, w: width, h }] };
+  }
+  const layout = slotLayout(max, width);
+  const rects = queueSlots({ x: CONTENT.side, y: top, w: width, h: layout.h, slots: max }, { maxWidth: width, padY: 0 });
+  return { ...indicator, h: layout.h, rects };
 }

@@ -45,8 +45,7 @@ export async function buildScene(figure, { source, limits, layoutWidth, chartWid
     const next = unionTexts(texts, observed);
     if (figure.values.some(value => value.cell)) checkGridBudget(figure, limits, next, placed.timeline);
     const grown = grownSlots(texts, next);
-    // 셀은 폭이 같아도 줄 수가 늘 수 있으므로 새 글을 얻으면 높이까지 다시 잰다.
-    for (const value of figure.values.filter((v) => v.cell)) {
+    for (const value of figure.values.filter((v) => v.cell || v.indicator)) {
       if (next.get(value.id).size > texts.get(value.id).size && !grown.includes(value.id)) grown.push(value.id);
     }
     const isExtentGrown = chartCards(figure).some((card) => JSON.stringify(extentOf(card, figure, texts)) !== JSON.stringify(extentOf(card, figure, next)));

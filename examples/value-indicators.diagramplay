@@ -1,0 +1,33 @@
+diagramplay
+title "큐 길이, 업로드 진행률, 연결 풀"
+subtitle "같은 값 줄에 현재값과 최댓값을 쓰고 칸이나 막대로 채운다"
+
+box client "요청"
+queue jobs "작업 큐" slots=8
+box worker "처리 현황" {
+  value queued "대기 작업" ref=jobs display=slots max=8
+}
+box upload "업로드" {
+  value uploaded "전송률" display=bar max=100
+}
+box pool "연결 풀" {
+  value active "사용 중" display=slots max=6
+}
+
+client -> jobs
+jobs -> worker
+client -> upload
+client -> pool
+view graph down
+
+scene "빈 상태" mode=static
+
+scene "진행 중" mode=static set="jobs=4, uploaded=50, active=3"
+
+scene "가득 찬 상태" mode=static set="jobs=8, uploaded=100, active=6"
+
+scene "요청과 처리" mode=loop for=6s
+  track client -> jobs at=0s every=1s time=500ms when="jobs<8" reserve="jobs+1"
+  track jobs -> worker at=500ms every=2s time=500ms when="jobs>0" reserve="jobs-1"
+  track client -> upload at=0s every=1s time=500ms when="uploaded<100" set="uploaded+20"
+  track client -> pool at=0s every=1s time=500ms when="active<6" reserve="active+1"
