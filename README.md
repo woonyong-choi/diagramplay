@@ -1,16 +1,9 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/torso-logo-dark.png">
-    <img src="docs/assets/torso-logo.png" alt="Torso 아이콘: 노란 줄자를 두른 나무 받침 위의 마네킹" width="200">
-  </picture>
-</p>
-
-<h1 align="center">Torso</h1>
+<h1 align="center">DiagramPlay</h1>
 
 <p align="center">
   텍스트로 구조와 흐름, 값의 변화를 그리는 문서 그림 도구<br>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 라이선스"></a>
-  <a href="https://github.com/woonyong-choi/torso/actions/workflows/ci.yml"><img src="https://github.com/woonyong-choi/torso/actions/workflows/ci.yml/badge.svg" alt="CI"></a><br>
+  <a href="https://github.com/woonyong-choi/diagramplay/actions/workflows/ci.yml"><img src="https://github.com/woonyong-choi/diagramplay/actions/workflows/ci.yml/badge.svg" alt="CI"></a><br>
   한국어 | <a href="README.en.md">English</a>
 </p>
 
@@ -21,28 +14,28 @@
   </picture>
 </p>
 
-Torso는 텍스트에 적은 구성 요소와 연결을 배치하고, 이동과 값 변화를 장면으로 만들어 SVG와 HTML로 씁니다. 이 저장소의 데모는 합성 데이터를 사용합니다.
+DiagramPlay는 텍스트에 적은 구성 요소와 연결을 배치하고, 이동과 값 변화를 장면으로 만들어 SVG와 HTML로 씁니다. 이 저장소의 데모는 합성 데이터를 사용합니다.
 
 ## 빠른 시작
 
-Node.js 20 이상과 Git이 필요합니다. `torso-diagram`은 현재 npm 공개 레지스트리에 없으므로 소스에서 실행합니다(2026-10-18 확인).
+Node.js 20 이상과 Git이 필요합니다. npm 공개 배포 전이므로 소스에서 실행합니다.
 
 ```sh
-git clone https://github.com/woonyong-choi/torso.git
-cd torso
+git clone https://github.com/woonyong-choi/diagramplay.git
+cd diagramplay
 npm ci
-cat > request.torso <<'EOF'
-torso
+cat > request.diagramplay <<'EOF'
+diagramplay
 box client "Client"
 box server "Server"
 client -> server "GET /orders"
 scene "Request"
   client -> server
 EOF
-node src/cli.js render request.torso --html
+node src/cli.js render request.diagramplay --html
 ```
 
-`request.torso`에 적은 요청 흐름을 읽어 현재 폴더에 두 파일을 만듭니다.
+`request.diagramplay`에 적은 요청 흐름을 읽어 현재 폴더에 두 파일을 만듭니다.
 
 ```text
 request.svg
@@ -55,14 +48,14 @@ request.html
 
 ## 해결하는 문제
 
-문서에서 요청의 이동과 값 변화를 설명하려면 구조와 실행 순서를 함께 보여 줘야 합니다. Torso는 상자 같은 구성 요소와 연결을 텍스트로 적고, 시간에 따른 동작을 장면으로 더해 같은 그림에서 보여 줍니다. 구조, 순서, 상태, 데이터 관계와 차트를 한 원본에서 함께 설명할 수 있습니다.
+문서에서 요청의 이동과 값 변화를 설명하려면 구조와 실행 순서를 함께 보여 줘야 합니다. DiagramPlay는 상자 같은 구성 요소와 연결을 텍스트로 적고, 시간에 따른 동작을 장면으로 더해 같은 그림에서 보여 줍니다. 구조, 순서, 상태, 데이터 관계와 차트를 한 원본에서 함께 설명할 수 있습니다.
 
-정지 그림의 배치와 도형을 직접 편집하는 일이 목적이면 그래픽 편집기가 더 맞습니다. Torso는 텍스트로 관리하는 문서에서 흐름과 값의 변화를 재생할 때 쓰는 도구입니다.
+정지 그림의 배치와 도형을 직접 편집하는 일이 목적이면 그래픽 편집기가 더 맞습니다. DiagramPlay는 텍스트로 관리하는 문서에서 흐름과 값의 변화를 재생할 때 쓰는 도구입니다.
 
 ## 작동 방식
 
-1. `.torso` 파일에 구성 요소와 연결을 적고, 장면에 이동과 값 변화를 적습니다.
-2. Torso가 원본을 검사하고 글자 크기를 재어 요소를 배치한 뒤, 장면의 시간표를 만듭니다.
+1. `.diagramplay` 파일에 구성 요소와 연결을 적고, 장면에 이동과 값 변화를 적습니다.
+2. DiagramPlay가 원본을 검사하고 글자 크기를 재어 요소를 배치한 뒤, 장면의 시간표를 만듭니다.
 3. SVG는 한 장면을 재생하고, HTML은 탭으로 장면을 고를 수 있게 합니다.
 
 <picture>
@@ -70,21 +63,21 @@ request.html
   <img src="docs/assets/how-it-works-light.svg" alt="합성 데이터: 개발자의 질문이 Screen에서 Engine을 거쳐 Codex CLI로 이동하는 그림">
 </picture>
 
-합성 데이터로 만든 질문 전달 예제입니다. [원본](docs/assets/how-it-works.torso)과 [처리 흐름](docs/architecture.md#처리-흐름)을 함께 볼 수 있습니다. 그림 종류를 고르는 방법은 [목적에 맞는 보기 선택하기](docs/usage.md#목적에-맞는-보기-선택하기)에 있습니다.
+합성 데이터로 만든 질문 전달 예제입니다. [원본](docs/assets/how-it-works.diagramplay)과 [처리 흐름](docs/architecture.md#처리-흐름)을 함께 볼 수 있습니다. 그림 종류를 고르는 방법은 [목적에 맞는 보기 선택하기](docs/usage.md#목적에-맞는-보기-선택하기)에 있습니다.
 
 ## 상태
 
-기존 [GitHub Releases](https://github.com/woonyong-choi/torso/releases)는 이름 변경 전 버전이며, 현재 사용법은 이 저장소의 소스를 기준으로 합니다.
+기존 [GitHub Releases](https://github.com/woonyong-choi/diagramplay/releases)는 이름 변경 전 버전이며, 현재 사용법은 이 저장소의 소스를 기준으로 합니다.
 
 SVG와 HTML 생성, Markdown 그림 갱신, GitHub Action 검사, JavaScript API와 외부 그림 가져오기를 지원합니다. 종류별 기능과 예제는 [지원하는 표현](docs/design/expression-coverage.md#지원하는-표현)에 있습니다.
 
-남은 작업은 [배포 전 시각 결함 수정 #364](https://github.com/woonyong-choi/torso/issues/364), [재생기 그림 내려받기 #150](https://github.com/woonyong-choi/torso/issues/150), [전수 검수와 소스 정리 #251](https://github.com/woonyong-choi/torso/issues/251)에서 추적합니다. 현재 데모는 합성 데이터로 기능을 설명하며 실제 서비스의 성능 측정값이 아닙니다. [검증 범위](docs/design/expression-coverage.md#예제와-검증-범위)와 [지원하지 않는 표현](docs/design/expression-coverage.md#전용-표현이-없는-범위)을 확인하세요.
+남은 작업은 [배포 전 시각 결함 수정 #364](https://github.com/woonyong-choi/diagramplay/issues/364), [재생기 그림 내려받기 #150](https://github.com/woonyong-choi/diagramplay/issues/150), [전수 검수와 소스 정리 #251](https://github.com/woonyong-choi/diagramplay/issues/251)에서 추적합니다. 현재 데모는 합성 데이터로 기능을 설명하며 실제 서비스의 성능 측정값이 아닙니다. [검증 범위](docs/design/expression-coverage.md#예제와-검증-범위)와 [지원하지 않는 표현](docs/design/expression-coverage.md#전용-표현이-없는-범위)을 확인하세요.
 
 1.0 전에는 원본 형식과 명령이 예고 없이 바뀔 수 있습니다.
 
 ## 문서
 
-- [Torso 사용법](docs/usage.md)
+- [DiagramPlay 사용법](docs/usage.md)
   - [아키텍처](docs/architecture.md)
   - [용어](docs/glossary.md)
 

@@ -1,5 +1,3 @@
-// 공통 모형(model.js)을 Torso 원본 글로 쓴다. 이름 정하기, Torso가 받지 않는 선 거르기, 같은 방향 선 합치기, 외래 키 고르기를 여기서 한 번만 한다.
-// 줄 순서는 파일 구조(머리, 선언, 시간 흐름)를 따른다(docs/design/figure-syntax.md 파일 구조, docs/design/import.md 쓰기).
 import { emitSequence } from './emit-sequence.js';
 import { change, groupOf, nodeOf, skip } from './model.js';
 import { MISSING_TEXT, createColumnNames, createNames, quote, typeWord } from './names.js';
@@ -17,7 +15,7 @@ export function emit(model) {
   }
   const groups = keptGroups(model);
   const ids = assignIds(model, groups);
-  const lines = ['torso'];
+  const lines = ['diagramplay'];
   if (model.title) lines.push(`title ${quote(model.title)}`);
   lines.push('');
   const edges = resolveEdges(model, ids, groups);
@@ -34,13 +32,12 @@ export function emit(model) {
 // cost: time O(g·(n + g)), heap O(g), stack O(g)
 // vars: g = 그룹 수, n = 카드 수
 // basis: estimate
-// 카드를 하나라도 담은 그룹. Torso는 빈 그룹을 받지 않아 빈 그룹은 경고하고 뺀다(그 안의 빈 그룹도 같이).
 function keptGroups(model) {
   const holds = (key) => model.nodes.some((n) => n.parent === key) || model.groups.some((g) => g.parent === key && holds(g.key));
   const kept = new Set();
   for (const group of model.groups) {
     if (holds(group.key)) kept.add(group.key);
-    else skip(model, group.line, `the empty group "${group.label}" is not imported. A Torso group needs a card inside`);
+    else skip(model, group.line, `the empty group "${group.label}" is not imported. A DiagramPlay group needs a card inside`);
   }
   return kept;
 }
@@ -48,7 +45,6 @@ function keptGroups(model) {
 // cost: time O(n + g + c), heap O(n + g + c), stack O(1)
 // vars: n = 카드 수, g = 그룹 수, c = 열 수
 // basis: estimate
-// key에서 Torso 이름으로 가는 표. 카드와 그룹은 한 이름 공간이고 테이블은 `_`로 잇는다. 테이블 열 이름도 여기서 정한다.
 function assignIds(model, groups) {
   const names = createNames();
   const ids = { node: new Map(), group: new Map(), column: new Map() };
@@ -65,7 +61,6 @@ function assignIds(model, groups) {
 // cost: time O(c), heap O(c), stack O(1)
 // vars: c = 테이블 열 수
 // basis: estimate
-// 테이블 하나의 열 이름 표 { 원래 이름: Torso 이름 }. 바꾼 이름은 그림에 보이는 글이 달라지므로 경고한다.
 function columnNames(model, table) {
   const names = createColumnNames();
   const map = new Map();
@@ -103,7 +98,6 @@ function writeTree(lines, context, parent, depth) {
 // cost: time O(c), heap O(c), stack O(1)
 // vars: c = 카드 본문 줄 수
 // basis: estimate
-// 카드 하나의 선언 줄. 종류마다 Torso 카드 낱말 하나로 옮긴다.
 function nodeLines(node, { model, ids }) {
   const id = ids.node.get(node.key);
   const label = quote(node.label || node.key || id);
@@ -199,7 +193,6 @@ const multiplicity = (mult) => (mult ? ` from=${quote(mult.from)} to=${quote(mul
 // cost: time O(s + f), heap O(1), stack O(1)
 // vars: s = 처음 상태 수, f = 끝 상태 수
 // basis: estimate
-// 처음 상태 하나와 끝 상태들. Torso는 처음 상태를 하나만 받으므로 둘째부터는 경고하고 뺀다.
 function writeStates(lines, model, ids) {
   const out = [];
   const isState = ({ key, line }, word) => {
@@ -220,7 +213,6 @@ function writeStates(lines, model, ids) {
 // cost: time O(e·(n + g)), heap O(e), stack O(g)
 // vars: e = 선 수, n = 카드 수, g = 그룹 수
 // basis: estimate
-// 그릴 선 목록. 외래 키가 될 수 없는 참조는 관계선으로 옮기고, Torso가 받지 않는 선은 경고하고 빼고, 같은 방향 선은 하나로 합친다.
 function resolveEdges(model, ids, groups) {
   const edges = [...model.edges, ...foreignKeyEdges(model)];
   const kept = [];
@@ -242,11 +234,10 @@ const sameEnd = (a, b) => a.key === b.key && a.part === b.part;
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 같은 방향 선 둘을 하나로. Torso는 같은 방향 선을 하나만 받는다. 라벨은 쉼표로 잇는다.
 function mergeEdge(kept, edge, model) {
   const labels = [kept.label, edge.label].filter(Boolean);
   const label = [...new Set(labels)].join(', ') || undefined;
-  change(model, edge.line, `this edge repeats an edge on line ${kept.line} and is merged into it${label ? ` with the label "${label}"` : ''}. Torso keeps one edge per direction`);
+  change(model, edge.line, `this edge repeats an edge on line ${kept.line} and is merged into it${label ? ` with the label "${label}"` : ''}. DiagramPlay keeps one edge per direction`);
   kept.label = label;
 }
 
@@ -274,7 +265,6 @@ function rejectReason(edge, model, groups) {
 // cost: time O(n), heap O(1), stack O(1)
 // vars: n = 카드 수
 // basis: estimate
-// Torso 규칙에 맞게 다듬은 선. 다중성과 관계 종류는 두 끝이 모두 테이블이거나 모두 클래스일 때만 받고(관계 종류의 기본 association은 적지 않는다), 두 상태를 잇는 전이는 사건 글이 있어야 한다.
 function tidyEdge(edge, model) {
   const [from, to] = [nodeOf(model, edge.from.key), nodeOf(model, edge.to.key)];
   const isPair = from?.kind === to?.kind && (from?.kind === 'table' || from?.kind === 'class');
@@ -313,7 +303,6 @@ function edgeLine(edge, ids) {
 // cost: time O(t·c), heap O(t), stack O(1)
 // vars: t = 테이블 수, c = 테이블당 열과 키 수
 // basis: estimate
-// 외래 키마다 그대로 그릴지(fk=) 관계선으로 옮길지 정한다. 가리키는 쪽이 기본 키나 고유 키 전체가 아니면 Torso 외래 키가 될 수 없어 관계선이다.
 function foreignKeyEdges(model) {
   const edges = [];
   for (const table of model.nodes.filter((n) => n.kind === 'table')) {
@@ -334,7 +323,6 @@ function foreignKeyEdges(model) {
 // cost: time O(c·k), heap O(1), stack O(1)
 // vars: c = 열 수, k = 키 수
 // basis: estimate
-// Torso 외래 키로 그릴 수 있는가. 가리키는 열 묶음이 그 테이블의 기본 키나 고유 키 전체여야 한다. set-null 삭제는 nullable 열이 있어야 한다.
 function canDraw(model, table, fk, column) {
   const target = nodeOf(model, fk.key);
   if (fk.key === table.key && fk.columns.some((c, i) => c === fk.targets[i])) return false;

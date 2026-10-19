@@ -6,7 +6,7 @@ import { MISSING_TEXT } from './names.js';
 
 // shape → 카드 종류. 목록 밖 모양은 상자로 그리고 알린다.
 const SHAPES = { rectangle: 'box', square: 'box', cylinder: 'store', person: 'person', 'c4-person': 'person', diamond: 'decision', circle: 'circle', queue: 'queue', sql_table: 'table' };
-/** D2 queue에는 칸 수가 없다. Torso 큐는 칸 수가 필요해서 이 값으로 쓰고 알린다. */
+/** D2 queue에는 칸 수가 없다. DiagramPlay 큐는 칸 수가 필요해서 이 값으로 쓰고 알린다. */
 const QUEUE_SLOTS = 4;
 const DIRECTIONS = { right: 'right', down: 'down', left: 'right', up: 'down' };
 // 받지 않는 예약 낱말. style과 그 아래 키는 꾸밈이라 따로 알린다.
@@ -16,7 +16,7 @@ const STYLE = 'style';
 // cost: time O(b), heap O(1), stack O(1)
 // vars: b = 블록 문장 수
 // basis: estimate
-// D2의 그림 제목 관례: 맨 위의 글 모양 노드(`title: 글 {shape: text; near: top-center}`). Torso 그림 제목(`title`)으로 옮긴다.
+// D2의 그림 제목 관례: 맨 위의 글 모양 노드(`title: 글 {shape: text; near: top-center}`). DiagramPlay 그림 제목(`title`)으로 옮긴다.
 function isTitle(path, item) {
   if (path.length !== 1 || !item.value || item.value.kind === 'array') return false;
   return (item.block ?? []).some((prop) => prop.paths[0]?.join('.').toLowerCase() === 'shape' && prop.value?.text === 'text');
@@ -24,7 +24,7 @@ function isTitle(path, item) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// `style.stroke-dash: n`(n > 0)인가. Torso는 점선의 간격을 고르지 않고 점선 여부만 옮긴다.
+// `style.stroke-dash: n`(n > 0)인가. DiagramPlay는 점선의 간격을 고르지 않고 점선 여부만 옮긴다.
 function isDash(path, item) {
   return path.length === 2 && path[0].toLowerCase() === STYLE && path[1].toLowerCase() === 'stroke-dash' && Number(item.value?.text) > 0;
 }
@@ -143,7 +143,7 @@ function setShape(owner, item, context) {
 function setDirection(owner, item, { model, ...context }) {
   const word = item.value?.text?.toLowerCase();
   if (!Object.hasOwn(DIRECTIONS, word ?? '')) return skip(model, item.line, `the direction "${word}" is not imported. Directions are right, down, left, up`);
-  if (word === 'left' || word === 'up') change(model, item.line, `the direction ${word} is drawn as ${DIRECTIONS[word]}. A Torso graph flows right or down`);
+  if (word === 'left' || word === 'up') change(model, item.line, `the direction ${word} is drawn as ${DIRECTIONS[word]}. A DiagramPlay graph flows right or down`);
   if (owner.length) declare(owner, item.line, { model, ...context }).direction = DIRECTIONS[word];
   else model.direction = DIRECTIONS[word];
   return undefined;
@@ -237,7 +237,7 @@ function addNode(node, label, { model, all }) {
     change(model, node.shape.line, `the shape "${shape}" of "${label}" is drawn as a box`);
     kind = 'box';
   }
-  // 점선 테두리 상자는 Torso의 외부 카드(점선 윤곽)다. 다른 모양의 점선은 모양을 지키고 알린다.
+  // 점선 테두리 상자는 DiagramPlay의 외부 카드(점선 윤곽)다. 다른 모양의 점선은 모양을 지키고 알린다.
   if (node.dashed && kind === 'box') kind = 'external';
   else if (node.dashed) change(model, node.line, `the dashed outline of "${label}" is not drawn. Only a box becomes a dashed external card`);
   const card = { key: node.key, kind, label: label || node.key, parent: node.parent, line: node.line };

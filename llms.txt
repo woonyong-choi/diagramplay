@@ -1,34 +1,34 @@
-# Torso
+# DiagramPlay
 
 > A documentation diagram tool that draws structure, flows, and value changes from text
 
-Torso lays out elements and connections from a text source and turns timed movement and value changes into SVG and HTML. The demos in this repository use synthetic data.
+DiagramPlay lays out elements and connections from a text source and turns timed movement and value changes into SVG and HTML. The demos in this repository use synthetic data.
 
 ## Docs
 
-- [Torso 사용법](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/usage.md)
-- [아키텍처](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/architecture.md)
-- [용어](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/glossary.md)
-- [그림 문법](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/figure-syntax.md)
-- [카드와 보기](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/figure-kinds.md)
-- [칸 격자](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/grid.md)
-- [차트](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/charts.md)
-- [배치](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/layout.md)
-- [재생](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/playback.md)
-- [그림 검사](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/figure-check.md)
-- [마크다운 반영과 배포](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/markdown.md)
-- [가져오기](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/import.md)
-- [문서 스킬 연동](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/docs-integration.md)
-- [표현 범위와 검증 범위](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/design/expression-coverage.md)
-- [구조 그림](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/flow.md)
-- [구성도](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/architecture.md)
-- [순서 그림](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/sequence.md)
-- [상태 그림](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/state.md)
-- [데이터 관계 그림](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/data.md)
-- [칸 격자](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/grid.md)
-- [타이밍 그림](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/timing.md)
-- [차트](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/reference/charts.md)
+- [DiagramPlay 사용법](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/usage.md)
+- [아키텍처](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/architecture.md)
+- [용어](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/glossary.md)
+- [그림 문법](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/figure-syntax.md)
+- [카드와 보기](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/figure-kinds.md)
+- [칸 격자](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/grid.md)
+- [차트](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/charts.md)
+- [배치](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/layout.md)
+- [재생](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/playback.md)
+- [그림 검사](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/figure-check.md)
+- [마크다운 반영과 배포](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/markdown.md)
+- [가져오기](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/import.md)
+- [문서 스킬 연동](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/docs-integration.md)
+- [표현 범위와 검증 범위](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/design/expression-coverage.md)
+- [구조 그림](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/flow.md)
+- [구성도](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/architecture.md)
+- [순서 그림](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/sequence.md)
+- [상태 그림](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/state.md)
+- [데이터 관계 그림](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/data.md)
+- [칸 격자](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/grid.md)
+- [타이밍 그림](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/timing.md)
+- [차트](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/reference/charts.md)
 
 ## Optional
 
-- [결정 기록](https://raw.githubusercontent.com/woonyong-choi/torso/main/docs/decisions/README.md)
+- [결정 기록](https://raw.githubusercontent.com/woonyong-choi/diagramplay/main/docs/decisions/README.md)

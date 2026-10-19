@@ -2,7 +2,7 @@
 import { change, ensureNode, groupOf, skip, textOf } from './model.js';
 import { unquote } from './mermaid.js';
 
-// 방향 낱말 → Torso 방향. 거꾸로 가는 방향은 없어서 같은 축의 방향으로 바꾼다.
+// 방향 낱말 → DiagramPlay 방향. 거꾸로 가는 방향은 없어서 같은 축의 방향으로 바꾼다.
 const DIRECTIONS = { TD: 'down', TB: 'down', LR: 'right', RL: 'right', BT: 'down' };
 const REVERSED = new Set(['RL', 'BT']);
 
@@ -85,7 +85,7 @@ function direction(word, line, model) {
     skip(model, line, `the direction "${word}" is not imported. Directions are TD, TB, LR, RL, BT`);
     return undefined;
   }
-  if (REVERSED.has(word)) change(model, line, `the direction ${word} is drawn as ${DIRECTIONS[word]}. A Torso graph flows right or down`);
+  if (REVERSED.has(word)) change(model, line, `the direction ${word} is drawn as ${DIRECTIONS[word]}. A DiagramPlay graph flows right or down`);
   return DIRECTIONS[word];
 }
 
@@ -277,10 +277,10 @@ function placeNode(found, line, { model, stack, shaped }) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 선 하나를 모형에 더한다. 굵은 선과 원·엑스 끝은 Torso에 없어 보통 선으로 쓰고 알린다.
+// 선 하나를 모형에 더한다. 굵은 선과 원·엑스 끝은 DiagramPlay에 없어 보통 선으로 쓰고 알린다.
 function addEdge({ from, to, link, line }, model) {
   if (link.hidden) return skip(model, line, `the invisible link ${from} ~~~ ${to} is not imported`);
-  if (link.thick) change(model, line, `the thick edge ${from} -> ${to} is drawn as a normal edge. Torso has one edge weight`);
+  if (link.thick) change(model, line, `the thick edge ${from} -> ${to} is drawn as a normal edge. DiagramPlay has one edge weight`);
   if (link.odd) change(model, line, `the circle or cross end of ${from} -> ${to} is drawn as an arrowhead`);
   model.edges.push({ from: { key: from }, to: { key: to }, label: textOf(model, unquote(link.label ?? ''), line) || undefined, dashed: link.dashed, head: link.head, line });
   return undefined;

@@ -5,7 +5,6 @@ import { unquote } from './mermaid.js';
 // 화살표 → 점선 여부와 바꿔 그린 끝. 긴 것을 먼저 본다.
 const ARROWS = ['<<-->>', '<<->>', '-->>', '->>', '--x', '-x', '--)', '-)', '-->', '->'];
 const MESSAGE = new RegExp(`^(.+?)\\s*(${ARROWS.map((a) => a.replace(/[()]/g, '\\$&')).join('|')})\\s*([+-]?)\\s*([^:]+?)\\s*(?::(.*))?$`);
-// 구획을 여는 낱말과 Torso 구획 종류. 같은 구획 안의 대안을 여는 낱말
 const FRAGMENTS = { alt: 'alt', loop: 'loop', opt: 'opt', par: 'par' };
 const BRANCHES = { else: 'alt', and: 'par' };
 // 구획 없이 안의 줄만 옮기는 블록
@@ -55,7 +54,7 @@ function readLine(text, line, context) {
   if (word === 'end') return closeBlock(line, context);
   if (word === 'activate' || word === 'deactivate') return void steps(context).push({ type: word, key: participant(tail, line, context), line });
   if (/^note$/i.test(word)) return readNote(tail, line, context);
-  if (word === 'autonumber') return skip(model, line, 'autonumber is not imported. Torso numbers edges with no=, not messages');
+  if (word === 'autonumber') return skip(model, line, 'autonumber is not imported. DiagramPlay numbers edges with no=, not messages');
   if (/^(accTitle|accDescr|links?|properties|details)\b/.test(word)) return skip(model, line, `"${word}" is not imported`);
   const message = MESSAGE.exec(text);
   if (message) return readMessage(message, line, context);
@@ -111,7 +110,7 @@ function readMessage([, rawFrom, arrow, mark, rawTo, rawText = ''], line, contex
   if (pending.create.delete(to)) message.create = true;
   if (pending.destroy.delete(to)) message.destroy = true;
   if (pending.destroy.has(from)) {
-    skip(model, line, `destroy ${model.nodes.find((n) => n.key === from).label} on a message it sends is not imported. Torso ends the receiver's lifeline`);
+    skip(model, line, `destroy ${model.nodes.find((n) => n.key === from).label} on a message it sends is not imported. DiagramPlay ends the receiver's lifeline`);
     pending.destroy.delete(from);
   }
   const list = steps(context);

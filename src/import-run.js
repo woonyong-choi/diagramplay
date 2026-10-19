@@ -1,4 +1,4 @@
-// `torso import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.torso] [--json]` 실행. 옮기기는 import/index.js, 명령 계약은 docs/design/import.md 명령이다.
+// `diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.diagramplay] [--json]` 실행. 옮기기는 import/index.js, 명령 계약은 docs/design/import.md 명령이다.
 // 옮긴 원본은 표준 출력에 쓰고, --out이 있으면 그 파일에 쓴다. 형식을 적지 않으면 원본 확장자로 정한다.
 import { readFileSync } from 'node:fs';
 import { dirname, extname } from 'node:path';
@@ -56,7 +56,7 @@ function planOf({ inputs, out }) {
   if (!hasFormat && inputs.length === 2) return { error: `unknown import format "${inputs[0]}". Formats: ${IMPORT_FORMATS.join(', ')}` };
   const files = hasFormat ? inputs.slice(1) : inputs;
   if (files.length !== 1) return { error: files.length ? `import takes one file, not ${files.length}` : 'import needs a file, or - for standard input' };
-  if (out !== undefined && extname(out) !== '.torso') return { error: `--out names a .torso file, not ${out}` };
+  if (out !== undefined && extname(out) !== '.diagramplay') return { error: `--out names a .diagramplay file, not ${out}` };
   const [input] = files;
   if (hasFormat) return { format: inputs[0], input };
   const format = EXTENSIONS[extname(input).toLowerCase()];

@@ -1,5 +1,3 @@
-// Excalidraw 원본 읽기: 사각형·타원·마름모 도형과 그 안의 글, 도형에 묶인 화살표와 화살표 글, 프레임(docs/design/import.md Excalidraw).
-// 좌표, 색, 손글씨 획은 옮기지 않고 뜻(카드, 그룹, 선)만 옮긴다. Torso가 다시 배치한다.
 import { flowDirection, shapeLabel, titleText } from './drawn.js';
 import { FAIL, skip, textOf } from './model.js';
 
@@ -85,7 +83,7 @@ function readFrames(elements, model) {
 // cost: time O(t), heap O(1), stack O(1)
 // vars: t = 자유 글 수
 // basis: estimate
-// 맨 위의 자유 글은 그림 제목이고, 나머지 자유 글은 Torso에 붙일 자리가 없어 알린다.
+// 맨 위의 자유 글은 그림 제목이고, 나머지 자유 글은 DiagramPlay에 붙일 자리가 없어 알린다.
 function readTitle(texts, boxes, model) {
   const title = titleText(texts, boxes);
   if (title) model.title = title.text;

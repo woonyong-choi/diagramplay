@@ -12,7 +12,7 @@ const INDENT = '  ';
 // cost: time O(s·p), heap O(s), stack O(d)
 // vars: s = 단계 수, p = 참여자 수, d = 구획 깊이
 // basis: estimate
-/** 순서 보기 블록과 장면 줄. 참여자 순서는 처음 보내는 순서로 고친다(Torso 순서 보기 규칙). */
+/** 순서 보기 블록과 장면 줄. 참여자 순서는 처음 보내는 순서로 고친다(DiagramPlay 순서 보기 규칙). */
 export function emitSequence(model, ids) {
   const { sequence } = model;
   const context = { model, ids, active: new Set() };
@@ -72,7 +72,7 @@ function writeSteps(steps, context, { depth, isTop }) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 메시지 한 줄. 글이 없으면 빈 자리 표시를 넣고 알린다. 구획 안의 생성·소멸은 Torso가 받지 않아 뺀다.
+// 메시지 한 줄. 글이 없으면 빈 자리 표시를 넣고 알린다. 구획 안의 생성·소멸은 DiagramPlay가 받지 않아 뺀다.
 function messageLine(step, { model, ids }, isTop) {
   let text = step.text;
   if (!text) {
@@ -92,11 +92,11 @@ function messageLine(step, { model, ids }, isTop) {
 // cost: time O(k), heap O(1), stack O(1)
 // vars: k = 메모가 가리킨 참여자 수
 // basis: estimate
-// 메모 한 줄. Torso 메모는 바로 앞 메시지의 보내는 쪽이나 받는 쪽에 붙으므로, 가리킨 참여자 가운데 그 메시지에 든 첫 참여자에 단다.
+// 메모 한 줄. DiagramPlay 메모는 바로 앞 메시지의 보내는 쪽이나 받는 쪽에 붙으므로, 가리킨 참여자 가운데 그 메시지에 든 첫 참여자에 단다.
 function noteLine(step, beat, { model, ids }) {
   const target = beat && step.keys.find((key) => key === beat.message.from || key === beat.message.to);
   if (!target) {
-    skip(model, step.line, 'this note is not imported. A Torso note follows a message and points at its sender or receiver');
+    skip(model, step.line, 'this note is not imported. A DiagramPlay note follows a message and points at its sender or receiver');
     return undefined;
   }
   return `note ${ids.node.get(target)} ${quote(step.text || MISSING_TEXT)}`;
@@ -143,7 +143,7 @@ function fragmentLines(step, context, depth) {
       const flat = writeSteps(branches[0].steps, context, { depth, isTop: false });
       return { lines: flat.lines, senders };
     }
-    change(model, step.line, 'an alt block with one branch is written as opt. Torso alt needs two branches');
+    change(model, step.line, 'an alt block with one branch is written as opt. DiagramPlay alt needs two branches');
     const flat = writeSteps(branches[0].steps, context, { depth: depth + 1, isTop: false });
     return { lines: [`${pad}fragment opt ${title} run=on {`, ...flat.lines, `${pad}}`], senders };
   }

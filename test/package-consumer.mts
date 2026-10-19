@@ -1,7 +1,7 @@
-import { buildFigure, FigureError, importDiagram, IMPORT_FORMATS, toHtml, toSvg } from 'torso-diagram';
-import type { BuildOptions, BuiltFigure, FigureDiagnostic, ImportFormat, ImportResult, SvgOptions } from 'torso-diagram';
+import { buildFigure, FigureError, importDiagram, IMPORT_FORMATS, toHtml, toSvg } from 'diagramplay';
+import type { BuildOptions, BuiltFigure, FigureDiagnostic, HtmlOptions, ImportFormat, ImportResult, SvgOptions } from 'diagramplay';
 
-const source = 'torso\nbox client "Client"\nbox server "Server"\nclient -> server\nscene "request"\n  client -> server "GET"\n';
+const source = 'diagramplay\nbox client "Client"\nbox server "Server"\nclient -> server\nscene "request"\n  client -> server "GET"\n';
 const options: BuildOptions = {
   baseDir: '.', strict: true, allowFileAccess: false,
   budget: { events: 100, chain: 100 }, layoutWidth: 600,
@@ -9,14 +9,15 @@ const options: BuildOptions = {
 const result: BuiltFigure = await buildFigure(source, options);
 const svgOptions: SvgOptions = { scene: 'request', isStatic: true, name: 'request' };
 const svg: string = await toSvg(result, svgOptions);
-const html: string = await toHtml(result, 'request');
+const htmlOptions: HtmlOptions = { source };
+const html: string = await toHtml(result, 'request', htmlOptions);
 const warnings: readonly FigureDiagnostic[] = result.warnings;
 if (!svg.startsWith('<svg ') || !html.startsWith('<!doctype html>') || warnings.length) {
   throw new Error('typed consumer did not render the source');
 }
 
 try {
-  await buildFigure('torso\nbox a "A"\na -> missing\n');
+  await buildFigure('diagramplay\nbox a "A"\na -> missing\n');
   throw new Error('invalid source was accepted');
 } catch (error) {
   if (!(error instanceof FigureError)) throw error;
@@ -32,7 +33,7 @@ try {
 
 const format: ImportFormat = IMPORT_FORMATS[0] ?? 'mermaid';
 const imported: ImportResult = importDiagram(format, 'flowchart LR\n  a --> b\n');
-if (!imported.source.startsWith('torso\n') || imported.warnings.length) {
+if (!imported.source.startsWith('diagramplay\n') || imported.warnings.length) {
   throw new Error('typed consumer did not import the Mermaid source');
 }
 await buildFigure(imported.source, { strict: true });
@@ -51,6 +52,8 @@ function invalidCalls(figure: BuiltFigure) {
   void toSvg(figure, { scene: true });
   // @ts-expect-error HTML의 두 번째 인자는 제목 문자열이다.
   void toHtml(figure, { name: 'request' });
+  // @ts-expect-error 복사할 원문은 문자열이다.
+  void toHtml(figure, 'request', { source: 123 });
   // @ts-expect-error 가져오는 형식은 mermaid, dbml, d2뿐이다.
   void importDiagram('plantuml', '');
   // @ts-expect-error 내부 그림 모형은 공개 계약이 아니다.

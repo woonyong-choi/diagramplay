@@ -26,7 +26,7 @@ async function launchBrowser() {
 test('HTML figures fill the frame width without horizontal scroll in standalone and embedded views', async () => {
   const documents = new Map();
   for (const id of ['architecture', 'sequence']) {
-    const source = new URL(`../../examples/${id}.torso`, import.meta.url);
+    const source = new URL(`../../examples/${id}.diagramplay`, import.meta.url);
     const built = await buildFigure(await readFile(source, 'utf8'), { baseDir: fileURLToPath(new URL('.', source)) });
     documents.set(`/${id}`, await toHtml(built, id));
     documents.set(`/embed-${id}`, `<!doctype html><html><head><meta name="viewport" content="width=device-width"><style>body{margin:0}iframe{display:block;width:100%;border:0}</style></head><body><iframe data-diagram src="/${id}" title="그림" allow="fullscreen" allowfullscreen></iframe><script>(${bindDiagramHost.toString()})();</script></body></html>`);
@@ -88,9 +88,9 @@ test('HTML figures fill the frame width without horizontal scroll in standalone 
 test('administrator illustrations accompany visible role labels in the shipped examples', async () => {
   const documents = [];
   for (const [path, label] of [
-    ['examples/queue.torso', '운영자'],
-    ['docs/assets/showcase/cloud-architecture-ko.torso', '운영자'],
-    ['docs/assets/showcase/cloud-architecture-en.torso', 'Operator'],
+    ['examples/queue.diagramplay', '운영자'],
+    ['docs/assets/showcase/cloud-architecture-ko.diagramplay', '운영자'],
+    ['docs/assets/showcase/cloud-architecture-en.diagramplay', 'Operator'],
   ]) {
     const source = new URL(`../../${path}`, import.meta.url);
     const built = await buildFigure(await readFile(source, 'utf8'), { baseDir: fileURLToPath(new URL('.', source)), strict: true });

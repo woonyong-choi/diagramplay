@@ -6,11 +6,11 @@
 
 ## 요약
 
-`torso import <mermaid|dbml|d2|drawio|excalidraw>`는 다른 도구의 그림 원본을 `.torso` 원본으로 옮긴다. 다섯 형식의 읽기는 모두 공통 모형 하나를 채우고, 원본 글은 쓰는 곳 한 곳(`src/import/emit.js`)이 쓴다. 그래서 같은 뜻(카드, 그룹, 선, 외래 키, 메시지, 차트 행)은 형식과 상관없이 같은 Torso 문법 하나가 된다. 새 문법은 없다. Torso에 대응 문법이 없는 문장은 원본 줄 번호가 있는 경고와 함께 건너뛰고, 다르게 그리는 문장도 경고한다. 결과 파일은 새로 쓰기만 하고 이미 있는 파일을 바꾸지 않는다.
+`diagramplay import <mermaid|dbml|d2|drawio|excalidraw>`는 다른 도구의 그림 원본을 `.diagramplay` 원본으로 옮긴다. 다섯 형식의 읽기는 모두 공통 모형 하나를 채우고, 원본 글은 쓰는 곳 한 곳(`src/import/emit.js`)이 쓴다. 그래서 같은 뜻(카드, 그룹, 선, 외래 키, 메시지, 차트 행)은 형식과 상관없이 같은 DiagramPlay 문법 하나가 된다. 새 문법은 없다. DiagramPlay에 대응 문법이 없는 문장은 원본 줄 번호가 있는 경고와 함께 건너뛰고, 다르게 그리는 문장도 경고한다. 결과 파일은 새로 쓰기만 하고 이미 있는 파일을 바꾸지 않는다.
 
 ## 해결하는 문제
 
-문서에 이미 Mermaid 순서도, DBML 스키마, D2 구성도가 있으면 같은 그림을 Torso로 처음부터 다시 적어야 했다. 손으로 옮기면 이름 규칙(소문자와 `-`), 외래 키가 기본 키를 가리켜야 한다는 규칙, 순서 보기의 참여자 순서처럼 Torso가 요구하는 것을 하나씩 맞춰야 하고, 옮기다 빠뜨린 문장은 알 길이 없다. 가져오기는 옮길 수 있는 것은 Torso 문법으로, 옮길 수 없는 것은 그 줄을 가리키는 경고로 남긴다.
+문서에 이미 Mermaid 순서도, DBML 스키마, D2 구성도가 있으면 같은 그림을 DiagramPlay로 처음부터 다시 적어야 했다. 손으로 옮기면 이름 규칙(소문자와 `-`), 외래 키가 기본 키를 가리켜야 한다는 규칙, 순서 보기의 참여자 순서처럼 DiagramPlay가 요구하는 것을 하나씩 맞춰야 하고, 옮기다 빠뜨린 문장은 알 길이 없다. 가져오기는 옮길 수 있는 것은 DiagramPlay 문법으로, 옮길 수 없는 것은 그 줄을 가리키는 경고로 남긴다.
 
 ## 사용 예
 
@@ -23,10 +23,10 @@ flowchart LR
   classDef hot fill:#f00
 ```
 
-`torso import flow.mmd --out flow.torso`는 `flow.torso`를 쓰고 `flow.mmd:6: warning: style classes ("classDef") are not imported. ...`를 알린다.
+`diagramplay import flow.mmd --out flow.diagramplay`는 `flow.diagramplay`를 쓰고 `flow.mmd:6: warning: style classes ("classDef") are not imported. ...`를 알린다.
 
 ```text
-torso
+diagramplay
 
 box client "Client"
 box gw "API Gateway"
@@ -45,10 +45,10 @@ auth -> reject "no" dashed
 ### 명령과 결과 파일
 
 ```text
-torso import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.torso] [--json]
+diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.diagramplay] [--json]
 ```
 
-- 원본은 하나다. 형식을 적지 않으면 원본 확장자로 정한다(`.mmd`·`.mermaid`는 mermaid, `.dbml`, `.d2`, `.drawio`, `.excalidraw`). 표준 입력(`-`)은 확장자가 없으므로 형식을 적어야 한다. 형식을 모르거나, 원본이 없거나 둘 이상이거나, `--out`이 `.torso` 파일이 아니거나, 받지 않는 선택 사항(`--html`, `--static`, `--scene`, `--title`, `--strict`, `--budget`, `md` 전용 선택 사항)을 주면 사용법 오류(종료 2)다.
+- 원본은 하나다. 형식을 적지 않으면 원본 확장자로 정한다(`.mmd`·`.mermaid`는 mermaid, `.dbml`, `.d2`, `.drawio`, `.excalidraw`). 표준 입력(`-`)은 확장자가 없으므로 형식을 적어야 한다. 형식을 모르거나, 원본이 없거나 둘 이상이거나, `--out`이 `.diagramplay` 파일이 아니거나, 받지 않는 선택 사항(`--html`, `--static`, `--scene`, `--title`, `--strict`, `--budget`, `md` 전용 선택 사항)을 주면 사용법 오류(종료 2)다.
 - `--out`이 없으면 옮긴 원본 글을 표준 출력에 쓴다(`--json`이면 `{"file":"원본","source":"..."}` 한 줄). `--out`이 있으면 그 파일에 쓰고 쓴 경로를 표준 출력에 알린다.
 - 이미 있는 파일(심볼릭 링크 포함)은 바꾸지 않는다. `--out` 경로에 파일이 있으면 `{경로}: already exists. ...` 오류(code `output-exists`)다. 쓰기는 `render`와 같은 쓰기(`commitReported`)라 쓰는 순간에도 그사이 생긴 파일을 덮지 않는다.
 - 종료 코드는 성공 0(경고 포함), 원본이나 쓰기 오류 1이다.
@@ -63,7 +63,7 @@ torso import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.torso]
 
 ### 공통 모형
 
-| 모형 | Torso |
+| 모형 | DiagramPlay |
 |---|---|
 | 카드 `box`, `circle`, `store`, `person`, `decision`, `queue`, `state`, `table` | `box`, `box ... shape=circle`, `store`, `person`, `decision`, `queue ... slots=N`, `state`, `table { 열 }` |
 | 그룹(중첩, 방향) | `group id "이름" [direction=down] { }` |
@@ -76,21 +76,21 @@ torso import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.torso]
 | 원 차트 행 | `chart id "제목" pie { row "이름" value=N }` |
 | 그림 방향 `down` | `view graph down`(`right`는 기본이라 적지 않는다) |
 
-쓰는 곳이 Torso 규칙을 한 번에 맞춘다.
+쓰는 곳이 DiagramPlay 규칙을 한 번에 맞춘다.
 
 - 빈 그룹은 쓰지 않고 경고한다. 그 안의 그룹이 빠지면 카드는 가장 가까운 남은 그룹에 놓인다.
-- 열이 없는 테이블은 상자로 쓰고 경고한다(Torso 테이블은 열이 하나 이상이다).
+- 열이 없는 테이블은 상자로 쓰고 경고한다(DiagramPlay 테이블은 열이 하나 이상이다).
 - 같은 방향의 같은 두 끝을 잇는 선은 하나로 합치고 라벨을 쉼표로 잇는다(경고). 자기 자신으로 가는 선(상태와 한 테이블의 서로 다른 두 열은 된다), 그룹과 그 안의 카드를 잇는 선은 건너뛴다(경고).
 - 다중성과 관계 종류는 두 끝이 모두 테이블일 때만 쓴다. 한쪽이 상자면 다중성을 빼고 경고하며 화살촉 없는 선(`head=none`)으로 쓴다.
 - 외래 키는 가리키는 열 묶음이 그 테이블의 기본 키나 고유 키 전체일 때만 `fk`로 쓴다. 아니면 같은 다중성의 관계선으로 쓰고 경고한다. `set null` 삭제는 참조하는 열을 `nullable`로 쓰고, 그 열이 `not null`이면 삭제 동작을 빼고 경고한다. 열이 자기 자신을 가리키는 참조는 건너뛴다.
 - 두 상태를 잇는 전이에 사건 글이 없으면 `…`를 쓰고 경고한다. 메시지 글이 없을 때도 같다. 처음·끝 상태는 상태 카드만 될 수 있고 처음 상태는 하나다.
-- 순서 보기의 참여자는 처음 보내는 순서로, 보내지 않는 참여자는 원본 순서대로 뒤에 놓는다(Torso 순서 보기 규칙). 원본 순서와 다르면 경고한다.
+- 순서 보기의 참여자는 처음 보내는 순서로, 보내지 않는 참여자는 원본 순서대로 뒤에 놓는다(DiagramPlay 순서 보기 규칙). 원본 순서와 다르면 경고한다.
 
 ### 이름과 글
 
 - 이름(id)은 원본 이름을 [`toId`](../../src/source/mistakes.js)로 고친 것(`OrderService` → `order-service`)이고, 테이블은 `-` 대신 `_`다. 영문자가 없는 이름(`주문`)은 `node`, `table`, `group`, `chart`로 시작한다. 겹치면 `-2`(테이블은 `_2`)를 붙인다. 보이는 이름은 원본 글 그대로다.
 - 열 이름은 영문자로 시작하고 영문자, 숫자, `_`만 쓴다. 바꾼 이름은 그림에 보이는 글이 달라지므로 경고한다.
-- 글의 줄바꿈과 `<br>`는 공백이다. 따옴표와 역슬래시는 이스케이프한다. 짝이 맞지 않는 백틱은 지우고 경고한다(Torso 글의 백틱 짝은 코드 구간이다). 기호가 든 열 타입은 따옴표 글이다(`"varchar(255)"`).
+- 글의 줄바꿈과 `<br>`는 공백이다. 따옴표와 역슬래시는 이스케이프한다. 짝이 맞지 않는 백틱은 지우고 경고한다(DiagramPlay 글의 백틱 짝은 코드 구간이다). 기호가 든 열 타입은 따옴표 글이다(`"varchar(255)"`).
 
 ### Mermaid
 
@@ -98,7 +98,7 @@ torso import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.torso]
 
 #### 순서도
 
-| Mermaid | Torso | 경고 |
+| Mermaid | DiagramPlay | 경고 |
 |---|---|---|
 | `flowchart`/`graph` `TD`·`TB`, `LR` | 그림 방향 `down`, `right`. 방향이 없으면 `down` | 없음 |
 | `RL`, `BT` | `right`, `down` | 바꿔 그림 |
@@ -121,7 +121,7 @@ torso import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.torso]
 
 #### 순서 그림
 
-| Mermaid | Torso | 경고 |
+| Mermaid | DiagramPlay | 경고 |
 |---|---|---|
 | `participant a [as 이름]`, `actor a`, 메시지에 처음 나온 이름 | `box`, `person` 참여자 | 없음 |
 | `participant a@{ "type": "database" }` | `store` | 다른 종류는 상자로 바꿔 그림 |
@@ -143,7 +143,7 @@ Mermaid `loop`와 `opt`에는 횟수와 재생 여부가 없으므로 한 번 �
 
 #### 상태 그림
 
-| Mermaid | Torso | 경고 |
+| Mermaid | DiagramPlay | 경고 |
 |---|---|---|
 | `a --> b : 사건` | `a -> b "사건"` | 사건이 없으면 `…` |
 | `[*] --> a`, `a --> [*]` | `start a`, `final a` | 둘째 처음 상태, 상태가 아닌 끝, 처음·끝 전이의 사건은 건너뜀 |
@@ -155,7 +155,7 @@ Mermaid `loop`와 `opt`에는 횟수와 재생 여부가 없으므로 한 번 �
 
 #### 개체 관계 그림
 
-| Mermaid | Torso | 경고 |
+| Mermaid | DiagramPlay | 경고 |
 |---|---|---|
 | 속성이 있는 개체 `A { 타입 이름 PK }` | `table` | 없음 |
 | 속성이 없는 개체 | `box` | 바꿔 그림 |
@@ -167,11 +167,11 @@ Mermaid `loop`와 `opt`에는 횟수와 재생 여부가 없으므로 한 번 �
 
 #### 원 차트
 
-`pie [showData] [title 글]`, `title 글`, `"이름" : 값`은 `chart id "제목" pie { row "이름" value=값 }`이다. Torso 원 차트는 값을 늘 적으므로 `showData`는 같은 뜻이다. 0 이하이거나 숫자가 아닌 값은 건너뛴다. 제목이 없으면 `pie`다.
+`pie [showData] [title 글]`, `title 글`, `"이름" : 값`은 `chart id "제목" pie { row "이름" value=값 }`이다. DiagramPlay 원 차트는 값을 늘 적으므로 `showData`는 같은 뜻이다. 0 이하이거나 숫자가 아닌 값은 건너뛴다. 제목이 없으면 `pie`다.
 
 ### DBML
 
-| DBML | Torso | 경고 |
+| DBML | DiagramPlay | 경고 |
 |---|---|---|
 | `Project 이름 { }` | 그림 제목 | 안의 설정은 건너뜀 |
 | `Table [schema.]이름 [as 별칭] { }` | `table`(별칭은 참조에서 푼다) | 표 설정(`[headercolor: ...]`)은 건너뜀 |
@@ -189,11 +189,11 @@ Mermaid `loop`와 `opt`에는 횟수와 재생 여부가 없으므로 한 번 �
 | `TableGroup 이름 { 테이블 }` | `group` | 없는 테이블, 두 번째 묶음은 건너뜀 |
 | 표 `Note`, `TablePartial`, `Records` 등 | 없음 | 건너뜀 |
 
-DBML에는 방향이 없어 Torso 기본(`right`)으로 쓴다.
+DBML에는 방향이 없어 DiagramPlay 기본(`right`)으로 쓴다.
 
 ### D2
 
-| D2 | Torso | 경고 |
+| D2 | DiagramPlay | 경고 |
 |---|---|---|
 | `a`, `a: 글`, `a.label: 글`, `a: { label: 글 }` | `box a "글"`(라벨이 없으면 키) | 없음 |
 | `a.b.c`, `a: { b }`, `_.c` | 중첩 `group`과 그 안 카드(이름은 경로 `a-b-c`) | 없음 |
@@ -216,9 +216,9 @@ D2 키는 대소문자를 가리지 않아 소문자로 견주고, 보이는 이
 
 ### draw.io
 
-draw.io(diagrams.net)는 좌표가 있는 손 그림이다. 좌표, 색, 글꼴, 꺾은 점은 옮기지 않고 도형과 연결의 뜻만 옮기며 Torso가 다시 배치한다(`src/import/drawio.js`, 셀 읽기는 `drawio-parse.js`). 손 그림 두 형식이 같이 쓰는 판단(흐름 방향, 제목, 글 없는 도형)은 `src/import/drawn.js` 한 곳이다.
+draw.io(diagrams.net)는 좌표가 있는 손 그림이다. 좌표, 색, 글꼴, 꺾은 점은 옮기지 않고 도형과 연결의 뜻만 옮기며 DiagramPlay가 다시 배치한다(`src/import/drawio.js`, 셀 읽기는 `drawio-parse.js`). 손 그림 두 형식이 같이 쓰는 판단(흐름 방향, 제목, 글 없는 도형)은 `src/import/drawn.js` 한 곳이다.
 
-| draw.io | Torso | 경고 |
+| draw.io | DiagramPlay | 경고 |
 |---|---|---|
 | 도형 셀(`vertex="1"`)과 라벨(`value`, `UserObject`·`object`의 `label`) | `box id "글"`. 이름(id)은 라벨에서 만든다(셀 id는 뜻이 없다) | 글 없는 도형은 `…`로 쓰고 알림 |
 | `html=1` 라벨 | 태그를 지운 한 줄 글(줄 바꿈 태그는 공백, 문자 참조는 풂) | 없음 |
@@ -240,7 +240,7 @@ draw.io(diagrams.net)는 좌표가 있는 손 그림이다. 좌표, 색, 글꼴,
 
 Excalidraw(`.excalidraw` JSON)도 손 그림이라 draw.io와 같은 기준으로 뜻만 옮긴다(`src/import/excalidraw.js`).
 
-| Excalidraw | Torso | 경고 |
+| Excalidraw | DiagramPlay | 경고 |
 |---|---|---|
 | `rectangle`, `ellipse`, `diamond`와 그 안의 글(`containerId`) | `box`, `box shape=circle`, `decision` | 글 없는 도형은 `…`로 쓰고 알림 |
 | 점선(`strokeStyle` `dashed`·`dotted`) 사각형 | `external` | 없음 |
@@ -265,7 +265,7 @@ JSON에는 문장 줄이 없어 경고 줄은 그 요소 id가 처음 나오는 
 
 ### 공개 함수
 
-`importDiagram(format, text)`(`torso` 진입점)는 `{ source, warnings }`를 돌려주고 파일을 다루지 않는다. 그림 종류를 모르거나 옮길 카드가 없으면 `FigureError`(code `import`), 모르는 형식은 `TypeError`다. 빌드 확인은 명령만 한다. 형식 이름 목록은 `IMPORT_FORMATS`다.
+`importDiagram(format, text)`(`diagramplay` 진입점)는 `{ source, warnings }`를 돌려주고 파일을 다루지 않는다. 그림 종류를 모르거나 옮길 카드가 없으면 `FigureError`(code `import`), 모르는 형식은 `TypeError`다. 빌드 확인은 명령만 한다. 형식 이름 목록은 `IMPORT_FORMATS`다.
 
 ### 파서 의존성
 
@@ -298,12 +298,12 @@ JSON에는 문장 줄이 없어 경고 줄은 그 요소 id가 처음 나오는 
 
 ## 단점
 
-- 원본 도구의 배치를 옮기지 않는다. Torso 배치는 elkjs가 다시 하므로 노드 자리, 선 길이(`---->`), 순서도 노드의 등장 순서에 따른 자리가 달라진다.
+- 원본 도구의 배치를 옮기지 않는다. DiagramPlay 배치는 elkjs가 다시 하므로 노드 자리, 선 길이(`---->`), 순서도 노드의 등장 순서에 따른 자리가 달라진다.
 - 꾸밈(색, 굵기, 아이콘)은 디자인 토큰이 정하므로 모두 건너뛴다. 원본에서 색으로만 구분한 뜻은 경고를 보고 `tone=`이나 라벨로 다시 적어야 한다.
-- 큰 스키마나 순서도는 Torso 그림 검사(글 크기, 비율, 라벨 겹침)에 걸릴 수 있다. 파일은 쓰지만 그림을 나누거나 방향을 바꾸는 손질이 필요하다.
+- 큰 스키마나 순서도는 DiagramPlay 그림 검사(글 크기, 비율, 라벨 겹침)에 걸릴 수 있다. 파일은 쓰지만 그림을 나누거나 방향을 바꾸는 손질이 필요하다.
 - 빠진 필수 글은 `…`로 채운다. 원본에 없는 뜻을 지어내지 않으려는 선택이지만 그대로 두면 그림에 `…`가 보인다.
 
 ## 대안
 
-- 공식 파서 패키지를 쓰는 것: 문법을 빠짐없이 읽지만 위 [파서 의존성](#파서-의존성)의 크기와 실행 환경 문제가 있고, 읽은 뒤 Torso로 옮기는 대응 표는 어차피 직접 써야 한다.
-- `render`가 Mermaid나 D2를 바로 읽는 것: 읽는 확장자는 `.torso`뿐이라는 원본 규칙과 맞지 않고, 원본을 고칠 곳(경고)을 남길 자리가 없다. 가져오기는 한 번 옮긴 뒤 Torso 원본을 고쳐 쓰는 흐름이다.
+- 공식 파서 패키지를 쓰는 것: 문법을 빠짐없이 읽지만 위 [파서 의존성](#파서-의존성)의 크기와 실행 환경 문제가 있고, 읽은 뒤 DiagramPlay로 옮기는 대응 표는 어차피 직접 써야 한다.
+- `render`가 Mermaid나 D2를 바로 읽는 것: 읽는 확장자는 `.diagramplay`뿐이라는 원본 규칙과 맞지 않고, 원본을 고칠 곳(경고)을 남길 자리가 없다. 가져오기는 한 번 옮긴 뒤 DiagramPlay 원본을 고쳐 쓰는 흐름이다.

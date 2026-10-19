@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildFigure } from 'torso-diagram';
+import { buildFigure } from 'diagramplay';
 
 const changed = async (before, after) => {
-  const result = await buildFigure(`torso
+  const result = await buildFigure(`diagramplay
 box a "A" {
   graph ${before}
 }

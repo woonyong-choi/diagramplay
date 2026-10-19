@@ -8,7 +8,6 @@ import { STYLES, tokensFor, figureDefs, patternDefs } from './styles.js';
 import { escapeXml, figureDesc, plainText, roundCoord as r } from './text.js';
 import { figureContent } from './html/content.js';
 import { responsiveContent } from './html/responsive.js';
-import { faviconLinks } from './html/favicon.js';
 import { THEME_KEY } from './html/theme.js';
 import { CANONICAL_NAME, PLAYER_SCRIPT, figureFrame } from './html/player-script.js';
 import { roundedNumbers } from './format.js';
@@ -56,12 +55,14 @@ const EMBED_SCRIPT = `<script>
  * 재생기 HTML 문서. 그림, 시간표, 재생 스크립트를 모두 안에 넣는다.
  * 문서 머리 meta 칸에는 칸이 빈 정본 템플릿(이 문서의 나머지 전부)을 base64로 담는다. 내려받기는 이 정본에 같은 base64를 다시 채우므로 파일이 자기 자신과 바이트까지 같다.
  */
-export async function toHtml(result, name) {
-  return withCanonical(await canonicalHtml(result, name));
+export async function toHtml(result, name, options = {}) {
+  const { source = result.figure.source } = options;
+  if (typeof source !== 'string') throw new TypeError('source must be a string');
+  return withCanonical(await canonicalHtml(result, name, source));
 }
 
 // 정본 템플릿 글. 정본 칸(meta content)은 비어 있다.
-async function canonicalHtml(result, name) {
+async function canonicalHtml(result, name, source) {
   const { figure, timeline } = result;
   const glyphs = createGlyphSet();
   const { content, responsive } = await htmlContent(result, glyphs);
@@ -73,7 +74,7 @@ async function canonicalHtml(result, name) {
   // 점이 나타나는 시각은 배치마다 다르므로(좁은 배치는 선 위치가 다르다) 넓은 배치와 좁은 배치의 시각을 모두 규칙으로 둔다.
   const dotAts = [...new Set([...content.dotAts, ...(responsive?.content.dotAts ?? [])])].sort((a, b) => a - b);
   const styles = [STYLES.control, STYLES.player, STYLES.figure, paintCss(result.scene), STYLES.chart, charts ? chartMotionCss(timeline.growMs, dotAts) : '', hasStatus(timeline) ? STYLES.status : ''].join('');
-  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }, defs), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', narrow: responsive ? `<template class="fl-narrow">${panelsMarkup(responsive.content, { title, desc: figureDesc(figure) })}</template>` : '', source: typeof figure.source === 'string' ? figure.source : undefined });
+  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }, defs), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', narrow: responsive ? `<template class="fl-narrow">${panelsMarkup(responsive.content, { title, desc: figureDesc(figure) })}</template>` : '', source });
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -81,7 +82,6 @@ async function canonicalHtml(result, name) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeXml(title)}</title>
 <meta name="${CANONICAL_NAME}" content="">
-${faviconLinks()}
 ${EMBED_SCRIPT}
 <style>${fonts}
 ${tokensFor(styles + PLAYER_SCRIPT + frame + JSON.stringify(content.data))}${styles}</style>

@@ -12,7 +12,7 @@ export { DiagramFrame as figureFrame } from '@woonyong-choi/design-tokens/ui/dia
 // 브라우저 스크립트 파일(src/player/). 한 스크립트로 이어 붙여 HTML에 넣는다. 순서는 상수와 함수 선언이 쓰이기 전에 있어야 하는 곳만 지키면 된다(진입은 맨 끝의 figurePlay 호출).
 const PLAYER_FILES = ['view', 'export', 'play', 'controls', 'stage', 'effects', 'responsive', 'curve', 'sample', 'values'];
 // 내려받기용 정본 템플릿을 넣어 두는 문서 머리 meta 칸의 이름. 재생기 스크립트(player/export.js)가 같은 이름을 읽는다.
-export const CANONICAL_NAME = 'torso-canonical';
+export const CANONICAL_NAME = 'diagramplay-canonical';
 const UI_MODULES = [['html', ['escape', 'out']], ['svg', ['renderSvgIcon']], ['icons', ['ControlIcon']]];
 const CONTROL_NAMES = ['copy', 'download', 'maximize-2', 'minimize-2', 'check', 'alert', 'zoom-in', 'zoom-out', 'scan'];
 const PLAYER_ROLES = { controls: Object.fromEntries(CONTROL_NAMES.map(name => [name, ICON_ROLES.controls[name]])), articles: {}, social: {} };

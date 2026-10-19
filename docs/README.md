@@ -1,8 +1,8 @@
 # 문서
 
-Torso의 사용법과 설계 문서다. 문서는 한국어로 쓴다. 처음이면 [Torso 사용법](usage.md)부터 읽는다.
+DiagramPlay의 사용법과 설계 문서다. 문서는 한국어로 쓴다. 처음이면 [DiagramPlay 사용법](usage.md)부터 읽는다.
 
-- [Torso 사용법](usage.md)
+- [DiagramPlay 사용법](usage.md)
   - [아키텍처](architecture.md)
   - [용어](glossary.md)
 - [그림 문법](design/figure-syntax.md)

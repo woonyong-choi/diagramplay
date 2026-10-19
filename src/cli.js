@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 사용: torso render|check|gallery|md|import … 명령과 결과 파일은 docs/design/playback.md 결과 파일 절, import는 docs/design/import.md다.
+// 사용: diagramplay render|check|gallery|md|import … 명령과 결과 파일은 docs/design/playback.md 결과 파일 절, import는 docs/design/import.md다.
 // stdout에는 만든 파일 경로(또는 --json 메시지)만, stderr에는 오류와 경고만 쓴다.
 import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
@@ -13,11 +13,11 @@ import { toSvg } from './svg.js';
 
 const USAGE = [
   'usage:',
-  '  torso render <file.torso ...> [--out dir] [--html] [--static] [--scene n|label] [--strict] [--budget name=value ...] [--json]',
-  '  torso check <file.torso ...> [--strict] [--budget name=value ...] [--json]',
-  '  torso gallery <dir> [--out dir] [--title "text"] [--strict] [--budget name=value ...]',
-  '  torso md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|label] [--strict] [--budget name=value ...] [--json]',
-  '  torso import [mermaid|dbml|d2|drawio|excalidraw] <file|-> [--out file.torso] [--json]',
+  '  diagramplay render <file.diagramplay ...> [--out dir] [--html] [--static] [--scene n|label] [--strict] [--budget name=value ...] [--json]',
+  '  diagramplay check <file.diagramplay ...> [--strict] [--budget name=value ...] [--json]',
+  '  diagramplay gallery <dir> [--out dir] [--title "text"] [--strict] [--budget name=value ...]',
+  '  diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|label] [--strict] [--budget name=value ...] [--json]',
+  '  diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <file|-> [--out file.diagramplay] [--json]',
   `budget names: ${BUDGET_NAMES.join(', ')}`,
 ].join('\n');
 // gallery가 받는 옵션. --html은 gallery가 늘 HTML을 쓰므로 받기만 한다.
@@ -29,8 +29,7 @@ const MD_REFUSED = ['out', 'title', 'html'];
 const MD_ONLY = ['check', 'out-dir', 'fold', 'unfold', 'fold-title'];
 // 나머지 명령이 받지 않는 옵션. check는 파일을 쓰지 않으니 쓰는 옵션을 모두 거절하고, 목록 제목은 gallery만 받는다.
 const OTHER_REFUSED = { check: ['out', 'html', 'static', 'scene', 'title'], render: ['title'], gallery: ['scene'], import: ['html', 'static', 'scene', 'title', 'strict'] };
-// 원본 확장자. `.torso` 파일만 원본으로 읽는다.
-const SOURCE_EXT = /\.torso$/;
+const SOURCE_EXT = /\.diagramplay$/;
 // gallery가 목록과 문서 미리보기로 쓰는 쪽 이름(확장자 없이)
 const RESERVED_PAGES = new Set(['index', 'document']);
 
@@ -150,7 +149,7 @@ function renderOutputs({ inputs, out, flags }) {
 // 원본 확장자가 .dap가 아니면 오류로 알린다. 파일은 읽지 않고 아무것도 쓰지 않는다.
 function unsupportedExtension(input, json) {
   if (SOURCE_EXT.test(input)) return false;
-  report(input, [makeDiagnostic({ severity: 'error', line: 1, message: 'only .torso files are read' }, { code: 'unsupported-extension', column: 1 })], json);
+  report(input, [makeDiagnostic({ severity: 'error', line: 1, message: 'only .diagramplay files are read' }, { code: 'unsupported-extension', column: 1 })], json);
   return true;
 }
 
@@ -183,7 +182,6 @@ async function figureFiles(input, result, args) {
 // cost: time O(n log n), heap O(n), stack O(1)
 // vars: n = 폴더 안 파일 수
 // basis: estimate
-// 폴더 안 원본 파일 이름(.torso)
 function sourceFiles(names) {
   return names.filter((f) => SOURCE_EXT.test(f)).sort();
 }
@@ -211,7 +209,7 @@ async function writeGallery(args) {
   }
   const files = sourceFiles(names);
   if (!files.length) {
-    process.stderr.write(`${folder}: no .torso files\n`);
+    process.stderr.write(`${folder}: no .diagramplay files\n`);
     return 1;
   }
   const outputs = files.map((file) => file.replace(SOURCE_EXT, '')).flatMap((name) => [`${name}.svg`, `${playerPage(name)}.html`].map((file) => ({ path: join(out, file), shown: file, owner: name })));
