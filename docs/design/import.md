@@ -6,7 +6,7 @@
 
 ## 요약
 
-`diagramplay import <mermaid|dbml|d2|drawio|excalidraw>`는 다른 도구의 그림 원본을 `.diagramplay` 원본으로 옮긴다. 다섯 형식의 읽기는 모두 공통 모형 하나를 채우고, 원본 글은 쓰는 곳 한 곳(`src/import/emit.js`)이 쓴다. 그래서 같은 뜻(카드, 그룹, 선, 외래 키, 메시지, 차트 행)은 형식과 상관없이 같은 DiagramPlay 문법 하나가 된다. 새 문법은 없다. DiagramPlay에 대응 문법이 없는 문장은 원본 줄 번호가 있는 경고와 함께 건너뛰고, 다르게 그리는 문장도 경고한다. 결과 파일은 새로 쓰기만 하고 이미 있는 파일을 바꾸지 않는다.
+`diagramplay import <mermaid|dbml|d2|drawio|excalidraw>`는 다른 도구의 그림 원본을 `.diagramplay` 원본으로 옮긴다. 각 형식의 파서는 원본을 읽어 같은 구조의 공통 모형을 채운다. 생성기 `src/import/emit.js`는 이 공통 모형을 DiagramPlay 원본 글로 쓴다. 그래서 같은 뜻(카드, 그룹, 선, 외래 키, 메시지, 차트 행)은 형식과 상관없이 같은 DiagramPlay 문법 하나가 된다. 새 문법은 없다. DiagramPlay에 대응 문법이 없는 문장은 원본 줄 번호가 있는 경고와 함께 건너뛰고, 다르게 그리는 문장도 경고한다. 결과 파일은 새로 쓰기만 하고 이미 있는 파일을 바꾸지 않는다.
 
 ## 해결하는 문제
 
@@ -269,7 +269,7 @@ JSON에는 문장 줄이 없어 경고 줄은 그 요소 id가 처음 나오는 
 
 ### 파서 의존성
 
-외부 파서 패키지를 쓰지 않는다. 파서는 이 저장소의 작은 읽기다(`src/import/`의 `mermaid*.js`, `dbml-parse.js`, `d2-parse.js`, `drawio-parse.js`). Excalidraw는 JSON이라 `JSON.parse`로 읽고, draw.io의 압축한 쪽은 Node 내장 `zlib`으로 푼다.
+외부 파서 패키지를 쓰지 않는다. 필요한 문법만 읽는 파서를 이 저장소에서 직접 구현한다(`src/import/`의 `mermaid*.js`, `dbml-parse.js`, `d2-parse.js`, `drawio-parse.js`). Excalidraw는 JSON이라 `JSON.parse`로 읽고, draw.io의 압축한 쪽은 Node 내장 `zlib`으로 푼다.
 
 - Mermaid 공식 패키지(`mermaid`)는 렌더러와 DOM 정리 도구를 함께 설치하고, 문법 읽기(`mermaid.parse`)도 브라우저 환경을 전제한다.
 - DBML 공식 파서(`@dbml/core`)는 SQL 방언 변환기까지 포함한 큰 패키지이고, 가져오기에 필요한 것은 Table, Ref, Enum, TableGroup의 문장 모양뿐이다.
