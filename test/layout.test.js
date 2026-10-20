@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 import { buildFigure, toSvg } from '../src/index.js';
@@ -62,6 +63,73 @@ test('buildFigure_narrow_shared_destination_reduces_detours_without_losing_conte
     assert.equal(result.scene.width, wide.scene.width);
     assert.equal(result.scene.height, 361);
     assert.ok(Math.abs(Math.max(...result.scene.edges.map(routeLength)) - 196.43515625) < 0.01);
+  }
+});
+
+// #390: 선택적 후보의 기하 해석 실패가 기존 유효 모바일 후보까지 버리는지 격리된 실제 배치 진입점으로 확인한다.
+test('layoutOrFail_optional_candidate_failure_preserves_the_fitting_original', async () => {
+  const wide = await buildFigure(SOURCE, { layoutWidth: 1000, strict: true });
+  const figure = viewFigure(wide.figure, wide.figure.views[0]);
+  const sizes = new Map(wide.scene.items.map(item => [item.id, item.size]));
+  const elkUrl = import.meta.resolve('elkjs/lib/elk.bundled.js');
+  const errorUrl = new URL('../src/layout/error.js', import.meta.url).href;
+  for (const failure of ['route', 'geometry', 'width']) {
+    const fake = `import ELK from ${JSON.stringify(elkUrl)};
+    import { LayoutError } from ${JSON.stringify(errorUrl)};
+    export const calls = [];
+    export default class {
+      constructor() {
+        const engine = new ELK();
+        let compact = 0;
+        this.layout = async graph => {
+          const isCompact = graph.children.some(child => child.layoutOptions?.['elk.layered.layering.strategy'] === 'COFFMAN_GRAHAM');
+          calls.push(isCompact);
+          const optional = isCompact && ++compact > 1;
+          if (optional && ${JSON.stringify(failure)} === 'route') throw new LayoutError('optional candidate route is invalid');
+          const laid = await engine.layout(graph);
+          if (optional && ${JSON.stringify(failure)} === 'geometry') Object.assign(laid.children[0].children[1], { x: laid.children[0].children[0].x, y: laid.children[0].children[0].y });
+          if (optional && ${JSON.stringify(failure)} === 'width') laid.width = 500;
+          return laid;
+        };
+      }
+    }`;
+    const replacement = `data:text/javascript,${encodeURIComponent(fake)}`;
+    const { calls } = await import(replacement);
+    const graphUrl = new URL('../src/layout/graph.js', import.meta.url);
+    const code = readFileSync(graphUrl, 'utf8').replace(/from '([^']+)'/g, (_, specifier) => `from ${JSON.stringify(specifier === 'elkjs/lib/elk.bundled.js' ? replacement : specifier.startsWith('.') ? new URL(specifier, graphUrl).href : import.meta.resolve(specifier))}`);
+    const { layoutOrFail } = await import(`data:text/javascript,${encodeURIComponent(code)}`);
+    const scene = await layoutOrFail(figure, sizes, { width: 390 });
+
+    assert.equal(scene.width, 305.959375, `${failure}: keep the original fitting candidate`);
+    assert.equal(scene.height, 977, failure);
+    assert.equal(scene.items.length, 7);
+    assert.equal(scene.edges.length, 6);
+    assert.ok(calls.length <= 12, `${failure}: no more than four extra ELK calls`);
+    assert.ok(calls.filter(Boolean).length <= 5, failure);
+  }
+});
+
+test('buildFigure_supported_large_shapes_preserve_ids_cycles_directions_and_reflow_state', async () => {
+  for (const [kind, count] of [['branch', 16], ['chain', 32], ['cycle', 12], ['explicit', 17]]) {
+    const nodes = Array.from({ length: count }, (_, i) => `box n${i} "N${i}" "entry pointer"`).join('\n');
+    const isBranch = kind === 'branch' || kind === 'explicit';
+    const links = isBranch ? [['n0', 'n2'], ['n1', 'n3'], ...Array.from({ length: count - 4 }, (_, i) => [`n${i % 2 + 2}`, `n${i + 4}`]), ['n2', 'n5']] : Array.from({ length: count - 1 }, (_, i) => [`n${i}`, `n${i + 1}`]);
+    if (kind === 'cycle') links.push([`n${count - 1}`, 'n0']);
+    const source = `diagramplay\ngroup g "Group" ${kind === 'explicit' ? 'direction=right' : ''} {\n${nodes}\n}\n${links.map(([a, b]) => `${a} -> ${b}`).join('\n')}\nscene "route" mode=loop\n  n0 -> ${isBranch ? 'n2' : 'n1'} time=1000ms\n  wait 1000ms\n`;
+    const original = await buildFigure(source, { layoutWidth: 1000 });
+    const saved = structuredClone(original.figure);
+    const narrow = await reflowFigure(original, { layoutWidth: 390 });
+
+    assert.deepEqual(original.figure, saved, kind);
+    assert.deepEqual(narrow.scene.items.map(item => item.id).sort(), saved.nodes.map(node => node.id).sort(), kind);
+    assert.deepEqual(narrow.scene.edges.map(({ from, to }) => [from, to]), links, kind);
+    assert.deepEqual(narrow.timeline.segs.map(({ t0, t1, si }) => [t0, t1, si]), original.timeline.segs.map(({ t0, t1, si }) => [t0, t1, si]), kind);
+    if (kind === 'branch') {
+      assert.ok(narrow.scene.width <= 390);
+      for (const [from, to] of links) assert.ok(narrow.scene.items.find(node => node.id === from).y < narrow.scene.items.find(node => node.id === to).y);
+    }
+    if (kind === 'explicit') assert.ok(narrow.scene.items.every(item => item.direction === 'right'));
+    assert.ok(narrow.warnings.every(warning => ['layout-width', 'check-9'].includes(warning.code)), kind);
   }
 });
 

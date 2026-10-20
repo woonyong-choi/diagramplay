@@ -192,12 +192,18 @@ async function fitCanvas(figure, sizes, { flat, canvas, cap }) {
 // basis: estimate
 // 좁은 그룹 후보 안에서만 순서를 바꾼다. 폭과 기하 유효성을 먼저 지키고, 실제 직교 경로의 최장 길이와 합을 비교한다.
 async function compactCandidate(figure, sizes, { grouped, canvas }) {
-  const candidates = [grouped];
+  const scored = [{ candidate: grouped, rank: compactRank(grouped, figure, canvas) }].filter(entry => entry.rank);
   for (const variant of compactOrderVariants()) {
-    const candidate = await arrange({ ...figure, direction: 'down', aspect: undefined, oneNodePerLayer: true, compactGroups: true }, sizes, variant);
-    if (candidate) candidates.push(candidate);
+    try {
+      const candidate = await arrange({ ...figure, direction: 'down', aspect: undefined, oneNodePerLayer: true, compactGroups: true }, sizes, variant);
+      if (!candidate || (fitsCanvas(grouped.laid, canvas) && !fitsCanvas(candidate.laid, canvas))) continue;
+      const rank = compactRank(candidate, figure, canvas);
+      if (rank) scored.push({ candidate, rank });
+    } catch (error) {
+      // 선택적 후보의 경로 해석 실패만 버린다. 예상하지 않은 오류는 기존 실패 경로로 전달한다.
+      if (!(error instanceof LayoutError)) throw error;
+    }
   }
-  const scored = candidates.map(candidate => ({ candidate, rank: compactRank(candidate, figure, canvas) })).filter(entry => entry.rank);
   scored.sort((a, b) => a.rank.reduce((order, value, i) => order || value - b.rank[i], 0));
   return scored[0]?.candidate ?? grouped;
 }
