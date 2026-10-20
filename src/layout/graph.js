@@ -7,6 +7,10 @@ import { LayoutError } from './error.js';
 import { buildModel } from './model.js';
 import { isBodyShape, recordPortOrder } from './ports.js';
 import { readElk } from './read.js';
+import { compactOrderVariants, orderCompactGroups } from './order.js';
+import { checkFigure } from '../check.js';
+import { createProblems } from '../source/problems.js';
+import { composePanels } from './panels.js';
 
 // 알맞은 보이는 비율의 범위. 세로로 긴 쪽은 두 화면 모두 페이지 스크롤로 읽혀 한도(aspect-max)의 역수까지, 가로로 넓은 쪽은 데스크톱 가로 화면 비율(1400x900)까지다.
 const FIT_MIN = 1 / ASPECT_MAX;
@@ -72,6 +76,10 @@ async function place(figure, sizes, layoutWidth) {
   const canAdapt = figure.aspect === undefined || layoutWidth < layoutWidthOf(figure);
   if (best.laid.width > layoutWidth && canAdapt && !figure.safeLayout) best = await fitCanvas({ ...figure, aspect: undefined }, sizes, { flat: best, canvas: layoutWidth, cap: Math.max(layoutWidth, canvasOf(figure)) });
   const scene = readElk(best.laid, best.model);
+  if (best.isReordered) {
+    const indices = new Map([...best.model.nodes.keys()].map((id, i) => [id, i]));
+    scene.items.sort((a, b) => indices.get(a.id) - indices.get(b.id));
+  }
   // 제목이 선을 비킬 자리가 없는 그룹은 너비를 넓혀 한 번 더 배치한다(그림 검사 13번).
   const blocked = scene.groups.filter((g) => g.isTitleBlocked).map((g) => g.id);
   return blocked.length && !figure.wideGroups ? place({ ...figure, wideGroups: new Set(blocked) }, sizes, layoutWidth) : scene;
@@ -83,11 +91,12 @@ async function place(figure, sizes, layoutWidth) {
 // 모형을 만들고 elkjs로 한 번 배치한다. 사람과 원통이 있으면 두 번 배치한다.
 // 처음에는 연결점 순서를 elkjs에 맡기고, 그 순서대로 몸통 범위에 연결점을 고정해 다시 배치한다.
 // 순서를 미리 정하면 선이 엇갈리고, 맡기기만 하면 연결점이 머리나 뚜껑 자리에 놓이기 때문이다.
-async function arrange(figure, sizes) {
+async function arrange(figure, sizes, orderVariant) {
   const model = buildModel(figure, sizes);
+  if (orderVariant !== undefined && !orderCompactGroups(model, orderVariant)) return undefined;
   const hasBodyPorts = [...model.nodes.values()].some((n) => isBodyShape(n) && n.ports.length);
   if (hasBodyPorts) recordPortOrder(await engine.layout(toElk(model, figure)), model);
-  return { model, laid: await engine.layout(toElk(model, figure)) };
+  return { model, laid: await engine.layout(toElk(model, figure)), isReordered: orderVariant !== undefined };
 }
 
 // 글자 크기를 지킨 채 표준 캔버스에 들어가고 보이는 비율도 한도 안인 배치. 높이가 캔버스 안이면 비율은 보지 않는다(그림 검사 9번과 같은 기준).
@@ -161,7 +170,7 @@ async function fitCanvas(figure, sizes, { flat, canvas, cap }) {
     // 그룹을 한 층씩 푸는 후보는 좁은 화면 목표 폭에서만 본다. 본문 단 폭에서 쓰면 그룹 사이 선이 한 줄로 몰려 이동 글 상자 자리 찾기가 느려졌다(architecture 예제 빌드가 main의 1.7배).
     if (narrowest.laid.width > canvas && figure.groups.length && isNarrowTarget) {
       const grouped = await arrange({ ...figure, direction: 'down', aspect: undefined, oneNodePerLayer: true, compactGroups: true }, sizes);
-      consider(grouped);
+      consider(await compactCandidate(figure, sizes, { grouped, canvas }));
     }
   }
   const capped = tried.filter((c) => fitsCanvas(c.laid, cap));
@@ -176,6 +185,32 @@ async function fitCanvas(figure, sizes, { flat, canvas, cap }) {
     return landscape.sort(byRank)[0];
   }
   return closest(fitting, canvas, false) ?? capped.sort(byWidth)[0] ?? narrowest;
+}
+
+// cost: time O(k·(elk + check + order)), heap O(s + e·p), stack O(1)
+// vars: k = 추가 후보 수(최대 4), elk = ELK 배치, check = 기존 그림 검사, order = 제한된 위상 순서 탐색, s = 도형 수, e = 선 수, p = 경로 점 수
+// basis: estimate
+// 좁은 그룹 후보 안에서만 순서를 바꾼다. 폭과 기하 유효성을 먼저 지키고, 실제 직교 경로의 최장 길이와 합을 비교한다.
+async function compactCandidate(figure, sizes, { grouped, canvas }) {
+  const candidates = [grouped];
+  for (const variant of compactOrderVariants()) {
+    const candidate = await arrange({ ...figure, direction: 'down', aspect: undefined, oneNodePerLayer: true, compactGroups: true }, sizes, variant);
+    if (candidate) candidates.push(candidate);
+  }
+  const scored = candidates.map(candidate => ({ candidate, rank: compactRank(candidate, figure, canvas) })).filter(entry => entry.rank);
+  scored.sort((a, b) => a.rank.reduce((order, value, i) => order || value - b.rank[i], 0));
+  return scored[0]?.candidate ?? grouped;
+}
+
+function compactRank(candidate, figure, canvas) {
+  const scene = readElk(candidate.laid, candidate.model);
+  const problems = createProblems();
+  // 선·라벨·상태 알약의 기하만 검사한다. 실제 사건 처리와 이동 글 검사는 선택 뒤 기존 build-scene 경로가 맡는다.
+  const timeline = { segs: figure.steps.map(step => ({ hops: [], status: step.status })) };
+  checkFigure({ figure: { ...figure, views: [{ strategy: 'graph' }] }, scene: composePanels([{ strategy: 'graph', scene }]), timeline }, problems);
+  if (problems.errors.length) return undefined;
+  const lengths = scene.edges.map(edge => edge.points.slice(1).reduce((sum, point, i) => sum + Math.abs(point.x - edge.points[i].x) + Math.abs(point.y - edge.points[i].y), 0));
+  return [scene.width > canvas ? 1 : 0, scene.width > canvas ? scene.width : 0, Math.max(0, ...lengths), lengths.reduce((sum, length) => sum + length, 0), ratioMiss(scene, canvas, false), scene.height];
 }
 
 // 후보 가운데 알맞은 비율 범위에 가장 가까운 배치. 같으면 먼저 본 후보다.

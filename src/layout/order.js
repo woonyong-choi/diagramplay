@@ -1,5 +1,56 @@
 // 그룹 안 자식을 흐름 순서로 놓는다. 순환이 있을 때 어느 선이 되돌아가는 선이 될지를 선언 순서로 정하기 위해서다(docs/design/layout.md 되돌아가는 선).
 
+// #390: 추가 ELK 후보는 최대 4개, 탐색 중 보존하는 부분 순서는 8개다. 작은 비순환 잎 그룹만 비교한다.
+const ORDER_CANDIDATES = 4;
+const BEAM_WIDTH = 8;
+const GROUP_LIMIT = 16;
+const NODE_LIMIT = 64;
+const EDGE_LIMIT = 128;
+
+// cost: time O(g·b·n³·(n + e)), heap O(b·n² + e), stack O(1)
+// vars: g = 그룹 수, b = 고정 beam 폭, n = 그룹 자식 수(최대 16), e = 선 수
+// basis: estimate
+// 후보 모형의 자식 배열만 바꾼다. 원본 선언, 선 번호, 갈래 번호와 순환의 순서는 그대로다.
+export function orderCompactGroups(model, variant) {
+  if (model.nodes.size > NODE_LIMIT || model.edges.length > EDGE_LIMIT) return false;
+  let changed = false;
+  for (const c of model.containers.values()) {
+    if (c.direction !== 'down' || c.hasBack || c.children.length > GROUP_LIMIT || c.children.some(id => !model.nodes.has(id))) continue;
+    const children = new Set(c.children);
+    const links = [...model.pieces.values()].flat().filter(p => p.container === c.id).map(p => [ownerOf(p.from), ownerOf(p.to)]).filter(([a, b]) => a !== b && children.has(a) && children.has(b));
+    // 사슬과 연결 없는 카드는 기존 순서를 쓴다. 갈림과 합류가 함께 있을 때만 비교한다.
+    if (!c.children.some(id => links.filter(([a]) => a === id).length > 1) || !c.children.some(id => links.filter(([, b]) => b === id).length > 1)) continue;
+    const order = compactOrders(c.children, links)[variant];
+    if (!order || order.every((id, i) => id === c.children[i])) continue;
+    c.children = order;
+    changed = true;
+  }
+  return changed;
+}
+
+export function compactOrderVariants() {
+  return Array.from({ length: ORDER_CANDIDATES }, (_, i) => i);
+}
+
+function compactOrders(children, links) {
+  let beam = [{ order: [], rank: [0, 0] }];
+  for (let depth = 0; depth < children.length; depth++) {
+    const next = [];
+    for (const { order } of beam) {
+      for (const id of children) {
+        if (order.includes(id) || links.some(([a, b]) => b === id && !order.includes(a))) continue;
+        const placed = [...order, id];
+        // 미배치 목적지는 다음 층으로 보아 거리 하한을 잰다. 긴 공유 경로를 막도록 최장 거리를 먼저 비교한다.
+        const spans = links.map(([a, b]) => placed.includes(a) ? (placed.includes(b) ? placed.indexOf(b) : placed.length) - placed.indexOf(a) : 0);
+        next.push({ order: placed, rank: [Math.max(0, ...spans), spans.reduce((sum, span) => sum + span, 0)] });
+      }
+    }
+    next.sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1]);
+    beam = next.slice(0, BEAM_WIDTH);
+  }
+  return beam.filter(({ order }) => order.some((id, i) => id !== children[i])).slice(0, ORDER_CANDIDATES).map(({ order }) => order);
+}
+
 // cost: time O(c² + a), heap O(c + a), stack O(c)
 // vars: c = 그룹 하나의 자식 수, a = 그 그룹 안 선 조각 수
 // basis: estimate
