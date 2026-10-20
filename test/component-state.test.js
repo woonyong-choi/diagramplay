@@ -4,6 +4,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import postcss from 'postcss';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { figureRoles, STYLES } from '../src/styles.js';
 import { paintCss } from '../src/draw/paint.js';
 import { seriesBoundary, seriesOutline } from '../src/chart/metrics.js';
 import { build, diagramplay, toHtml, toSvg } from './support.js';
@@ -51,6 +54,35 @@ const SCATTER = `chart p "점" scatter {
 }`;
 
 const KEYFRAMES = /@keyframes[^{]*\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g;
+
+// #388: 관계선은 의미 그래픽 역할을 고르되 공통 상태·cascade를 복제하거나 덮어쓰지 않는다.
+test('relation_defaults_use_outline_without_changing_shared_state_or_cascade', async () => {
+  const require = createRequire(import.meta.url);
+  const shared = postcss.parse(readFileSync(require.resolve('@woonyong-choi/design-tokens/styles/diagram/figure.css'), 'utf8'));
+  let defaults = 0;
+  shared.walkRules('.fl', rule => rule.walkDecls('--fx-line-rest', declaration => {
+    assert.equal(declaration.value, 'var(--color-line)');
+    assert.ok(!declaration.important);
+    declaration.value = 'var(--color-outline)';
+    defaults++;
+  }));
+  assert.equal(defaults, 1, 'shared default must be reviewed when its contract changes');
+  assert.equal(STYLES.figure, shared.toString(), 'only the default role changes; order, selectors and priority stay intact');
+  const result = await build(GRAPH);
+  for (const output of [await toSvg(result), await toSvg(result, { isStatic: true }), await toHtml(result)]) {
+    assert.ok(output.includes(STYLES.figure));
+    assert.match(output, /\.fl \.fl-edge\.mark\s*\{[^}]*--fx-line-rest: var\(--color-ink\)/);
+    assert.match(output, /color: var\(--fx-line-rest\)/);
+  }
+  assert.match(await toSvg(result), /color: var\(--fx-edge\)/, 'active keyframes still use the shared active role');
+});
+
+test('figureRoles_changed_shared_default_fails_explicitly', () => {
+  const declaration = '.fl { --fx-line-rest: var(--color-line); }';
+  for (const css of ['', declaration + declaration, declaration.replace('--color-line', '--color-ink'), declaration.replace(';', ' !important;'), `@media print { ${declaration} }`, declaration.replace('.fl', '.fl.other')]) {
+    assert.throws(() => figureRoles(css), /shared figure CSS must define one unqualified/);
+  }
+});
 
 test('paintCss supplies only used tone variables; the shared stylesheet owns appearance', () => {
   const css = paintCss({ items: [{ tone: 'blue', content: { layouts: [{ rows: [{ row: { tone: 'red', appearance: 'filled' } }] }] } }], groups: [{ tone: 'green' }, { tone: 'blue' }] });
