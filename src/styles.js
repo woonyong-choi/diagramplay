@@ -2,6 +2,7 @@
 import { pruneTokens } from '@woonyong-choi/design-tokens/ui/build/prune-tokens.mjs';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import postcss from 'postcss';
 import { CHART_ARROW, roleArrowDefs } from './draw/arrow.js';
 
 // cost: time O(n), heap O(n), stack O(1), io 1
@@ -16,7 +17,7 @@ function readStyle(name) {
 /** 결과 파일 안 `<style>`에 넣을 CSS. tokens.css는 생성물이다. */
 export const STYLES = Object.freeze({
   tokens: readStyle('@woonyong-choi/design-tokens/tokens.css'),
-  figure: readStyle('@woonyong-choi/design-tokens/styles/diagram/figure.css'),
+  figure: figureRoles(readStyle('@woonyong-choi/design-tokens/styles/diagram/figure.css')),
   control: readStyle('@woonyong-choi/design-tokens/styles/tabs.css') + readStyle('@woonyong-choi/design-tokens/styles/toolbar.css'),
   player: readStyle('@woonyong-choi/design-tokens/styles/diagram/player.css'),
   gallery: readStyle('@woonyong-choi/design-tokens/styles/diagram-embed.css') + readStyle('@woonyong-choi/design-tokens/styles/diagram/gallery.css'),
@@ -24,6 +25,22 @@ export const STYLES = Object.freeze({
   chart: readStyle('@woonyong-choi/design-tokens/styles/diagram/chart.css'),
   status: readStyle('@woonyong-choi/design-tokens/styles/diagram/status.css'),
 });
+
+/** 의미 관계선의 기본 역할만 고른다. 정본의 상태 규칙과 cascade는 그대로 둔다.
+ * @throws {Error} 설치된 정본의 기본 선언 계약이 달라졌을 때
+ */
+export function figureRoles(css) {
+  const root = postcss.parse(css);
+  const defaults = [];
+  root.walkDecls('--fx-line-rest', declaration => {
+    if (declaration.parent.type === 'rule' && declaration.parent.selector === '.fl') defaults.push(declaration);
+  });
+  if (defaults.length !== 1 || defaults[0].value !== 'var(--color-line)' || defaults[0].important || defaults[0].parent.parent.type !== 'root') {
+    throw new Error('shared figure CSS must define one unqualified .fl --fx-line-rest: var(--color-line) default');
+  }
+  defaults[0].value = 'var(--color-outline)';
+  return root.toString();
+}
 
 // cost: time O(c·p), heap O(p), stack O(1)
 // vars: c = 차트 수, p = 무늬 정의 수
