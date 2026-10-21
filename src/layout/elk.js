@@ -207,11 +207,13 @@ function rootOptions(c, { figure, model, isSafe }) {
 // vars: n = 그룹 이름 글자 수
 // basis: estimate
 function groupOptions(c, ctx) {
+  const sweeps = !ctx.isSafe && ctx.figure.compactGroups && c.direction === 'down' ? [...ctx.figure.chipSweep?.values() ?? []] : [];
+  const side = Math.max(SPACE["6"], ...sweeps.map(sweep => sweep.x));
   return {
     // 제목이 선을 비킬 자리가 없던 그룹은 오른쪽 안쪽 여백을 제목 덩어리만큼 넓혀, 선 오른쪽 끝 너머에 제목이 설 자리를 만든다.
-    'elk.padding': `[top=${SIZE.group.title + SPACE["3"]},left=${SPACE["6"]},bottom=${SPACE["6"]},right=${SPACE["6"] + (ctx.figure.wideGroups?.has(c.id) ? groupTitleWidth(c) : 0)}]`,
+    'elk.padding': `[top=${SIZE.group.title + SPACE["3"]},left=${side},bottom=${SPACE["6"]},right=${side + (ctx.figure.wideGroups?.has(c.id) ? groupTitleWidth(c) : 0)}]`,
     // 그룹 안은 연결선을 모으는 네트워크 심플렉스를 쓴다. 좁은 후보에서는 세로 그룹만 한 층씩 놓고, 명시한 가로 방향은 유지한다. 안전 배치는 기본 전략을 쓴다.
-    ...(ctx.isSafe ? {} : ctx.figure.compactGroups && c.direction === 'down' ? SINGLE_LAYER_OPTIONS : { 'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX' }),
+    ...(ctx.isSafe ? {} : ctx.figure.compactGroups && c.direction === 'down' ? { ...SINGLE_LAYER_OPTIONS, 'elk.separateConnectedComponents': 'false' } : { 'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX' }),
     'elk.nodeSize.constraints': 'MINIMUM_SIZE',
     'elk.nodeSize.minimum': `(${minGroupWidth(c)}, ${SIZE.group.title})`,
     ...alignOf(c.parent, ctx),

@@ -39,6 +39,108 @@ function routeLength(edge) {
   return edge.points.slice(1).reduce((sum, point, i) => sum + Math.abs(point.x - edge.points[i].x) + Math.abs(point.y - edge.points[i].y), 0);
 }
 
+test('buildFigure_narrow_disconnected_workers_preserves_cards_in_one_column', async () => {
+  const source = `diagramplay
+width wide
+group workers "처리 워커" {
+  box a "워커 A" {
+    value job-a "마지막 작업" from=없음
+    value permission-a "처리 권한" from=없음
+    value rejected "거절된 ACK" from=0
+  }
+  box b "워커 B" {
+    value job-b "마지막 작업" from=없음
+    value permission-b "처리 권한" from=없음
+  }
+}`;
+  const wide = await buildFigure(source, { layoutWidth: 1000, strict: true });
+  const narrow = await reflowFigure(wide, { layoutWidth: 390, strict: true });
+
+  assert.ok(narrow.scene.width <= 390);
+  assert.deepEqual(narrow.scene.items.map(item => item.size), wide.scene.items.map(item => item.size));
+  assert.equal(narrow.scene.items[0].x, narrow.scene.items[1].x);
+  assert.notEqual(narrow.scene.items[0].y, narrow.scene.items[1].y);
+});
+
+// #392: 공개 transaction-queue와 같은 카드·그룹·복귀선 구조의 최소 재현이며 실행 기록 원본이 아니다.
+test('buildFigure_narrow_worker_return_keeps_moving_words_visible_and_reflow_times', async () => {
+  const source = `diagramplay
+width wide
+pace 650ms
+box request "주문 요청"
+box transaction "쓰기 트랜잭션" {
+  value pending-orders "미확정 주문" from=0
+  value pending-jobs "미확정 작업" from=0
+}
+group database "같은 DB 파일" {
+  store records "저장된 데이터" {
+    value db-orders "주문" from=0
+    value db-leased "처리 중" from=0
+    value db-acked "ACK 완료" from=0
+  }
+  queue shipping "대기 작업" slots=3
+}
+group workers "처리 워커" {
+  box worker-a "워커 A" {
+    value job-a "마지막 작업" from=없음
+    value fence-a "처리 권한" from=없음
+    value rejected "거절된 ACK" from=0
+  }
+  box worker-b "워커 B" {
+    value job-b "마지막 작업" from=없음
+    value fence-b "처리 권한" from=없음
+  }
+}
+external api "외부 API" "모의 함수" {
+  value api-calls "호출 횟수" from=0
+}
+request -> transaction "주문·작업"
+transaction -> records "함께 확정"
+transaction -> request "취소" dashed quiet
+shipping -> worker-a "작업 획득"
+shipping -> worker-b "재획득" quiet
+worker-a -> api "API 호출"
+worker-b -> api "다시 요청" quiet
+worker-a -> records "ACK" dashed
+worker-b -> records "ACK" dashed quiet
+scene "중단 · 재전달" mode=loop
+  request -> transaction "작성 중" time=750ms
+  transaction -> records time=750ms
+  shipping -> worker-a time=750ms
+  worker-a -> api time=750ms
+  light worker-a
+  show worker-a "ACK 없이 중단" tag="중단" tone=red
+  light records
+  show records "만료돼도 처리 중 유지" tag="만료" tone=orange
+  shipping -> worker-b time=750ms
+  worker-a -> records "이전 권한" time=750ms set="rejected=1"
+  show worker-a "이전 권한 ACK 거부" tag="거부" tone=red
+  worker-b -> api time=750ms
+  worker-b -> records time=750ms
+  wait 1400ms
+scene "확정 전 취소" mode=loop
+  transaction -> request time=750ms
+`;
+  const wide = await buildFigure(source, { layoutWidth: 1000, strict: true });
+  const original = structuredClone(wide);
+  for (const narrow of [await buildFigure(source, { layoutWidth: 390, strict: true }), await reflowFigure(wide, { layoutWidth: 390, strict: true })]) {
+    assert.ok(narrow.scene.width <= 390);
+    assert.deepEqual(narrow.warnings, []);
+    assert.deepEqual(narrow.scene.items.map(item => item.size), wide.scene.items.map(item => item.size));
+    assert.deepEqual(narrow.figure, wide.figure);
+    assert.deepEqual(narrow.scene.edges.map(({ from, to, label }) => [from, to, label]), wide.scene.edges.map(({ from, to, label }) => [from, to, label]));
+  }
+  const reflowed = await reflowFigure(wide, { layoutWidth: 390, strict: true });
+  assert.deepEqual(reflowed.timeline.segs.map(({ t0, t1, si }) => [t0, t1, si]), wide.timeline.segs.map(({ t0, t1, si }) => [t0, t1, si]));
+  assert.deepEqual(wide, original);
+  for (const layoutWidth of [1000, 1440]) {
+    const desktop = await buildFigure(source, { layoutWidth, strict: true });
+    const repeated = await buildFigure(source, { layoutWidth, strict: true });
+    assert.deepEqual(desktop.scene, repeated.scene);
+    assert.deepEqual(desktop.timeline, repeated.timeline);
+  }
+});
+
 test('buildFigure_narrow_shared_destination_reduces_detours_without_losing_content', async () => {
   const wide = await buildFigure(SOURCE, { layoutWidth: 1000, strict: true });
   const original = structuredClone(wide.figure);
