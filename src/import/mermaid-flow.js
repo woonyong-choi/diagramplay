@@ -1,9 +1,8 @@
 // Mermaid 순서도(flowchart, graph) 읽기: 노드 모양, 선과 라벨, subgraph 중첩, 방향(docs/design/import.md 순서도).
 import { change, ensureNode, groupOf, skip, textOf } from './model.js';
-import { unquote } from './mermaid.js';
+import { DIRECTIONS } from './mermaid-lines.js';
+import { unquote } from './names.js';
 
-// 방향 낱말 → DiagramPlay 방향. 거꾸로 가는 방향은 없어서 같은 축의 방향으로 바꾼다.
-const DIRECTIONS = { TD: 'down', TB: 'down', LR: 'right', RL: 'right', BT: 'down' };
 const REVERSED = new Set(['RL', 'BT']);
 
 // 노드 모양: [여는 글, 닫는 글, 카드 종류, 상자로 바꿨는지]. 긴 여는 글을 먼저 본다.
@@ -234,13 +233,61 @@ function closingAt(text, open, close) {
   return text.indexOf(close, from);
 }
 
+// 글이 든 선의 시작(`--`, `==`, `-.`, 앞에 `<`, `o`, `x` 끝 허용)
+const TEXTED_OPEN = /^([<ox])?(--|==|-\.)(?![->=.])/;
+// 선 끝 뒤에 올 수 있는 글자(공백, 글자, 숫자, `_`). 줄 끝도 된다.
+const AFTER_END = /[\s\p{L}\p{N}_]/u;
+
+// cost: time O(n), heap O(n), stack O(1)
+// vars: n = 남은 글자 수
+// basis: estimate
+/**
+ * 글이 든 선 `-- 글 -->`, `== 글 ==>`, `-. 글 .->`를 읽어 [전체, 시작 끝, 여는 표시, 글, 닫는 표시]를 돌려주고 cursor를 옮긴다. 아니면 undefined다.
+ * 닫는 표시는 글 뒤에서 처음 나오는 `-{2,}[>ox]`, `-{3,}`, `={2,}[>ox]`, `={3,}`, `.-+[>ox]?`이고 뒤가 공백, 글자, 숫자, `_`나 줄 끝이어야 한다.
+ * 같은 글자가 이어진 구간은 시작에서 한 번만 보므로(구간 중간에서 시작하면 더 짧아질 뿐 뒤 글자는 같다) 줄 길이에 비례한다.
+ */
+function eatTextedLink(cursor) {
+  const rest = cursor.text.slice(cursor.at);
+  const head = TEXTED_OPEN.exec(rest);
+  if (!head) return undefined;
+  const end = linkEnd(rest, head[0].length);
+  if (!end) return undefined;
+  cursor.at += end.after;
+  return [rest.slice(0, end.after), head[1], head[2], rest.slice(head[0].length, end.at).trim(), end.token];
+}
+
+// cost: time O(n), heap O(1), stack O(1)
+// vars: n = 글자 수
+// basis: estimate
+// from 뒤에서 처음 맞는 닫는 표시 { at, after, token }. 없으면 undefined다.
+function linkEnd(text, from) {
+  const endsAt = (after) => after >= text.length || AFTER_END.test(text[after]);
+  for (let i = from; i < text.length;) {
+    const c = text[i];
+    if (c === '-' || c === '=' || c === '.') {
+      let j = i + 1;
+      const run = c === '.' ? '-' : c;
+      while (text[j] === run) j++;
+      const length = j - i;
+      const tip = text[j] !== undefined && '>ox'.includes(text[j]);
+      // 끝 표시가 있으면 `-`, `=`는 둘 이상, `.`은 뒤 `-` 하나 이상. 없으면 `-`, `=`는 셋 이상, `.`은 뒤 `-` 하나 이상이다.
+      const withTip = 2;
+      const without = c === '.' ? 2 : 3;
+      if (tip && length >= withTip && endsAt(j + 1)) return { at: i, after: j + 1, token: text.slice(i, j + 1) };
+      if (length >= without && endsAt(j)) return { at: i, after: j, token: text.slice(i, j) };
+      i = c === '.' ? i + 1 : j;
+    } else i++;
+  }
+  return undefined;
+}
+
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 남은 글자 수
 // basis: estimate
 // 선 하나: 화살표 모양과 라벨. { label?, dashed, thick, head, odd, hidden }다. 못 읽으면 undefined다.
 function readLink(cursor) {
   eat(cursor, /^\s*/);
-  const texted = eat(cursor, /^([<ox])?(--|==|-\.)(?![->=.])\s*(.*?)\s*(-{2,}[>ox]|-{3,}|={2,}[>ox]|={3,}|\.-+[>ox]?)(?=[\s\p{L}\p{N}_]|$)/u);
+  const texted = eatTextedLink(cursor);
   const plain = texted ?? eat(cursor, /^([<ox])?()()(-{2,}>|-{3,}|-{2,}[ox](?=\s)|={2,}>|={3,}|={2,}[ox](?=\s)|-\.+-[>ox]?|~~~)/);
   if (!plain) return undefined;
   const [, start = '', open, text, body] = plain;

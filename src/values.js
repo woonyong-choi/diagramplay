@@ -1,5 +1,5 @@
 // 값(`value`) 모형 도우미. 장면이 보이는 값과 카드 줄을 시간표, 카드 크기 계산, 그림 검사가 같게 쓴다(docs/design/figure-syntax.md 값).
-import { movesOf } from './source/value-check.js';
+import { movesOf, rootOf } from './source/value-refs.js';
 
 // cost: time O(v), heap O(v), stack O(1)
 // vars: v = 값 수
@@ -9,14 +9,6 @@ export function valueTable(figure) {
   return new Map(figure.values.map((v) => [v.id, v]));
 }
 
-// cost: time O(c), heap O(1), stack O(c)
-// vars: c = 참조 사슬 길이
-// basis: estimate
-/** 참조를 끝까지 따라간 값 이름(from이 있는 값). 참조 순환은 읽을 때 오류라 여기서는 끝이 있다. */
-export function rootOf(byId, id) {
-  const { ref } = byId.get(id);
-  return ref === undefined ? id : rootOf(byId, ref);
-}
 
 // cost: time O(v + r), heap O(v + r), stack O(1)
 // vars: v = 값 수, r = 카드 선언의 본문 줄 수

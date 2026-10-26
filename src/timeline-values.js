@@ -6,7 +6,8 @@ import { MAX_VALUE, RANGE_MESSAGE } from './source/chart-limits.js';
 import { FigureError, makeDiagnostic } from './source/problems.js';
 import { NUMBER_PATTERN } from './source/words.js';
 import { roundNumber } from './source/value.js';
-import { rootOf, valueTable } from './values.js';
+import { valueTable } from './values.js';
+import { rootOf } from './source/value-refs.js';
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
@@ -151,17 +152,17 @@ export function noteRowChanges(rows, textOf, { t }) {
  * 같은 시각에 같은 줄이 적용하는 식은 한 갱신으로 묶어 읽고 쓴다. 같은 시각에 이어진 갱신은 값 줄에 그 시각의 마지막 글 하나로 적는다.
  * @param moves 식이 있는 이동과 흐름 { start, ms, nodes, fracs, sets, pace?, lost? }. start는 그림 전체 시각(ms), fracs는 nodes가 경로 길이의 어느 비율에 있는지, pace는 구간별 이동 시간 꺾은선, lost는 사라지는 경로 비율이다
  * @param span { si, t0, t1 }. 단계 번호와 단계의 시작과 끝 시각
- * @param start 단계 시작 값 { keep, carried, sets }. keep은 유지할 값 이름, carried는 앞 단계가 끝난 값 { 이름 → 글 }, sets는 단계 `set=` 식이다. keep도 set도 없는 단계는 넘기지 않는다
+ * @param start 단계 시작 값 { keep, carried, sets }. keep은 유지할 값 이름, carried는 앞 단계가 끝난 값 { 이름 → 글 }, sets는 단계 `set=` 식이다. keep과 sets가 빈 단계는 선언한 처음 값에서 시작한다
  * @param writers 값을 마지막으로 쓴 줄을 적을 그릇(Map: 값 이름 → { line, at, isSet }). 조건을 쓰는 그림만 넘기고, 교착 설명(`stalls`)이 읽는다
  * @returns { si, id, node, t0, t1, initial, changes, periods, slots? }[]. 선언한 값마다 하나다. slots는 큐의 칸 수다
  * @throws FigureError 읽기 식이 큐에 정수가 아닌 글을 넣거나 낱말을 담은 값에 합을 하면 `value-type` 오류
  */
-export function valueRows(figure, { moves, span, start, writers }) {
+export function valueRows(figure, { moves, span, start = { keep: [], carried: new Map(), sets: [] }, writers }) {
   const byId = valueTable(figure);
   const state = new Map(figure.values.filter((v) => v.ref === undefined).map((v) => [v.id, v.from]));
   const textOf = (id) => state.get(rootOf(byId, id));
-  if (writers) resetWriters(figure, { writers, span, keep: start?.keep });
-  if (start) startValues(start, { state, textOf, byId, onWrite: writers && ((e) => writers.set(rootOf(byId, e.id), { line: e.line, at: span.t0, isSet: true })) });
+  if (writers) resetWriters(figure, { writers, span, keep: start.keep });
+  startValues(start, { state, textOf, byId, onWrite: writers && ((e) => writers.set(rootOf(byId, e.id), { line: e.line, at: span.t0, isSet: true })) });
   const rows = figure.values.map((v) => ({ si: span.si, id: v.id, node: v.on, t0: span.t0, t1: span.t1, initial: textOf(v.id), changes: [], ...(v.queue ? { slots: v.slots } : {}) }));
   const events = moves.flatMap((move, mi) => [...arrivalEvents(move, mi, figure.arrivals), ...setEvents(move, mi)]).filter((ev) => ev.t <= span.t1).sort(compareEvents);
   for (let from = 0, to = 1; from < events.length; from = to, to = from + 1) {

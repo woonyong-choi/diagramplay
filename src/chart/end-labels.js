@@ -4,6 +4,7 @@
 import { maxOf } from '../extremes.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { STYLE } from '../measure/texts.js';
+import { TEXT_BACK_PAD, drawTextBack } from '../draw/texts.js';
 import { measure, wrap } from '../measure/fonts.js';
 import { centerBaseline, renderRich, roundCoord as r } from '../text.js';
 import { COPY } from './copy.js';
@@ -136,8 +137,7 @@ function isotonic(values_) {
 export function endLabelMarks(chart, placed, anchors, column) {
   const lineHeight = lineHeightOf();
   return placed.map((box) => {
-    const pad = SPACE["0-25"];
-    const back = `<rect x="${r(column.x - pad)}" y="${r(box.top - pad)}" width="${r(box.width + pad * 2)}" height="${r(box.height + pad * 2)}" class="chart-text-bg"${markAttrs(chart, markId(chart, box.i, 'end', '.b'))}/>`;
+    const back = drawTextBack({ x: column.x, y: box.top, w: box.width, h: box.height }, { pad: TEXT_BACK_PAD.tight, attrs: markAttrs(chart, markId(chart, box.i, 'end', '.b')) });
     const texts = box.lines.map((line, k) => `<text x="${r(column.x)}" y="${r(centerBaseline(box.top + lineHeight / 2 + k * lineHeight, TEXT['11']))}" fill="${seriesPaint(chart, box.i).ink}" class="chart-end-label"${markAttrs(chart, markId(chart, box.i, 'end', `.t${k}`), { isText: true })}>${renderRich(line)}</text>`);
     return `<g class="cs-${box.i}">${leader(chart, box, anchors.get(box.i), column)}${back}${texts.join('')}</g>`;
   });

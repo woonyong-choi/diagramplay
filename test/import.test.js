@@ -1,5 +1,6 @@
 // 시험 이름 첫 낱말(IM1~IM14)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/import.md 요구사항 표에 있다.
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { join } from 'node:path';
@@ -415,6 +416,53 @@ test('IM9 standard input (-) needs the format, and --json gives the diagnostics 
   const [diagnostic, result] = json.stdout.trim().split('\n').map((line) => JSON.parse(line));
   assert.deepEqual(diagnostic, { file: 'a.mmd', line: 3, message: 'the colors and sizes in the style of "a" are not imported. They come from the design tokens', severity: 'warning', code: 'import-skip', column: 3 });
   assert.deepEqual(result, { file: 'a.mmd', source: 'diagramplay\n\nbox a "a"\nbox b "b"\n\na -> b\n' });
+});
+
+test('IM6 #397 a long Mermaid line takes time in proportion to its length: padding inside any statement form is read without backtracking', () => {
+  // 정규식 역추적은 동기라 시험 시간 한도로 끊기지 않는다. 경우마다 새 프로세스에서 재고, 끝나지 않으면 프로세스 시간 한도로 실패한다.
+  const pad = (unit) => unit.repeat(40000);
+  const cases = {
+    'sequence message': `sequenceDiagram\n  a->b${pad(' \t')}x\n`,
+    'sequence note': `sequenceDiagram\n  Note right of a${pad(' ')}x\n`,
+    'sequence participant': `sequenceDiagram\n  participant a${pad(' ')}x\n`,
+    'sequence note over': `sequenceDiagram\n  Note over a${pad(' ')},b: x\n`,
+    'state transition': `stateDiagram-v2\n  a-->b${pad(' ')}x\n`,
+    'state before arrow': `stateDiagram-v2\n  a${pad(' ')}-->\n`,
+    'state description': `stateDiagram-v2\n  a${pad(' ')}:x\n`,
+    'state declaration': `stateDiagram-v2\n  state${pad(' ')}a {\n`,
+    'class declaration': `classDiagram\n  class A${pad(' ')}x\n`,
+    'class generic': `classDiagram\n  class A${pad(' ')}~T~\n`,
+    'class member': `classDiagram\n  A : +i${pad(' ')}nt x\n`,
+    'er entity': `erDiagram\n  A${pad(' ')}x\n`,
+    'er alias': `erDiagram\n  A${pad(' ')}["x"] {\n`,
+    'flow link': `flowchart LR\n  a --${pad(' ')}x\n`,
+    'flow link text': `flowchart LR\n  a -- t -${pad('=')}-> b\n`,
+    'er quoted name': `erDiagram\n  "A b${pad('[')}" ||--|| B : x\n`,
+  };
+  const script = `import { importDiagram } from ${JSON.stringify(new URL('../src/import/index.js', import.meta.url).href)};
+    const text = process.argv[1];
+    const start = performance.now();
+    try { importDiagram('mermaid', text); } catch {}
+    process.stdout.write(String(performance.now() - start));`;
+  const slow = [];
+  for (const [name, text] of Object.entries(cases)) {
+    const run = spawnSync(process.execPath, ['--input-type=module', '-e', script, text], { encoding: 'utf8', timeout: 15000 });
+    const ms = Number(run.stdout);
+    if (run.status !== 0 || !(ms < 400)) slow.push(`${name}: ${run.status === null ? 'did not finish in 15 s' : `${Math.round(ms)} ms`}`);
+  }
+  assert.deepEqual(slow, []);
+});
+
+test('IM14 #397 the title of a drawing with no shapes is any free text, and many shapes do not overflow the call stack', async () => {
+  const { titleText } = await import('../src/import/drawn.js');
+  const text = { text: 'Title', box: { x: 0, y: 0, w: 10, h: 10 } };
+  assert.equal(titleText([text], []), text);
+  const boxes = Array.from({ length: 200000 }, (_, i) => ({ x: 0, y: 20 + i, w: 1, h: 1 }));
+  assert.equal(titleText([text], boxes), text);
+  // 글 없는 도형은 내용 없는 표시로 옮기고 그 줄에 알린다(drawn.js shapeLabel)
+  const { source, warnings } = importDiagram('excalidraw', JSON.stringify({ type: 'excalidraw', elements: [{ id: 'a', type: 'rectangle', x: 0, y: 0, width: 10, height: 10 }] }));
+  assert.match(source, /box a "…"/);
+  assert.ok(warnings.some((w) => w.code === 'import-change' && /without text/.test(w.message)), JSON.stringify(warnings));
 });
 
 test('IM9 a source that cannot be imported is exit 1 on its line with nothing written, and wrong usage is exit 2', (t) => {

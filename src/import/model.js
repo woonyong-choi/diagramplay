@@ -28,7 +28,7 @@ export function createModel(text) {
 }
 
 /** 받지 않아 건너뛴 문장의 경고 code */
-export const SKIP = 'import-skip';
+const SKIP = 'import-skip';
 /** 받았지만 모양이나 글을 바꿔 옮긴 문장의 경고 code */
 const CHANGE = 'import-change';
 /** 가져올 수 없는 원본의 오류 code */

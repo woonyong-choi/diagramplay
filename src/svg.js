@@ -6,7 +6,7 @@ import { animateFrameBody } from './animate/frames.js';
 import { createAnimator } from './animate/animator.js';
 import { createClock } from './animate/clock.js';
 import { drawScene } from './draw/figure.js';
-import { hasStatus } from './draw/status.js';
+import { hasStatus } from './layout/status.js';
 import { paintCss } from './draw/paint.js';
 import { drawTrackPaths } from './draw/tracks.js';
 import { createGlyphSet, embedFonts } from './measure/fonts.js';
@@ -41,7 +41,7 @@ export async function toSvg(result, { scene: selector = 0, isStatic = false, nam
   const motionLayer = drawLayer(result, { si, timeline, clock, glyphs, charts, root: isStill ? '.fl' : '.fl .fl-motion' });
   const stillLayer = isStill ? undefined : drawLayer(result, { si, timeline: finalState(sliced), clock: createClock(1, { mode: 'static', displayMs: 1 }), glyphs, charts, root: '.fl .fl-still', prefix: 's' });
   const { content } = motionLayer;
-  // 그림은 넣는 칸의 폭을 꽉 채운다(width 100%, 높이는 viewBox 비율). 가로 스크롤 없이 칸에 맞춰 줄거나 커진다.
+  // 그림의 폭 속성은 자연 크기(viewBox 폭, 한 단위 1px)다. 넣는 칸이 더 넓어도 커지지 않아 같은 글 역할이 그림마다 같은 크기로 보이고, 칸이 좁으면 이미지의 max-width가 줄인다. 높이는 viewBox 비율이다.
   const width = content.width;
   const height = content.height;
   const fonts = await embedFonts(glyphs.used);
@@ -49,7 +49,7 @@ export async function toSvg(result, { scene: selector = 0, isStatic = false, nam
   const chartStyle = charts.length || usesChartRoles(result.scene) ? STYLES.chart : '';
   const place = (layer, className) => `<g${className ? ` class="${className}"` : ''} transform="translate(${r((width - layer.content.width) / 2)} 0)">\n${layer.content.svg}\n</g>`;
   const layers = stillLayer ? `${place(motionLayer, 'fl-motion')}\n${place({ content: { ...stillLayer.content, svg: scopeIds(stillLayer.content.svg, 'still-') } }, 'fl-still')}` : place(motionLayer);
-  const head = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="fl" width="100%" viewBox="0 0 ${r(width)} ${r(height)}" role="img" data-scene="${si}" data-mode="${mode}">
+  const head = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="fl" width="${r(width)}" viewBox="0 0 ${r(width)} ${r(height)}" role="img" data-scene="${si}" data-mode="${mode}">
 <title>${escapeXml(plainText(title))}</title>${figureDesc(figure)}
 `;
   const styles = `${STYLES.figure}${paintCss(result.scene)}${chartStyle}${hasStatus(timeline) ? STYLES.status : ''}

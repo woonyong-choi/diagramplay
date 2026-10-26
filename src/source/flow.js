@@ -5,7 +5,7 @@ import { readOptions } from './options.js';
 import { valueNames } from './grammar.js';
 import { readSets } from './value.js';
 import { ID_PATTERN } from './words.js';
-import { isOverTimeLimit, overLimitMessage, parseTime, timeHint, TIME_LIMIT_MS } from './values.js';
+import { isOverTimeLimit, MS_PER_SECOND, overLimitMessage, parseTime, timeHint, TIME_LIMIT_MS } from './values.js';
 
 const TRACK_FORM = 'write a track as: track a, b -> c -> d ["text"] [at=time] [every=time] [time=time] [legs="time, -"] [tone=name] [set="id+1@node"] [lost=60%] [when="condition"] [wait="condition"] [timeout=time] [else=node] [stuck] [reserve="id+1, id=word"]';
 const STATUS_FORM = 'write status as: status="node=ok, node=warn"';
@@ -151,7 +151,7 @@ function readLegTime(item, { line, ctx }) {
 function checkLegSum(times, { timeMs, line, ctx }) {
   const sum = times.reduce((total, ms) => total + (ms ?? 0), 0);
   const hasUnset = times.includes(null);
-  const show = (ms) => `${ms / 1000}s`;
+  const show = (ms) => `${ms / MS_PER_SECOND}s`;
   if (sum > TIME_LIMIT_MS) ctx.problems.error(line, `legs add up to ${show(sum)}, over the limit of 1h (${TIME_LIMIT_MS}ms). Shorten a leg`, { code: 'time-limit' });
   else if (timeMs !== undefined && hasUnset && sum >= timeMs - LEG_EPSILON_MS) ctx.problems.error(line, `legs set ${show(sum)} of time=${show(timeMs)}, which leaves no time for the lines marked -. Shorten a leg or raise time=`, { code: 'leg-time' });
   else if (timeMs !== undefined && !hasUnset && Math.abs(sum - timeMs) > LEG_EPSILON_MS) ctx.problems.error(line, `legs add up to ${show(sum)}, but time= is ${show(timeMs)}. Make them equal or mark a line with -`, { code: 'leg-time' });

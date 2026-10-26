@@ -2,12 +2,14 @@
 // 줄의 자리와 판 크기는 시간표와 상관없이 정하고(layoutTiming), 장면마다의 모양은 시간표가 정해진 뒤 같은 판에 붙인다(timingScenes). 그래서 판 크기는 장면과 상관없다.
 // 시각은 모두 시간표의 논리 ms라 같은 원본의 흐름·순서 보기의 점과 같은 순간에 바뀐다(docs/design/figure-kinds.md 타이밍 보기).
 import { measure } from '../measure/fonts.js';
-import { sizeStatus } from '../draw/status.js';
+import { sizeStatus } from '../measure/pills.js';
 import { axisEnd } from '../chart/axis.js';
-import { labelColumn } from '../chart/labels.js';
+import { labelColumn } from '../chart/label-layout.js';
 import { CANVAS, FIGURE_PAD } from '../canvas.js';
 import { PAD, ROW, SPACE, TEXT } from '../chart/metrics.js';
 import { makeScale } from '../chart/scale.js';
+import { MS_PER_SECOND } from '../source/values.js';
+import { ALONG_SPOTS } from './labels.js';
 
 /** 구간 표시(`note`) 한 줄의 높이. 양쪽 화살표와 그 위 글 한 줄이 든다. */
 const NOTE_ROW = TEXT['13'] + SPACE['6'];
@@ -16,8 +18,7 @@ export const BAND_HALF = (ROW - SPACE['3'] * 2) / 2;
 /** 띠의 경사 변 폭. 값이 바뀌는 순간을 WaveDrom처럼 비스듬한 변으로 보인다. */
 export const SLOPE = SPACE['1-5'];
 /** 눈금을 초로 적기 시작하는 장면 길이(ms) */
-const SECOND_FROM = 1000;
-const MS_PER_SECOND = 1000;
+const SECOND_FROM = MS_PER_SECOND;
 /** 띠 안 글자 둘레 여유 */
 const LABEL_PAD = SPACE['2'];
 
@@ -156,8 +157,6 @@ function noteSpans(note, { timeline, si, x, end, row }) {
 
 /** 화살표 글 바탕 둘레 */
 export const ARROW_LABEL_PAD = SPACE['1'];
-// 화살표 글을 놓아 볼 자리(화살표 길이의 비율). 가운데부터 양쪽으로 옮긴다.
-const LABEL_SPOTS = [0.5, 0.35, 0.65, 0.2, 0.8];
 
 // cost: time O(a²·k), heap O(a), stack O(1)
 // vars: a = 화살표 수, k = 놓아 볼 자리 수
@@ -178,7 +177,7 @@ function placeArrowLabels(arrows, timing) {
       return { x: cx - lw / 2, y: cy - lh / 2, w: lw, h: lh };
     };
     const clear = (box) => placed.every((other) => box.x + box.w <= other.x || other.x + other.w <= box.x || box.y + box.h <= other.y || other.y + other.h <= box.y);
-    const box = LABEL_SPOTS.map(boxAt).find(clear) ?? boxAt(LABEL_SPOTS[0]);
+    const box = ALONG_SPOTS.map(boxAt).find(clear) ?? boxAt(ALONG_SPOTS[0]);
     placed.push(box);
     return { ...arrow, labelBox: box };
   });

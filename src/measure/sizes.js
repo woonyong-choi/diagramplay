@@ -7,7 +7,7 @@ import { tableDescription } from '../table.js';
 import { tableLayout } from './table.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { INNER_MAX, PAD, headerDecor, headerOf, placeHeader } from './card.js';
-import { BADGE_STYLE, DECOR, STACK_STEP, groupDecor, nodeDecor } from './decor.js';
+import { DECOR, STACK_STEP, groupDecor, nodeDecor } from './decor.js';
 import { sizeClassifier } from './class.js';
 import { CONTENT, contentMinWidth, sizeContent } from './content.js';
 import { measure, wrap } from './fonts.js';
@@ -338,34 +338,6 @@ function gridUnitWidth(cells, { cols, titleRoom, fieldStrip }) {
   return fieldStrip ? width : Math.ceil(width);
 }
 
-// cost: time O(n), heap O(1), stack O(1)
-// vars: n = 글자 수
-// basis: estimate
-/**
- * 선 라벨 알약 크기. 선 번호(no)가 있으면 왼쪽에 번호 원이 붙고, 라벨이 없으면 번호 원만 있다.
- * 번호 원은 알약 높이에서 위아래 안쪽 간격을 뺀 지름이고, 두 자리 이상 번호는 숫자 폭만큼 넓어진다.
- */
-export function sizePill(label, no) {
-  const h = SIZE.pill.height;
-  const textW = label === undefined ? 0 : measure(label, STYLE.pill.size, STYLE.pill.face);
-  if (no === undefined) return { w: textW + SPACE["3-5"], h };
-  const numW = numberBadgeWidth(no);
-  return { w: label === undefined ? numW + SPACE["0-5"] * 2 : SPACE["0-5"] + numW + SPACE["1"] + textW + SPACE["3-5"] / 2, h, numW, numH: h - SPACE["0-5"] * 2, textW };
-}
-
-/** 선 번호 원 너비. 한 자리는 지름과 같은 원이고 두 자리 이상은 숫자 폭에 좌우 간격을 더한다. */
-function numberBadgeWidth(no) {
-  return Math.max(SIZE.pill.height - SPACE["0-5"] * 2, measure(String(no), BADGE_STYLE.size, BADGE_STYLE.face) + SPACE["2"]);
-}
-
-/**
- * 번호만 있는 알약(라벨 없음)을 배치에 자리를 요구하지 않고 선 위에 얹는 선인가. 격자 칸에 이은 선은 끝 구간이 격자 안이라 얹을 자리를 고를 수 없어 배치가 자리를 준다.
- * quiet 선은 선 옆에 두는 자리(besideLabel)를 쓴다.
- */
-export const isOnLinePill = (edge) => edge.no !== undefined && edge.label === undefined && !edge.quiet && !edge.fromCell && !edge.toCell;
-
-/** 라벨이나 번호가 있어 알약을 그리는 선인가 */
-export const hasPill = (edge) => edge.label !== undefined || edge.no !== undefined;
 
 // cost: time O(g·n), heap O(1), stack O(1)
 // vars: g = 그룹 제목 글자 수, n = 1

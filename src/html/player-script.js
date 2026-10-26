@@ -1,4 +1,5 @@
 // 재생기 문서의 고정 부분: 브라우저 스크립트(src/player/)를 한 글로 이어 붙인 것과 그림 틀 마크업. 컴파일러(build)에 기대지 않아 재생기 시험이 이 모듈로 같은 문서 틀을 만든다.
+import { hopMath } from '../hop-math.js';
 import { motionMath } from '../motion-math.js';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -18,7 +19,7 @@ const CONTROL_NAMES = ['copy', 'download', 'maximize-2', 'minimize-2', 'check', 
 const PLAYER_ROLES = { controls: Object.fromEntries(CONTROL_NAMES.map(name => [name, ICON_ROLES.controls[name]])), articles: {}, social: {} };
 const CONTROL_DATA = Object.fromEntries([...new Set(Object.values(PLAYER_ROLES.controls))].map(name => [name, ICON_DATA[name]]));
 const UI_ICON_SCRIPT = `const ToolIcon = (() => {\nconst ICON_DATA = ${JSON.stringify(CONTROL_DATA).replace(/</g, '\\u003c')};\nconst ICON_ROLES = ${JSON.stringify(PLAYER_ROLES)};\n${UI_MODULES.map(([name, exports]) => moduleScript(name, exports)).join('\n')}\n${ToolIcon.toString()}\nreturn ToolIcon;\n})();\nconst CANONICAL_NAME = ${JSON.stringify(CANONICAL_NAME)};\n`;
-const MOTION_SCRIPT = `const { progressAt, timeAt: timeAtProgress } = (${motionMath.toString()})();\n`;
+const MOTION_SCRIPT = `const { progressAt, timeAt: timeAtProgress } = (${motionMath.toString()})();\nconst { hopLegs, fadeAt } = (${hopMath.toString()})(timeAtProgress);\n`;
 export const PLAYER_SCRIPT = UI_ICON_SCRIPT + MOTION_SCRIPT + cssTimeMs.toString() + '\n' + bindToolbar.toString() + '\n' + bindTabs.toString() + '\n' + PLAYER_FILES.map((name) => readFileSync(new URL(`../player/${name}.js`, import.meta.url), 'utf8')).join('\n');
 
 // cost: time O(n), heap O(n), stack O(1), io 1

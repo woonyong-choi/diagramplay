@@ -1,5 +1,5 @@
 // 3번, 4번, 5번: 선이 도형을 지나지 않고, 끝이 연결점에 있고, 다른 선과 붙지 않는다.
-import { CROWD, TOUCH } from '../layout/model.js';
+import { CROWD, SAME_POINT } from '../layout/model.js';
 import { columnAnchorY } from '../table.js';
 import { THROUGH_INSET, capitalize, drawnBox, isCoVisible, near, onBorder, segmentHits } from './geometry.js';
 
@@ -122,8 +122,8 @@ function segments(e) {
 
 // 선분이 가로면 'x', 세로면 'y', 비스듬하면 없음
 function axisOf([a, b]) {
-  if (Math.abs(a.y - b.y) < TOUCH) return 'x';
-  return Math.abs(a.x - b.x) < TOUCH ? 'y' : undefined;
+  if (Math.abs(a.y - b.y) < SAME_POINT) return 'x';
+  return Math.abs(a.x - b.x) < SAME_POINT ? 'y' : undefined;
 }
 
 // 나란한 두 선분이 CROWD보다 가깝게 CROWD 넘는 길이만큼 겹치는지
@@ -136,5 +136,5 @@ function crowded(first, second) {
   const [lo2, hi2] = span(second);
   const overlap = Math.min(hi1, hi2) - Math.max(lo1, lo2);
   const gap = Math.abs(first[0][across] - second[0][across]);
-  return overlap > CROWD && gap > TOUCH && gap < CROWD;
+  return overlap > CROWD && gap > SAME_POINT && gap < CROWD;
 }

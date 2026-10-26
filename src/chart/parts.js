@@ -242,7 +242,8 @@ function centerTotal(chart, { cx, cy, outer }, { isUndefined, isDonut }) {
   const big = values.text.figure['22'];
   const valueY = cy - SPACE["1"];
   return [
-    `<text x="${r(cx)}" y="${r(valueY + big * 0.35)}" text-anchor="middle" style="font-size: ${tokens.text.figure['22']}; font-weight: ${tokens['font-weight'].semibold}" class="chart-label"${hidden}${mark}>${escapeXml(total)}</text>`,
+    // 큰 합계는 공통 글 역할에 22 semibold가 없어(design-tokens chart.css) 토큰 변수로 크기와 굵기만 덮는다. 기준선은 모든 글과 같은 centerBaseline이다.
+    `<text x="${r(cx)}" y="${r(centerBaseline(valueY, big))}" text-anchor="middle" style="font-size: ${tokens.text.figure['22']}; font-weight: ${tokens['font-weight'].semibold}" class="chart-label"${hidden}${mark}>${escapeXml(total)}</text>`,
     `<text x="${r(cx)}" y="${r(centerBaseline(valueY + big / 2 + SPACE["2"] + TEXT['11'] / 2, TEXT['11']))}" text-anchor="middle" class="chart-legend"${hidden}>${escapeXml(COPY.total)}</text>`,
   ];
 }

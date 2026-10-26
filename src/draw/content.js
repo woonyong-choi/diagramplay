@@ -1,12 +1,11 @@
 // 카드 안에 보이는 내용(`show`와 값 줄)을 그린다. 내용마다 층을 하나씩 두고 박자가 보일 층을 고른다. 크기와 글 자리는 measure/content.js가 정한 그대로고, 글은 카드 머리와 같은 drawTexts가 그린다.
 // 카드 면과 머리는 draw/card.js가 그리고, 이 파일은 그 면 안쪽에 놓이는 내용 면 하나와 그 위의 줄(태그 알약, 관계 그래프의 선과 알약)만 맡는다.
-import { bodyOf } from '../measure/decor.js';
-import { CONTENT } from '../measure/content.js';
 import { autoTone, toneColors } from '../tone.js';
 import { roundCoord as r } from '../text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { faceOf, lookClass } from './look.js';
 import { CORNER, rectOpen } from './surface.js';
+import { pillFace } from './pill.js';
 import { drawTexts } from './texts.js';
 import { hiddenAttr } from './visible.js';
 import { drawChartBody } from './chart.js';
@@ -30,13 +29,6 @@ export function createTones(tagOrder = []) {
     next(row.tag);
     return toneColors(tones.get(row.tag)).fill;
   };
-}
-
-/** 내용 면 자리. 카드 면 아래쪽 안이다(표와 API는 열 아래, 상자와 사람은 이름 아래). */
-export function contentBox(it) {
-  const { w, h } = it.content;
-  const body = bodyOf(it);
-  return { x: it.x + CONTENT.margin, y: body.y + body.h - CONTENT.margin - h, w, h };
 }
 
 // cost: time O(k·r·n), heap O(out), stack O(1)
@@ -66,11 +58,6 @@ function drawFace(layout, box) {
   if (look.tone === undefined) return '';
   const inset = values["border-width"].thin / 2;
   return `${rectOpen({ x: box.x + inset, y: box.y + inset, w: box.w - inset * 2, h: box.h - inset * 2 }, CORNER.inner - inset)} class="face${lookClass(look)}"/>`;
-}
-
-/** 내용의 줄 하나가 차지한 자리: 맨 위 y와 높이. 값 글자(draw/values.js)가 줄 오른쪽 끝에 얹힐 자리를 찾는 데 쓴다. 자리는 sizeContent가 정한 그대로다. */
-export function rowSpan(layout, box, index) {
-  return { y: box.y + layout.rows[index].top, h: layout.rows[index].height };
 }
 
 // cost: time O(r·n), heap O(out), stack O(1)
@@ -110,7 +97,7 @@ function drawMiniGraph(laid, box) {
     return `<g class="fl-edge${isLit ? ' fl-mini-lit' : ''}"><path d="${d}" class="fl-path"/></g>`;
   });
   const pills = laid.nodes.map((n) => {
-    return `<rect class="pill fl-mini-pill${n.isLit ? ' fl-mini-lit' : ''}" x="${r(x + n.x)}" y="${r(y + n.y)}" width="${r(n.w)}" height="${r(n.h)}" rx="${r(n.h / 2)}"/>`;
+    return pillFace({ x: x + n.x, y: y + n.y, w: n.w, h: n.h }, 'mini', n.isLit ? ' fl-mini-lit' : '');
   });
   return lines.join('') + pills.join('');
 }

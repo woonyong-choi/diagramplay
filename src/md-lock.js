@@ -1,8 +1,9 @@
 // md 명령의 출력 폴더 잠금(docs/design/markdown.md 동시 실행). 같은 출력 폴더에 두 프로세스가 동시에 쓰지 못하게 폴더마다 잠금 파일을 배타적으로 만든다.
 // 잠금 파일은 JSON 한 덩어리로 주인 프로세스 번호(pid), 호스트 이름, 만든 시각, 무작위 nonce를 적는다. nonce가 이 잠금의 신원이라 치우거나 풀 때 자기 것인지 가린다.
 // 같은 호스트에서 주인 pid가 ESRCH로 확실히 없을 때만 낡은 잠금을 치운다. 그 밖(살아 있음, 권한 오류, 다른 호스트, 읽을 수 없음)은 지우지 않고 진단으로 끝낸다.
+// 잠금을 잡는 동안 쓰는 guard 폴더도 안에 같은 주인 정보(owner.json)를 적고 같은 규칙으로 치운다.
 import { randomUUID } from 'node:crypto';
-import { mkdirSync, readFileSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, rmdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { hostname } from 'node:os';
 import { dirname, join } from 'node:path';
 import { realPath } from './md-owner.js';
@@ -67,15 +68,64 @@ function lockError(path, error) {
   return { busy: { path, code: 'io', message: `cannot acquire or release the folder lock: ${error.code ?? 'unknown error'}` } };
 }
 
-// 낡은 잠금을 읽고 치운 뒤 새 잠금을 쓰는 과정 전체를 한 실행만 수행한다.
-// guard 주인이 죽었는지 판단하다가 같은 경쟁을 되풀이하지 않도록 남은 guard는 수동 복구만 허용한다.
-function lockOne(dir) {
-  const guard = join(dir, `${LOCK_NAME}.guard`);
+// guard 폴더 안의 주인 파일. 잠금 파일과 같은 JSON(pid, host, created, nonce)이다.
+const GUARD_OWNER = 'owner.json';
+
+// cost: time O(1), heap O(1), stack O(1), io 3
+// basis: estimate
+// guard를 만들고 그 안에 자기 주인 정보를 적는다. 이미 있으면 'exists', 만들었으면 nonce, 실패하면 오류를 던진다.
+// 주인 파일을 적기 전에 죽으면 빈 guard가 남는다. 빈 guard는 주인을 알 수 없어 자동으로 치우지 않는다.
+function makeGuard(guard) {
   try {
     mkdirSync(guard);
   } catch (error) {
-    if (error.code !== 'EEXIST') return lockError(guard, error);
-    return { busy: { path: guard, message: 'another diagramplay md is acquiring this folder lock. If no diagramplay md is running, remove this guard directory by hand and run again' } };
+    if (error.code === 'EEXIST') return 'exists';
+    throw error;
+  }
+  const nonce = randomUUID();
+  writeFileSync(join(guard, GUARD_OWNER), `${JSON.stringify({ pid: process.pid, host: hostname(), created: new Date().toISOString(), nonce })}\n`, { flag: 'wx' });
+  return nonce;
+}
+
+// cost: time O(1), heap O(1), stack O(1), io 5
+// basis: estimate
+// 남은 guard를 잠금 파일과 같은 규칙으로 본다. 같은 호스트에서 주인 pid가 ESRCH로 확실히 없을 때만 고유 이름으로 옮긴 뒤 nonce가 읽어 둔 것과 같으면 지운다. 치웠으면 undefined, 아니면 거절 결과다.
+function clearStaleGuard(guard) {
+  const manual = 'If no diagramplay md is running, remove this guard directory by hand and run again';
+  const seen = readLock(join(guard, GUARD_OWNER));
+  const why = !seen ? 'another diagramplay md is acquiring this folder lock, or one stopped before writing its owner'
+    : seen.host !== hostname() ? `the guard belongs to another host (pid ${seen.pid} on host ${seen.host})`
+    : pidState(seen.pid) !== 'gone' ? `another diagramplay md is acquiring this folder lock (pid ${seen.pid} on host ${seen.host})`
+    : undefined;
+  if (why) return { busy: { path: guard, message: `${why}. ${manual}` } };
+  const moved = `${guard}.${randomUUID()}.stale`;
+  try {
+    renameSync(guard, moved);
+  } catch {
+    return undefined;
+  }
+  if (readLock(join(moved, GUARD_OWNER))?.nonce !== seen.nonce) return { busy: { path: guard, message: `the guard changed while it was being cleared; it was moved to ${moved} and left as it was. ${manual}` } };
+  rmSync(moved, { recursive: true, force: true });
+  return undefined;
+}
+
+// cost: time O(1), heap O(1), stack O(1), io 8
+// basis: estimate
+// 낡은 잠금을 읽고 치운 뒤 새 잠금을 쓰는 과정 전체를 한 실행만 수행한다(guard 폴더).
+// guard가 남아 있으면 그 주인 파일을 잠금 파일과 같은 ESRCH 규칙으로 보고, 주인이 확실히 죽었을 때만 한 번 치우고 다시 잡는다.
+function lockOne(dir) {
+  const guard = join(dir, `${LOCK_NAME}.guard`);
+  let nonce;
+  try {
+    nonce = makeGuard(guard);
+    if (nonce === 'exists') {
+      const refused = clearStaleGuard(guard);
+      if (refused) return refused;
+      nonce = makeGuard(guard);
+      if (nonce === 'exists') return { busy: { path: guard, message: 'another diagramplay md took the guard while it was being cleared. If no diagramplay md is running, remove this guard directory by hand and run again' } };
+    }
+  } catch (error) {
+    return lockError(guard, error);
   }
   let lock;
   try {
@@ -84,6 +134,7 @@ function lockOne(dir) {
     lock = lockError(join(dir, LOCK_NAME), error);
   } finally {
     try {
+      if (readLock(join(guard, GUARD_OWNER))?.nonce === nonce) unlinkSync(join(guard, GUARD_OWNER));
       rmdirSync(guard);
     } catch (error) {
       if (lock?.held) releaseHeld([lock.held]);

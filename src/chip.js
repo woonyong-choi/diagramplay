@@ -15,7 +15,7 @@ export const OVERLAP_SLACK = 0.5;
 export const CHIP_CLEAR = SPACE["1"];
 // 가리는 것을 비켜 올리거나 내리는 최대 거리
 const LIFT_MAX = CHIP_GAP * 4;
-// 후보 선택 순서 가중치. 점 위 0, 올림 0.3, 점 아래 1, 옆으로 비킴 2(가까움)와 4(멂). 아래 줄의 옆 후보도 이 값에 더해 순서가 섞이지 않는다
+// 후보 선택 순서 가중치(단위 없는 순위 값이라 화면 토큰이 아니다). 점 위 0, 올림 0.3, 점 아래 1, 옆으로 비킴 2(가까움)와 4(멂). 아래 줄의 옆 후보도 이 값에 더해 순서가 섞이지 않는다
 const ROW_LIFT = 0.3;
 const ROW_BELOW = 1;
 const SIDE_NEAR = 2;

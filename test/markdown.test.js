@@ -1,11 +1,13 @@
 // 시험 이름 첫 낱말(M1~M13)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, lstatSync, readdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import fs, { existsSync, lstatSync, readdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { findBlocks } from '../src/md.js';
+import { findBlocks, isMarkedImage } from '../src/md.js';
+import { commitWrites, FILE_IO } from '../src/md-write.js';
 import { cli, diagramplay, read, snapshot, workspace } from './support.js';
 
 const FENCE = '```';
@@ -422,20 +424,56 @@ test('M11 a figure that cannot be written is one diagnostic and exit 1, with the
   assert.deepEqual(snapshot(dir), before);
 });
 
-test('M11 a read-only output folder fails before anything is replaced: diagnostic code io, document and figures untouched', (t) => {
-  if (process.getuid?.() === 0) return t.skip('running as root: permission bits do not stop writes');
-  const dir = workspace(t, { 'doc.md': doc(block('flow')), 'out/keep.txt': 'x' });
-  chmodSync(join(dir, 'out'), 0o555);
+test('M3 #397 a long line of image-like text is read in time proportional to its length', () => {
+  const line = '![a](b) '.repeat(64 * 1024 / 8);
+  const start = performance.now();
+  for (let i = 0; i < 5; i++) assert.equal(isMarkedImage(line), false);
+  assert.equal(isMarkedImage('![가](doc-a.svg)<!-- diagramplay -->'), true);
+  assert.equal(isMarkedImage('  ![가](doc-a.svg)<!-- diagramplay -->  '), true);
+  assert.equal(isMarkedImage('> ![가](doc-a.svg)<!-- diagramplay -->'), false, 'callers take quote marks off first');
+  assert.equal(isMarkedImage('![가]<!-- diagramplay -->'), false);
+  assert.equal(isMarkedImage('![가](doc-a.svg)<!-- other -->'), false);
+  assert.ok(performance.now() - start < 100, `${Math.round(performance.now() - start)} ms for five 64 KB lines`);
+});
+
+// 10 쓰기 실패: 권한 비트 대신 쓰기 경로가 받는 파일 시스템 동작 한 벌(io)에 실패를 넣는다. root로 돌아도 같은 경로를 본다.
+test('M11 #397 a write refused by the file system fails before anything is replaced: the error comes back, files as they were, no temporary file left', (t) => {
+  const dir = workspace(t, { 'out/keep.txt': 'x', 'out/a.svg': 'old a' });
+  const before = snapshot(dir);
+  const denied = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+  const io = { ...FILE_IO, writeFile: (path, ...rest) => (path.includes('.b.svg.') ? (() => { throw denied; })() : FILE_IO.writeFile(path, ...rest)) };
+  const result = commitWrites([{ path: join(dir, 'out/a.svg'), text: 'new a' }, { path: join(dir, 'out/b.svg'), text: 'new b' }], io);
+  assert.equal(result.error, denied);
+  assert.deepEqual(result.unrestored, []);
+  assert.deepEqual(snapshot(dir), before);
+  const renameDenied = { ...FILE_IO, rename: (from, to) => (to.endsWith('b.svg') ? (() => { throw denied; })() : FILE_IO.rename(from, to)) };
+  const late = commitWrites([{ path: join(dir, 'out/a.svg'), text: 'new a' }, { path: join(dir, 'out/b.svg'), text: 'new b' }], renameDenied);
+  assert.equal(late.error, denied);
+  assert.deepEqual(snapshot(dir), before, 'the file already replaced is restored');
+});
+
+test('M11 #397 every file is flushed to disk before it is renamed into place', (t) => {
+  const dir = workspace(t, {});
+  const events = [];
+  const { fsyncSync } = fs;
+  fs.fsyncSync = (fd) => {
+    events.push('fsync');
+    return fsyncSync(fd);
+  };
+  syncBuiltinESMExports();
+  const io = { ...FILE_IO, rename: (from, to) => {
+    events.push(`rename ${to.slice(dir.length + 1)}`);
+    return FILE_IO.rename(from, to);
+  } };
   try {
-    const before = snapshot(dir);
-    const run = md(dir, ['doc.md', '--out-dir', 'out', '--json']);
-    assert.equal(run.status, 1);
-    assert.ok(run.stdout.trim().split('\n').map((line) => JSON.parse(line)).some((d) => d.code === 'io'), run.stdout);
-    assert.deepEqual(snapshot(dir), before);
-    assert.deepEqual(readdirSync(join(dir, 'out')), ['keep.txt'], 'no temporary files left behind');
+    const result = commitWrites([{ path: join(dir, 'a.svg'), text: 'a' }, { path: join(dir, 'b.svg'), text: 'b' }], io);
+    assert.equal(result.error, undefined);
   } finally {
-    chmodSync(join(dir, 'out'), 0o755);
+    fs.fsyncSync = fsyncSync;
+    syncBuiltinESMExports();
   }
+  assert.deepEqual(events, ['fsync', 'fsync', 'rename a.svg', 'rename b.svg']);
+  assert.equal(read(dir, 'b.svg'), 'b');
 });
 
 test('M12 --static writes a still picture and --scene picks the scene', (t) => {

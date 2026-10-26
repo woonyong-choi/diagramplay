@@ -1,7 +1,7 @@
 // 검사 항목 목록(src/check/items.js)으로 docs/design/figure-check.md의 "검사 항목" 구간을 다시 쓴다.
 // 사용: node scripts/build-check-doc.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
-import { DOC_END, DOC_START, renderCheckTable } from '../src/check/doc.js';
+import { DOC_END, DOC_START, renderCheckTable } from './lib/check-doc.mjs';
 
 const DOC = new URL('../docs/design/figure-check.md', import.meta.url);
 const text = readFileSync(DOC, 'utf8');

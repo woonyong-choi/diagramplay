@@ -6,7 +6,7 @@ import { PAD, SPACE } from '../chart/metrics.js';
 import { escapeXml, roundCoord as r } from '../text.js';
 import { drawChartBody } from './chart.js';
 import { textSpan } from '../measure/texts.js';
-import { drawTexts } from './texts.js';
+import { TEXT_BACK_PAD, drawTextBack, drawTexts, textMarkup } from './texts.js';
 
 // 막대 둘레에 켜지는 밝힘 면이 막대보다 넓은 만큼
 const LIGHT_GROW = SPACE['1'];
@@ -39,7 +39,7 @@ export function drawTime(panel, { decorate, glyphs }) {
     return name + separator + lane.spans.map((s) => drawSpan(s, { lane, decorate, glyphs })).join('');
   });
   const axis = `<line x1="${r(scale.start)}" x2="${r(scale.start + scale.length)}" y1="${r(axisY)}" y2="${r(axisY)}" class="chart-axis"/>${axisLabels(scale, axisY, panel.unit)}`;
-  return `<g class="fl-time fl-chart" data-view="${escapeXml(panel.view)}" data-chart="${escapeXml(panel.id)}" transform="translate(${r(panel.x)} ${r(panel.y)})">${panel.header}${grid}${rows.join('')}${axis}</g>`;
+  return `<g class="fl-time fl-chart" data-view="${escapeXml(panel.view)}" data-chart="${escapeXml(panel.id)}" transform="translate(${r(panel.x)} ${r(panel.y)})">${panel.header.map((t) => textMarkup(t, { x: 0, y: 0 })).join('\n')}${grid}${rows.join('')}${axis}</g>`;
 }
 
 // cost: time O(1), heap O(out), stack O(1)
@@ -55,8 +55,7 @@ function drawSpan(s, { lane, decorate, glyphs }) {
   return `<g class="fl-part" data-part="${escapeXml(s.key)}">${glow}${bar}${backs}${name}</g>`;
 }
 
-// 글 한 줄 뒤 바탕 면. 값 글자(chart/labels.js valueText)와 같은 여백이다.
+// 글 한 줄 뒤 바탕 면. 값 글자(chart/labels.js valueText)와 같은 한 줄 여백이다.
 function textBack({ x, center, width }, size) {
-  const [padX, padY] = [SPACE['1'], SPACE['0-25']];
-  return `<rect x="${r(x - padX)}" y="${r(center - size / 2 - padY)}" width="${r(width + padX * 2)}" height="${r(size + padY * 2)}" class="chart-text-bg"/>`;
+  return drawTextBack({ x, y: center - size / 2, w: width, h: size }, { pad: TEXT_BACK_PAD.line });
 }

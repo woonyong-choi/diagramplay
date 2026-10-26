@@ -1,17 +1,15 @@
 // elkjs 결과를 그림 좌표로 바꾼다. 그룹 경계 연결점에서 끊긴 선 조각은 이어 붙인다(docs/design/layout.md 선 그리기).
 import { endMarks } from './end-marks.js';
-import { isOnLinePill, sizePill } from '../measure/sizes.js';
+import { isOnLinePill, sizePill } from '../measure/pills.js';
 import { STYLE, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { LayoutError } from './error.js';
 import { withLeads } from './cell-ports.js';
-import { settleLabels } from './labels.js';
+import { ALONG_SPOTS, settleLabels } from './labels.js';
 import { placeTitles } from './titles.js';
-import { CROWD, ROOT, TOUCH, decorOf } from './model.js';
+import { CROWD, ROOT, SAME_POINT, decorOf } from './model.js';
 
 const SETTLE = values.spacing["2"];
-// 번호 알약을 얹을 구간 안 자리(구간 길이 비율). 가운데를 먼저 보고 양옆으로 간다.
-const RUN_FRACTIONS = [0.5, 0.35, 0.65, 0.2, 0.8];
 
 // cost: time O(s + e·(d + p)), heap O(s + e·p), stack O(d)
 // vars: s = 도형 수, e = 선 수, d = 그룹 깊이, p = 경로 점 수
@@ -112,7 +110,7 @@ function numberOnlyLabel(edge, points, items) {
   if (!isOnLinePill(edge)) return undefined;
   const { w, h } = sizePill(undefined, edge.no);
   const runs = points.slice(1).map((p, i) => [points[i], p]).sort((r, s) => Math.hypot(s[1].x - s[0].x, s[1].y - s[0].y) - Math.hypot(r[1].x - r[0].x, r[1].y - r[0].y));
-  const spots = runs.flatMap(([a, b]) => RUN_FRACTIONS.map((f) => ({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f })));
+  const spots = runs.flatMap(([a, b]) => ALONG_SPOTS.map((f) => ({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f })));
   return spots.find((c) => !items.some((it) => c.x + w / 2 > it.x && it.x + it.w > c.x - w / 2 && c.y + h / 2 > it.y && it.y + it.h > c.y - h / 2)) ?? spots[0];
 }
 
@@ -221,7 +219,7 @@ function settleEnd(points, rect, others = []) {
   const target = points[end][across];
   const [low, high] = isHorizontal ? [rect.y, rect.y + rect.h] : [rect.x, rect.x + rect.w];
   if (end < 2 || target < low || target > high) return points;
-  if (others.some((o) => Math.abs(o.point[along] - start[along]) < TOUCH && Math.abs(o.point[across] - target) < CROWD)) return points;
+  if (others.some((o) => Math.abs(o.point[along] - start[along]) < SAME_POINT && Math.abs(o.point[across] - target) < CROWD)) return points;
   return [{ ...start, [across]: target }, ...points.slice(end)];
 }
 
@@ -233,6 +231,6 @@ function settleEnd(points, rect, others = []) {
  * 그림 검사 5번이 쪼개진 쪽을 같은 도형에서 나가는 첫 선분으로 보지 못해, 바르게 그린 선을 붙었다고 알린다.
  */
 function dropCollinear(points) {
-  const isStraight = (a, b, c) => (Math.abs(a.y - b.y) < TOUCH && Math.abs(b.y - c.y) < TOUCH && (b.x - a.x) * (c.x - b.x) > 0) || (Math.abs(a.x - b.x) < TOUCH && Math.abs(b.x - c.x) < TOUCH && (b.y - a.y) * (c.y - b.y) > 0);
+  const isStraight = (a, b, c) => (Math.abs(a.y - b.y) < SAME_POINT && Math.abs(b.y - c.y) < SAME_POINT && (b.x - a.x) * (c.x - b.x) > 0) || (Math.abs(a.x - b.x) < SAME_POINT && Math.abs(b.x - c.x) < SAME_POINT && (b.y - a.y) * (c.y - b.y) > 0);
   return points.filter((p, i) => i === 0 || i === points.length - 1 || !isStraight(points[i - 1], p, points[i + 1]));
 }

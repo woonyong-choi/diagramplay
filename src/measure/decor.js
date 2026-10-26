@@ -1,5 +1,5 @@
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { measure } from './fonts.js';
+import { PILL_H, sizeBadge } from './pills.js';
 
 const SPACE = values.spacing;
 const SIZE = values.spacing.figure;
@@ -8,20 +8,10 @@ if (!Number.isFinite(SIZE.icon.brand) || SIZE.icon.brand <= 0) {
   throw new Error('@woonyong-choi/design-tokens >=0.2.0이 필요합니다. spacing.figure.icon.brand는 유한한 양수여야 합니다');
 }
 
-/** 알약 안 글. 배지는 흑백에서도 도형의 뜻을 글자로 남기는 자리라 본문 글보다 작지 않다. 크기는 작은 표시(text.figure-meta)이고 status.css와 figure.css의 `.badge`가 같은 토큰을 그린다. */
-export const BADGE_STYLE = Object.freeze({ size: values.text["figure-meta"], face: 'semibold' });
 /** 장식 사이 간격과 알약 높이, 도형 윗줄과 이름 사이 간격 */
-export const DECOR = Object.freeze({ gap: SPACE["1"], pillH: SIZE.pill.height, rowGap: SPACE["1"], pillPad: SPACE["3-5"] });
+export const DECOR = Object.freeze({ gap: SPACE["1"], pillH: PILL_H, rowGap: SPACE["1"] });
 /** 복제 개수(count)를 가진 상자의 뒤 윤곽 한 겹 간격 */
 export const STACK_STEP = SPACE["1"];
-
-// cost: time O(n), heap O(1), stack O(1)
-// vars: n = 글자 수
-// basis: estimate
-/** 알약 너비. 글 폭에 좌우 안쪽 간격을 더한다. */
-function pillWidth(text) {
-  return measure(text, BADGE_STYLE.size, BADGE_STYLE.face) + DECOR.pillPad;
-}
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
@@ -29,7 +19,7 @@ function pillWidth(text) {
 function itemsOf(item, iconSize) {
   const size = item.iconData?.role === 'brand' ? SIZE.icon.brand : iconSize;
   const pills = [item.badge && { kind: 'badge', text: item.badge }, item.count !== undefined && { kind: 'count', text: `×${item.count}` }].filter(Boolean);
-  return [...(item.iconData ? [{ kind: 'icon', w: size, h: size }] : []), ...pills.map((p) => ({ ...p, w: pillWidth(p.text), h: DECOR.pillH }))];
+  return [...(item.iconData ? [{ kind: 'icon', w: size, h: size }] : []), ...pills.map((p) => ({ ...p, ...sizeBadge(p.text) }))];
 }
 
 // cost: time O(k), heap O(k), stack O(1)

@@ -2,7 +2,7 @@
 import { minOf } from '../extremes.js';
 import { measure } from '../measure/fonts.js';
 import { renderRich, roundCoord as r } from '../text.js';
-import { labelColumn, labelFit } from './labels.js';
+import { labelColumn, labelFit } from './label-layout.js';
 import { PAD, RIGHT, SPACE, TEXT } from './metrics.js';
 import { makeScale } from './scale.js';
 import { compactAxis } from './compact-axis.js';

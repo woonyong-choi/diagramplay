@@ -5,7 +5,7 @@ import { readFlowchart } from './mermaid-flow.js';
 import { readEr } from './mermaid-er.js';
 import { readSequence } from './mermaid-sequence.js';
 import { readState } from './mermaid-state.js';
-import { decimal } from './names.js';
+import { decimal, unquote } from './names.js';
 
 // 그림 종류 낱말 → 읽기. flowchart와 graph는 같은 순서도다.
 const READERS = {
@@ -42,7 +42,7 @@ export function readMermaid(text, model) {
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 원본 글자 수
 // basis: estimate
-// 의미 있는 줄 { text, line }. `%%` 주석 줄은 버리고, `%%{...}%%` 설정과 머리말의 title 밖 설정은 경고한다.
+// 의미 있는 줄 { text, line }. 앞뒤 공백은 지우고 안의 공백 연속은 한 칸으로 줄인다. `%%` 주석 줄은 버리고, `%%{...}%%` 설정과 머리말의 title 밖 설정은 경고한다.
 function statements(text, model) {
   const raw = text.replace(/^﻿/, '').split(/\r?\n/);
   let start = 0;
@@ -55,7 +55,8 @@ function statements(text, model) {
   }
   const out = [];
   for (let i = start; i < raw.length; i++) {
-    const line = raw[i].trim();
+    // 문장 안의 공백 연속은 공백 하나와 같은 뜻이다(글은 cleanText가 어차피 한 칸으로 줄인다). 한 칸으로 줄여 두면 문장 정규식이 긴 공백 위에서 되돌아가며 다시 맞춰 보지 않는다.
+    const line = raw[i].trim().replace(/\s+/g, ' ');
     if (!line) continue;
     if (line.startsWith('%%{')) skip(model, i + 1, 'the Mermaid directive is not imported. Sizes and colors come from the design tokens');
     else if (!line.startsWith('%%')) out.push({ text: line, line: i + 1 });
@@ -74,17 +75,6 @@ function readFrontmatter(lines, model) {
     if (pair?.[1] === 'title' && pair[2]) model.title = textOf(model, unquote(pair[2]), i + 2);
     else skip(model, i + 2, `the front matter "${pair?.[1] ?? line.trim()}" is not imported. DiagramPlay reads only title`);
   }
-}
-
-// cost: time O(n), heap O(n), stack O(1)
-// vars: n = 글자 수
-// basis: estimate
-/** 따옴표를 벗기고 Mermaid 글자 표기(`#quot;`, `#35;`)와 마크다운 글(`` "`글`" ``)의 백틱을 푼다. */
-export function unquote(raw) {
-  let text = String(raw).trim();
-  if (/^".*"$/s.test(text) || /^'.*'$/s.test(text)) text = text.slice(1, -1);
-  if (/^`.*`$/s.test(text)) text = text.slice(1, -1);
-  return text.replace(/#quot;/g, '"').replace(/#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)));
 }
 
 // cost: time O(r), heap O(r), stack O(1)

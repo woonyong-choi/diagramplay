@@ -6,7 +6,7 @@ import { filledSlots, queueSlots } from '../measure/queue.js';
 import { escapeXml, roundCoord as r } from '../text.js';
 import { drawSlot } from './card.js';
 import { drawCellFlash } from './grid.js';
-import { contentBox, rowSpan } from './content.js';
+import { contentBox, rowSpan } from '../measure/content.js';
 import { outlineOf } from './shape.js';
 import { CORNER } from './surface.js';
 import { drawText } from './texts.js';

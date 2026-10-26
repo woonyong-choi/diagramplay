@@ -1,8 +1,8 @@
 // 그림 검사가 함께 쓰는 사각형, 선분, 부모 관계 계산.
-import { ROOT, TOUCH } from '../layout/model.js';
+import { ROOT, SAME_POINT } from '../layout/model.js';
 import { headBox } from '../layout/titles.js';
 import { FIT_SLACK } from '../measure/fonts.js';
-import { sizePill } from '../measure/sizes.js';
+import { sizePill } from '../measure/pills.js';
 
 /** 도형과 그룹 안쪽으로 들어가야 선이 지나간 것으로 보는 안쪽 여백 */
 export const THROUGH_INSET = 1;
@@ -51,12 +51,12 @@ export function segmentHits(p, q, r) {
 }
 
 export function near(a, b) {
-  return Math.abs(a - b) <= TOUCH;
+  return Math.abs(a - b) <= SAME_POINT;
 }
 
 export function onBorder(p, r) {
-  const inX = r.x - TOUCH <= p.x && p.x <= r.x + r.w + TOUCH;
-  const inY = r.y - TOUCH <= p.y && p.y <= r.y + r.h + TOUCH;
+  const inX = r.x - SAME_POINT <= p.x && p.x <= r.x + r.w + SAME_POINT;
+  const inY = r.y - SAME_POINT <= p.y && p.y <= r.y + r.h + SAME_POINT;
   const onX = near(p.x, r.x) || near(p.x, r.x + r.w);
   const onY = near(p.y, r.y) || near(p.y, r.y + r.h);
   return (onX && inY) || (onY && inX);

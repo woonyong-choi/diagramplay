@@ -12,7 +12,8 @@ import { checkRowValues, prepareChartRows } from './source/chart-rules.js';
 import { FigureError, createProblems, makeDiagnostic } from './source/problems.js';
 import { NUMBER_PATTERN } from './source/words.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { rootOf, valueTable } from './values.js';
+import { valueTable } from './values.js';
+import { rootOf } from './source/value-refs.js';
 
 const COMPACT_WIDTH = values.spacing.figure.chart["compact-width"];
 // 값 축이 없어 범위를 고정할 필요가 없는 차트
