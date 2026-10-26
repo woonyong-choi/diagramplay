@@ -1,6 +1,6 @@
 // 표와 API의 열을 한 번 배치해 그리기, 연결점, 충돌 검사에 넘긴다. 열 줄의 글은 카드가 쓰는 text(measure/texts.js)다.
-import { maxOf } from '../extremes.js';
-import { columnKeyLabel } from '../table.js';
+import { maxOf } from '../math/extremes.js';
+import { columnKeyLabel } from '../format/columns.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { INNER_MAX, PAD, headerOf, placeHeader } from './card.js';
 import { STYLE, textAt, textWidth } from './texts.js';

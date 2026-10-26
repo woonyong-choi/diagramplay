@@ -7,7 +7,7 @@ import { checkFits } from '../src/check/fit.js';
 import { CONTENT } from '../src/measure/content.js';
 import { measure, wrap } from '../src/measure/fonts.js';
 import { STYLE, textSpan } from '../src/measure/texts.js';
-import { centerBaseline } from '../src/text.js';
+import { centerBaseline } from '../src/format/text.js';
 import { build, diagramplay, findAll, findOne, num, parseMarkup, reject, textContent, toSvg } from './support.js';
 
 const TICK = '`';

@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import postcss from 'postcss';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { figureRoles, STYLES } from '../src/styles.js';
+import { figureRoles, STYLES } from '../src/draw/styles.js';
 import { paintCss } from '../src/draw/paint.js';
 import { seriesBoundary, seriesOutline } from '../src/chart/metrics.js';
 import { build, diagramplay, toHtml, toSvg } from './support.js';

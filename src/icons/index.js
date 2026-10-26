@@ -1,7 +1,7 @@
 // 공통 디자인의 아이콘 이름과 별칭을 읽는다. 사용자 세트의 파일 경계와 SVG 정리는 이 렌더러가 소유한다.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { insideBase, OUTSIDE } from '../base-path.js';
+import { insideBase, OUTSIDE } from '../compile/base-path.js';
 
 import { sanitizeIcon } from './sanitize.js';
 import { getIconCatalog, readIcon } from '@woonyong-choi/design-tokens/ui/build/icons.mjs';

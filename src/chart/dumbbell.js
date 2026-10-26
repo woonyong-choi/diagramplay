@@ -1,11 +1,11 @@
 // 덤벨 차트: 첫 계열 값(compare 노란 점)에서 둘째 계열 값(main 채운 점)으로 이은 한 줄과 오른쪽 바뀐 비율.
-import { maxOf, minOf } from '../extremes.js';
+import { maxOf, minOf } from '../math/extremes.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { STYLE } from '../measure/texts.js';
 import { CHART_ARROW, roleArrow } from '../draw/arrow.js';
 import { headReach } from '../measure/arrow.js';
 import { measure, wrap } from '../measure/fonts.js';
-import { centerBaseline, roundCoord as r } from '../text.js';
+import { centerBaseline, roundCoord as r } from '../format/text.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { inkGroup, rowName, valueText } from './labels.js';
 import { rowLabelLayout } from './label-layout.js';

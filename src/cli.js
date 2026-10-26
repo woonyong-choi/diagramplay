@@ -4,12 +4,12 @@
 import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BUDGET_NAMES, parseBudgetList } from './budget.js';
-import { buildReported, claimOutputs, commitReported, pickScene, readReported, report } from './build-reported.js';
-import { runImport } from './import-run.js';
-import { runMd } from './md-run.js';
+import { BUDGET_NAMES, parseBudgetList } from './compile/budget.js';
+import { buildReported, claimOutputs, commitReported, pickScene, readReported, report } from './compile/reported.js';
+import { runImport } from './import/run.js';
+import { runMd } from './markdown/run.js';
 import { makeDiagnostic } from './source/problems.js';
-import { toSvg } from './svg.js';
+import { toSvg } from './svg/output.js';
 
 const USAGE = [
   'usage:',
@@ -175,7 +175,7 @@ async function figureFiles(input, result, args) {
   const name = basename(input).replace(SOURCE_EXT, '');
   const folder = args.out ?? dirname(input);
   const files = [{ path: join(folder, `${name}.svg`), text: await toSvg(result, { scene, isStatic: args.flags.has('static'), name }) }];
-  if (args.flags.has('html')) files.push({ path: join(folder, `${args.page ?? name}.html`), text: await (await import('./html.js')).toHtml(result, name) });
+  if (args.flags.has('html')) files.push({ path: join(folder, `${args.page ?? name}.html`), text: await (await import('./html/output.js')).toHtml(result, name) });
   return files;
 }
 
@@ -229,7 +229,7 @@ async function writeGallery(args) {
     writes.push(...written);
     figures.push({ name, ext: file.slice(name.length), ...describe(result.figure, readFileSync(input, 'utf8')), href: relative(out, join(out, name)), page: playerPage(name) });
   }
-  const { toDocument, toGallery } = await import('./html.js');
+  const { toDocument, toGallery } = await import('./html/output.js');
   const heading = args.title ?? basename(folder);
   writes.push({ path: join(out, 'index.html'), text: toGallery(figures, heading) }, { path: join(out, 'document.html'), text: toDocument(figures, heading) });
   return commitReported(writes, { json: false }) ? 0 : 1;

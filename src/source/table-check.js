@@ -1,6 +1,6 @@
 // 단일·복합 키와 참조를 테이블 단위에서 검증하고 FK 하나를 공통 연결선 하나로 만든다.
 import { unknownName } from './problems.js';
-import { deleteRule } from '../table.js';
+import { deleteRule } from '../format/columns.js';
 
 // cost: time O(c + k*c + f*(c+k+log f)), heap O(c+k+f), stack O(1)
 // vars: c = 전체 열 수, k = 키에 포함된 열 수, f = 외래 키에 포함된 열 수

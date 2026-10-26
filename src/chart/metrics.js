@@ -1,6 +1,6 @@
 // 차트 그리기가 함께 쓰는 크기 상수와 색. 값은 모두 토큰에서 온다.
-import { FIGURE_PAD } from '../canvas.js';
-import { SNAPSHOTS, categoryPaint } from '../chart-palette.js';
+import { FIGURE_PAD } from '../measure/canvas.js';
+import { SNAPSHOTS, categoryPaint } from '../color/palette.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 
 export const SPACE = values.spacing;
@@ -34,7 +34,7 @@ function categoryIndex(chart, i) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-/** 계열 번호 i의 범주 색과 구분 방법. 색 수를 넘으면 층이 오르고 무늬와 모양이 달라진다(chart-palette.js). 판은 기본 1판이다. */
+/** 계열 번호 i의 범주 색과 구분 방법. 색 수를 넘으면 층이 오르고 무늬와 모양이 달라진다(color/palette.js). 판은 기본 1판이다. */
 export function seriesPaint(chart, i) {
   const paint = categoryPaint(categoryIndex(chart, i));
   return isReference(chart, i) ? { ...paint, fill: tokens.color.data.reference, border: tokens.color.data.reference, ink: tokens.color['ui-muted'] } : paint;

@@ -32,7 +32,7 @@ export function drawChart(figure) {
     return { header, plot: DRAWERS[figure.chartType](figure, header.bottom) };
   });
   const { header, plot } = result;
-  // 계열이 없는 차트는 그림 전체를 계열 0으로 묶는다. 시간표가 차트 전체를 계열 하나로 보기 때문이다(timeline.js chartSeriesIds).
+  // 계열이 없는 차트는 그림 전체를 계열 0으로 묶는다. 시간표가 차트 전체를 계열 하나로 보기 때문이다(timeline/compose.js chartSeriesIds).
   const marks = figure.chart.series.length ? plot.svg : `<g class="cs-0">${plot.svg}</g>`;
   return { body: `${header.svg}\n${marks}`, width: figure.chart.layout?.width ?? WIDTH, height: plot.bottom + PAD, rowKeys: plot.rowKeys, fits: plot.fits ?? [], clashes: plot.clashes ?? [], dotAts: plot.dotAts ?? [], dimsInkColor: plot.dimsInkColor ?? false, patternKeys, defs };
 }

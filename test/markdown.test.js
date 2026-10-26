@@ -6,8 +6,8 @@ import { syncBuiltinESMExports } from 'node:module';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { findBlocks, isMarkedImage } from '../src/md.js';
-import { commitWrites, FILE_IO } from '../src/md-write.js';
+import { findBlocks, isMarkedImage } from '../src/markdown/find.js';
+import { commitWrites, FILE_IO } from '../src/markdown/write.js';
 import { cli, diagramplay, read, snapshot, workspace } from './support.js';
 
 const FENCE = '```';

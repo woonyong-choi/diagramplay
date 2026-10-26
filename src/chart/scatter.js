@@ -1,6 +1,6 @@
 // 산점도: 같은 크기 점, 이름 글자, link 화살표. 계열이 있으면 계열 색이다. 신뢰구간은 받지 않는다.
 // 계열이 둘 이상이면 점 이름 앞에 그 점 계열의 번호 키(`3 검색 전`)를 붙인다. 번호는 계열 목록 순서이고 범례의 번호와 같다.
-import { centerBaseline, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, renderRich, roundCoord as r } from '../format/text.js';
 import { CHART_ARROW, roleArrow } from '../draw/arrow.js';
 import { headReach } from '../measure/arrow.js';
 import { TEXT_BACK_PAD, drawTextBack } from '../draw/texts.js';

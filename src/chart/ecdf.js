@@ -1,8 +1,8 @@
 // 누적분포 차트(ECDF): 표본을 오름차순으로 세어 고유값마다 `count(≤v) / n`까지 오르는 계단. 세로축은 0~1로 고정이다.
 // 결측 표본은 세지 않는다(0으로 넣지 않는다). 곡선은 그림 영역 왼쪽 끝 0에서 시작해 마지막 값에서 1에 닿은 뒤 오른쪽 끝까지 이어진다.
 // 표식은 고유값마다 채운 점이고, 계열은 범례로 구분한다. 표식 이름은 `계열:v값`이며 계열의 표본이 아닌 값 자리는 숨은 표식으로 남는다.
-import { curveOf, timeAt } from '../easing.js';
-import { roundToScale } from '../format.js';
+import { curveOf, timeAt } from '../math/easing.js';
+import { roundToScale } from '../format/numbers.js';
 import { drawRules } from './axis.js';
 import { ecdfGroups, ecdfVertices, hvPath, lengthFractions, spanFractions } from './data.js';
 import { dotAttrs } from './legend.js';

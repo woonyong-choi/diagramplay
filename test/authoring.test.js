@@ -2,7 +2,7 @@
 // 문법 단순화(G2, G3, G5) 계약이다. 시험 이름 첫 낱말이 요구사항 번호이고, 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다. (G1, 이름 있는 보기의 거절은 cards.test.js의 S9가 본다.)
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { reflowFigure } from '../src/build.js';
+import { reflowFigure } from '../src/compile/figure.js';
 import { build, diagramplay, findAll, findOne, lineOf, num, panelStrategies, parseMarkup, reject, textsOf, toHtml, toSvg, valueOf } from './support.js';
 
 const CHART = 'chart c "C" bar {\n  x "x(u)"\n  series v "v"\n  row "r" v=1\n}\n';

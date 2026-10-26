@@ -1,7 +1,7 @@
 // 차트의 제목, 범례, 행 이름, 값 글자를 그린다. 종류마다 같은 글자 규칙을 한 곳에 둔다. 자리와 칸 폭은 chart/label-layout.js가 잰다.
 import { TEXT_BACK_PAD, drawTextBack, textMarkup } from '../draw/texts.js';
 import { measure } from '../measure/fonts.js';
-import { centerBaseline, escapeXml, plainText, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, escapeXml, plainText, renderRich, roundCoord as r } from '../format/text.js';
 import { hasEndLabels } from './end-labels.js';
 import { headerLayout } from './label-layout.js';
 import { drawLegend } from './legend.js';

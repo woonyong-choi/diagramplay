@@ -1,6 +1,6 @@
 // 값에 묶인 차트가 모든 프레임에서 같은 축을 쓰게 하는 값 범위. 프레임마다 가질 수 있는 모든 행 목록에서 구한다.
 // 누적 막대는 양수 합과 음수 합 양쪽을, 퍼센트는 0~100을, 누적분포는 0~1을 고정한다. 그 밖의 종류는 모든 값의 최솟값과 최댓값이다.
-import { maxOf, minOf } from '../extremes.js';
+import { maxOf, minOf } from '../math/extremes.js';
 import { isValue, stackExtent } from './data.js';
 
 // 행 값이 아닌 키. 가로 위치, 계열 이름, 행 기준이다.

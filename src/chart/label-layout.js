@@ -1,5 +1,5 @@
 // 차트 글 자리 재기: 행 이름 칸 폭, 좁은 배치의 이름 줄, 제목과 부제의 글 자리. 그리지 않으므로 배치(layout/time.js, layout/timing.js)와 차트 그리기(chart/labels.js)가 같은 값을 읽는다.
-import { maxOf } from '../extremes.js';
+import { maxOf } from '../math/extremes.js';
 import { measure, wrap } from '../measure/fonts.js';
 import { STYLE, stackTexts } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';

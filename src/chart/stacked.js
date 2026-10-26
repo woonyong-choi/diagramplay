@@ -4,7 +4,7 @@
 // 조각 값 글자는 조각 안에 들어갈 때만 보인다. 작은 계열은 기타 하나의 중립색으로 묶어(other.js) 범례에도 기타 하나만 둔다.
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { measure } from '../measure/fonts.js';
-import { centerBaseline, escapeXml, roundCoord as r } from '../text.js';
+import { centerBaseline, escapeXml, roundCoord as r } from '../format/text.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { COPY, MISSING } from './copy.js';
 import { isValue, percentRows, stackExtent, stackRows } from './data.js';

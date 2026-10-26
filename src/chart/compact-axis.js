@@ -1,7 +1,7 @@
 // 좁은 그림의 가로축: 양 끝 눈금을 유지하고 중간 눈금은 글자 폭에 맞춰 표시한다.
 import { STYLE } from '../measure/texts.js';
 import { measure, wrap } from '../measure/fonts.js';
-import { renderRich, roundCoord as r } from '../text.js';
+import { renderRich, roundCoord as r } from '../format/text.js';
 import { SPACE, TEXT } from './metrics.js';
 
 // cost: time O(t), heap O(1), stack O(1)

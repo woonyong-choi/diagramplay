@@ -1,5 +1,5 @@
-// 칸 격자가 만들 양을 그리기 전에 센다. 예산 검사(budget.js)와 좌표 범위 검사가 쓴다(docs/design/grid.md 예산, 크기).
-import { createMeter } from '../budget.js';
+// 칸 격자가 만들 양을 그리기 전에 센다. 예산 검사(compile/budget.js)와 좌표 범위 검사가 쓴다(docs/design/grid.md 예산, 크기).
+import { createMeter } from '../compile/budget.js';
 import { emptyRegions } from '../source/grid-space.js';
 import { gridLines } from './sizes.js';
 

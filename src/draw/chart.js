@@ -1,6 +1,6 @@
 // 모든 자리의 차트가 같은 글꼴·식별자·그림 묶음을 쓴다.
 import { CHART_FACES } from '../chart/draw.js';
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 
 export function drawChartBody(chart, { id, x, y, className = '', view }, glyphs) {
   for (const face of CHART_FACES) glyphs.add(chart.text, face);

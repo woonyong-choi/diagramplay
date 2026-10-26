@@ -1,6 +1,6 @@
 // 구조, 상태, 데이터 관계 그림을 elkjs로 배치한다. 그룹마다 따로 배치하고, 그룹 경계를 넘는 선은 경계마다 연결점을 거친다(docs/design/layout.md).
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { ASPECT_MAX, canvasOf, displayRatio, layoutWidthOf } from '../canvas.js';
+import { ASPECT_MAX, canvasOf, displayRatio, layoutWidthOf } from '../measure/canvas.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { toElk } from './elk.js';
 import { LayoutError } from './error.js';
@@ -208,7 +208,7 @@ async function compactCandidate(figure, sizes, { grouped, canvas }) {
 
 function compactRank(candidate, figure, canvas) {
   const scene = readElk(candidate.laid, candidate.model);
-  // 후보의 기하가 그림 검사를 통과하는지는 부르는 쪽(build-scene.js)이 넘긴 판정(isSound)이 정한다. 배치는 검사 층을 가져오지 않는다.
+  // 후보의 기하가 그림 검사를 통과하는지는 부르는 쪽(compile/scene.js)이 넘긴 판정(isSound)이 정한다. 배치는 검사 층을 가져오지 않는다.
   if (!figure.isSound(figure, scene)) return undefined;
   const lengths = scene.edges.map(edge => edge.points.slice(1).reduce((sum, point, i) => sum + Math.abs(point.x - edge.points[i].x) + Math.abs(point.y - edge.points[i].y), 0));
   return [scene.width > canvas ? 1 : 0, scene.width > canvas ? scene.width : 0, Math.max(0, ...lengths), lengths.reduce((sum, length) => sum + length, 0), ratioMiss(scene, canvas, false), scene.height];

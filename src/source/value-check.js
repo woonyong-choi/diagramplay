@@ -1,5 +1,5 @@
 // 값 선언과 값 바꾸기 식을 파일을 다 읽은 뒤 확인한다. 도형 이름, 참조 사슬, 식이 가리키는 값과 도형이 맞는지 본다.
-import { indicatorTypeProblem } from '../value-indicators.js';
+import { indicatorTypeProblem } from './indicators.js';
 import { CARD_SHAPES } from './grammar.js';
 import { unknownName } from './problems.js';
 import { movesOf, rootOf } from './value-refs.js';

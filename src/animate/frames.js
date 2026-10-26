@@ -2,10 +2,10 @@
 // 바뀌는 속성마다 이산 animate 하나이고, 글이 바뀌는 표식은 SMIL로 글을 바꿀 수 없어 글마다 요소를 한 벌씩 두고 보임 창으로 바꾼다(값 글자와 같은 방식).
 // 원자료가 바뀐 표식에는 펄스(80/80/240ms, 겹치면 최댓값)를 건 겹침을 얹는다(chart/pulse-overlay.js: 표식의 계열 옅은 면과 계열 테두리, 글은 뒤에 번지는 후광). HTML 재생기도 같은 겹침을 쓴다.
 // 정지(static) 시계는 마지막 프레임의 속성과 글을 그대로 적는다.
-import { tokenize } from '../chart-tokens.js';
+import { tokenize } from '../chart/tokens.js';
 import { IDENTITY } from '../chart/frames.js';
 import { GEOMETRY_ATTRS, hasPulse, pulseOverlay } from '../chart/pulse-overlay.js';
-import { escapeXml } from '../text.js';
+import { escapeXml } from '../format/text.js';
 import { discreteWindows } from './discrete.js';
 import { pulseAnimate } from './pulse.js';
 

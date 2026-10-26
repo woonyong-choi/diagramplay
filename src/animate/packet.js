@@ -1,13 +1,13 @@
 // 점 하나가 한 박자 동안 선을 건너고, 실어 보내는 글은 점 위의 상자로 따라간다.
 // 점의 보임과 이동과 글 상자 옮김과 흐려짐은 모두 SMIL이라 한 시계로 돈다. 보임을 CSS에 두면 시계 둘이 따로 반복해, 한 바퀴가 돌아올 때 점이 끝 지점에 잠깐 보였다가 시작 지점으로 뛴다.
-import { CHIP_GAP, sizeChip } from '../chip.js';
-import { keySpline, MOVE, timeAtPosition } from '../easing.js';
+import { CHIP_GAP, sizeChip } from '../chip/place.js';
+import { keySpline, MOVE, timeAtPosition } from '../math/easing.js';
 import { discreteWindows } from './discrete.js';
 import { chipFadeAnimate, cutFadeAnimate, cutMotionKeys, visibleSpans } from './flow-packet.js';
 import { STYLE } from '../measure/texts.js';
-import { ratio } from '../format.js';
-import { renderRich, roundCoord as r } from '../text.js';
-import { toneColors } from '../tone.js';
+import { ratio } from '../format/numbers.js';
+import { renderRich, roundCoord as r } from '../format/text.js';
+import { toneColors } from '../color/tone.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const MOVE_SPLINE = keySpline(MOVE);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { routeLength } from '../src/route.js';
+import { routeLength } from '../src/math/route.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { buildFigure, FigureError } from 'diagramplay';
 

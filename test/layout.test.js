@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 import { buildFigure, toSvg } from '../src/index.js';
-import { reflowFigure } from '../src/build.js';
-import { isSoundGraph } from '../src/check.js';
+import { reflowFigure } from '../src/compile/figure.js';
+import { isSoundGraph } from '../src/check/figure.js';
 import { buildModel } from '../src/layout/model.js';
 import { compactOrderVariants, orderCompactGroups } from '../src/layout/order.js';
-import { viewFigure } from '../src/views.js';
+import { viewFigure } from '../src/compile/views.js';
 
 // #390: 두 분기가 같은 목적지를 공유하는 실제 문서 구조. 카드와 라벨은 줄이지 않는다.
 const SOURCE = String.raw`diagramplay

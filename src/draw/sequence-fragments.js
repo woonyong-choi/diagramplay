@@ -1,5 +1,5 @@
 // 시퀀스 구획은 공통 중립 경계와 제목 면을 쓴다. 메시지의 실제 재생 강조와 구획의 구조 표시는 분리한다.
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 import { sceneTag } from './scene-tag.js';
 import { CORNER, rectOpen } from './surface.js';
 import { drawTexts } from './texts.js';

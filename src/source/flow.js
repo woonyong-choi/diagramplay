@@ -1,5 +1,5 @@
 // 흐름 장면 문장(`scene ... for=시간`, `track a -> b -> c ...`)을 읽는다. 선이 있는지와 시간이 맞는지는 flow-check.js가 확인한다.
-import { autoTone } from '../tone.js';
+import { autoTone } from '../color/tone.js';
 import { readMoveOptions, readTime } from './move-options.js';
 import { readOptions } from './options.js';
 import { valueNames } from './grammar.js';
@@ -161,7 +161,7 @@ function checkLegSum(times, { timeMs, line, ctx }) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// tone을 적지 않은 흐름의 색. 그림 전체에서 출발지 이름마다 범주 색 순서(tone.js autoTone)로 받고, 같은 이름은 늘 같은 색이다.
+// tone을 적지 않은 흐름의 색. 그림 전체에서 출발지 이름마다 범주 색 순서(color/tone.js autoTone)로 받고, 같은 이름은 늘 같은 색이다.
 function toneOfSource(source, ctx) {
   ctx.sourceTones ??= new Map();
   if (!ctx.sourceTones.has(source)) ctx.sourceTones.set(source, autoTone(ctx.sourceTones.size));

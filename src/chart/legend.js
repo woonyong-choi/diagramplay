@@ -3,7 +3,7 @@
 // 범례는 계열 이름만 적는다(번호 키가 없다). 누적·퍼센트 막대에서 기타로 묶인 계열은 기타 칸 하나로 적는다(other.js).
 import { STYLE } from '../measure/texts.js';
 import { measure, wrap } from '../measure/fonts.js';
-import { renderRich, roundCoord as r } from '../text.js';
+import { renderRich, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { COPY } from './copy.js';
 import { ecdfGroups } from './data.js';

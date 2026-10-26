@@ -1,8 +1,8 @@
 // 차이 차트: 행마다 차이 값 점 하나와 신뢰구간 가로선. 0이 기준이라 음수와 모두 0인 값도 그린다.
 // 길이로 값을 보이는 막대와 달리 위치로 보이므로 0 시작 제약이 없고, 0 자리에 세로선을 긋는다.
-import { maxOf, minOf } from '../extremes.js';
+import { maxOf, minOf } from '../math/extremes.js';
 import { measure } from '../measure/fonts.js';
-import { roundCoord as r } from '../text.js';
+import { roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { inkGroup, rowName, valueText } from './labels.js';

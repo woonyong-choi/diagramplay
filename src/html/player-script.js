@@ -1,6 +1,6 @@
 // 재생기 문서의 고정 부분: 브라우저 스크립트(src/player/)를 한 글로 이어 붙인 것과 그림 틀 마크업. 컴파일러(build)에 기대지 않아 재생기 시험이 이 모듈로 같은 문서 틀을 만든다.
-import { hopMath } from '../hop-math.js';
-import { motionMath } from '../motion-math.js';
+import { hopMath } from '../math/hop.js';
+import { motionMath } from '../math/motion.js';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { bindTabs } from '@woonyong-choi/design-tokens/ui/runtime/tabs.js';
@@ -11,7 +11,7 @@ import { ICON_DATA, ICON_ROLES } from '@woonyong-choi/design-tokens/ui/icon-data
 export { DiagramFrame as figureFrame } from '@woonyong-choi/design-tokens/ui/diagram.mjs';
 
 // 브라우저 스크립트 파일(src/player/). 한 스크립트로 이어 붙여 HTML에 넣는다. 순서는 상수와 함수 선언이 쓰이기 전에 있어야 하는 곳만 지키면 된다(진입은 맨 끝의 figurePlay 호출).
-const PLAYER_FILES = ['view', 'export', 'play', 'controls', 'stage', 'effects', 'responsive', 'curve', 'sample', 'values'];
+const PLAYER_FILES = ['view', 'export', 'play', 'rich-text', 'stage', 'effects', 'responsive', 'curve', 'sample', 'values'];
 // 내려받기용 정본 템플릿을 넣어 두는 문서 머리 meta 칸의 이름. 재생기 스크립트(player/export.js)가 같은 이름을 읽는다.
 export const CANONICAL_NAME = 'diagramplay-canonical';
 const UI_MODULES = [['html', ['escape', 'out']], ['svg', ['renderSvgIcon']], ['icons', ['ControlIcon']]];

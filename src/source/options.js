@@ -3,7 +3,7 @@ import { VALUES, optionsOf, valueNames } from './grammar.js';
 import { INTEGER_PATTERN } from './words.js';
 import { optionMistake, withHint } from './mistakes.js';
 import { didYouMean } from './problems.js';
-import { NEUTRAL } from '../tone.js';
+import { NEUTRAL } from '../color/tone.js';
 
 
 // cost: time O(t·s), heap O(t), stack O(1)

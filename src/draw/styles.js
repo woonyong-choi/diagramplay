@@ -1,0 +1,70 @@
+// 결과 파일에 넣을 스타일과 SVG defs. 값은 모두 토큰(tokens.css, tokens.js)에서 온다.
+import { pruneTokens } from '@woonyong-choi/design-tokens/ui/build/prune-tokens.mjs';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import postcss from 'postcss';
+import { CHART_ARROW, roleArrowDefs } from './arrow.js';
+
+// cost: time O(n), heap O(n), stack O(1), io 1
+// vars: n = CSS 파일 글자 수
+// basis: estimate
+// 디자인은 호스트 앱이 설치한 @woonyong-choi/design-tokens 하나를 peer 의존성으로 읽는다.
+const require = createRequire(import.meta.url);
+function readStyle(name) {
+  return readFileSync(require.resolve(name), 'utf8');
+}
+
+/** 결과 파일 안 `<style>`에 넣을 CSS. tokens.css는 생성물이다. */
+export const STYLES = Object.freeze({
+  tokens: readStyle('@woonyong-choi/design-tokens/tokens.css'),
+  figure: figureRoles(readStyle('@woonyong-choi/design-tokens/styles/diagram/figure.css')),
+  control: readStyle('@woonyong-choi/design-tokens/styles/tabs.css') + readStyle('@woonyong-choi/design-tokens/styles/toolbar.css'),
+  player: readStyle('@woonyong-choi/design-tokens/styles/diagram/player.css'),
+  gallery: readStyle('@woonyong-choi/design-tokens/styles/diagram-embed.css') + readStyle('@woonyong-choi/design-tokens/styles/diagram/gallery.css'),
+  document: readStyle('@woonyong-choi/design-tokens/styles/diagram/document.css'),
+  chart: readStyle('@woonyong-choi/design-tokens/styles/diagram/chart.css'),
+  status: readStyle('@woonyong-choi/design-tokens/styles/diagram/status.css'),
+});
+
+/** 의미 관계선의 기본 역할만 고른다. 정본의 상태 규칙과 cascade는 그대로 둔다.
+ * @throws {Error} 설치된 정본의 기본 선언 계약이 달라졌을 때
+ */
+export function figureRoles(css) {
+  const root = postcss.parse(css);
+  const defaults = [];
+  root.walkDecls('--fx-line-rest', declaration => {
+    if (declaration.parent.type === 'rule' && declaration.parent.selector === '.fl') defaults.push(declaration);
+  });
+  if (defaults.length !== 1 || defaults[0].value !== 'var(--color-line)' || defaults[0].important || defaults[0].parent.parent.type !== 'root') {
+    throw new Error('shared figure CSS must define one unqualified .fl --fx-line-rest: var(--color-line) default');
+  }
+  defaults[0].value = 'var(--color-outline)';
+  return root.toString();
+}
+
+// cost: time O(c·p), heap O(p), stack O(1)
+// vars: c = 차트 수, p = 무늬 정의 수
+// basis: estimate
+/**
+ * 그려진 차트들이 쓴 무늬 정의(`<pattern>`)를 SVG마다 한 번씩만 모은 글. 정의 id는 무늬 종류, 간격, 선 색에서 만든 값이라(chart/pattern.js) 판이 여럿이어도 같은 무늬는 같은 id와 같은 내용이고
+ * id로 걸러 한 번만 넣으면 판 사이에 id가 겹치지도 빠지지도 않는다. id 순서로 정렬해 같은 그림은 같은 글이 된다.
+ * @param drawings 그려진 차트 목록 { defs }(chart/draw.js의 drawChart 결과)
+ */
+export function patternDefs(drawings) {
+  const defs = new Map();
+  for (const { defs: markup = '' } of drawings) {
+    for (const [pattern, id] of markup.matchAll(/<pattern id="([^"]+)"[\s\S]*?<\/pattern>/g)) {
+      // 같은 id는 같은 내용이어야 한다. 다르면 먼저 넣은 쪽이 다른 차트의 무늬를 바꾸므로 조용히 고르지 않고 알린다.
+      if (defs.has(id) && defs.get(id) !== pattern) throw new Error(`pattern "${id}" has two different definitions`);
+      defs.set(id, pattern);
+    }
+  }
+  return [...defs.keys()].sort().map((id) => defs.get(id)).join('');
+}
+
+/** 차트 방향선의 화살촉 표식. 쓰인 역할(draw/arrow.js CHART_ARROW)마다 하나씩, 그 역할의 색을 상속하게 넣는다. 차트 종류가 섞여도 선언 순서에 기대지 않는다. */
+export function figureDefs(figure) {
+  return roleArrowDefs(figure.nodes.filter((n) => n.shape === 'chart' && !n.isRejected).map((n) => CHART_ARROW[n.plot.chartType]).filter(Boolean));
+}
+
+export const tokensFor = usage => pruneTokens(STYLES.tokens, usage);

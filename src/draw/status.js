@@ -1,5 +1,5 @@
 // 단계별 도형 상태 알약을 그린다. 자리는 layout/status.js, 크기와 글자·기호는 measure/pills.js가 정하고, 몸통은 draw/decor.js의 drawStatusPill(면은 알약 부품 draw/pill.js)이 그린다.
-import { escapeXml } from '../text.js';
+import { escapeXml } from '../format/text.js';
 import { instancesOf, statusBox, statusPills } from '../layout/status.js';
 import { drawStatusPill } from './decor.js';
 import { hiddenAttr } from './visible.js';

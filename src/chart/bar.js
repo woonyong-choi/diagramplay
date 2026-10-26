@@ -3,7 +3,7 @@
 // 막대는 테두리 없는 평평한 면이다. 신뢰구간은 막대 끝 위에 겹쳐 긋고 값 글자는 그 바로 뒤에 둔다.
 // 기대값(reference) 계열은 슬롯을 차지하지 않고 행 막대 묶음을 가로지르는 세로 눈금이다. 눈금은 신뢰구간과 만나는 자리를 비운다. 색 수를 넘는 계열은 막대 위에 무늬가 덮인다.
 import { measure } from '../measure/fonts.js';
-import { renderRich, centerBaseline, roundCoord as r } from '../text.js';
+import { renderRich, centerBaseline, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { MISSING } from './copy.js';

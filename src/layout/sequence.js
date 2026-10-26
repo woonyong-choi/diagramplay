@@ -1,8 +1,8 @@
 // 순서 그림 배치. 참여자 열과 메시지 행이 정해진 격자라 elkjs를 쓰지 않는다(docs/design/layout.md 순서 그림 배치).
-import { maxOf } from '../extremes.js';
+import { maxOf } from '../math/extremes.js';
 import { fragmentRows, finishFragments } from './sequence-fragments.js';
 import { placeSequenceLife } from './sequence-life.js';
-import { FIGURE_PAD } from '../canvas.js';
+import { FIGURE_PAD } from '../measure/canvas.js';
 import { stretchHeight } from '../measure/sizes.js';
 import { sizePill } from '../measure/pills.js';
 import { STYLE, textBlock } from '../measure/texts.js';

@@ -1,10 +1,10 @@
 // 히트맵: 행과 열 이름, 값에 비례한 칸 진하기, 칸 안 값
-import { maxOf } from '../extremes.js';
-import { pickInk } from '../contrast.js';
-import { roundToScale } from '../format.js';
+import { maxOf } from '../math/extremes.js';
+import { pickInk } from '../color/contrast.js';
+import { roundToScale } from '../format/numbers.js';
 import { measure, wrap } from '../measure/fonts.js';
 import { STYLE } from '../measure/texts.js';
-import { centerBaseline, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, renderRich, roundCoord as r } from '../format/text.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 import { labelText } from './labels.js';
 import { labelColumn, labelFit } from './label-layout.js';

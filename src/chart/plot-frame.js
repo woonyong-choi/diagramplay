@@ -1,8 +1,8 @@
 // 산점도와 선 차트의 그림 영역: 두 축, 격자, 눈금, 축 제목
-import { maxOf, minOf } from '../extremes.js';
+import { maxOf, minOf } from '../math/extremes.js';
 import { STYLE } from '../measure/texts.js';
 import { measure, wrap } from '../measure/fonts.js';
-import { centerBaseline, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, renderRich, roundCoord as r } from '../format/text.js';
 import { axisEnd, axisLabels, fitLength, tickReach, valueGrid } from './axis.js';
 import { DOT, PAD, SIZE, SPACE, TEXT, WIDTH } from './metrics.js';
 import { COPY } from './copy.js';

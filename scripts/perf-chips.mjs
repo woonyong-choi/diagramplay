@@ -12,8 +12,8 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildFigure } from '../src/build.js';
-import { toSvg } from '../src/svg.js';
+import { buildFigure } from '../src/compile/figure.js';
+import { toSvg } from '../src/svg/output.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_BASELINE = join(ROOT, 'scripts', 'perf-baseline.json');

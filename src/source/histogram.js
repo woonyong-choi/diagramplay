@@ -1,5 +1,5 @@
 // 히스토그램의 원시 관측값과 구간 선언, 집계 전 검증.
-import { countHistogram, histogramEdges, histogramValue } from '../histogram.js';
+import { countHistogram, histogramEdges, histogramValue } from '../chart/bins.js';
 import { MAX_VALUE, RANGE_MESSAGE, TINY_MESSAGE, isTiny } from './chart-limits.js';
 import { VALUES } from './grammar.js';
 import { readOptions } from './options.js';

@@ -1,7 +1,7 @@
 // 점 하나가 선마다 올라 있는 시각 구간. 선 켜짐과 고정 라벨 알약의 활성 색이 점이 선 위에 있는 동안만 켜지도록 시간표의 이동(hop)에서 읽는다.
-// 계산은 hop-math.js 한 벌이고 재생기(player/sample.js)는 같은 함수 원문을 HTML 안에서 실행한다.
-import { MOVE, timeAt } from '../easing.js';
-import { hopMath } from '../hop-math.js';
+// 계산은 math/hop.js 한 벌이고 재생기(player/sample.js)는 같은 함수 원문을 HTML 안에서 실행한다.
+import { MOVE, timeAt } from '../math/easing.js';
+import { hopMath } from '../math/hop.js';
 
 const { hopLegs: legsOf } = hopMath(timeAt);
 

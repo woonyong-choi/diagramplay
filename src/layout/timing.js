@@ -5,7 +5,7 @@ import { measure } from '../measure/fonts.js';
 import { sizeStatus } from '../measure/pills.js';
 import { axisEnd } from '../chart/axis.js';
 import { labelColumn } from '../chart/label-layout.js';
-import { CANVAS, FIGURE_PAD } from '../canvas.js';
+import { CANVAS, FIGURE_PAD } from '../measure/canvas.js';
 import { PAD, ROW, SPACE, TEXT } from '../chart/metrics.js';
 import { makeScale } from '../chart/scale.js';
 import { MS_PER_SECOND } from '../source/values.js';

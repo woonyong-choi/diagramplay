@@ -1,7 +1,7 @@
 // 값에 묶인 차트의 프레임을 표식 이름으로 맞춘다. 그리기가 표식 이름과 원자료(`data-mark`, `data-mark-text`, `data-raw`)를 직접 붙이므로(marks.js)
 // 여기서는 그림 구조를 정규식으로 추측하지 않고 이름이 붙은 요소만 읽는다. 모든 칸에 표식이 늘 있으니 값이 0에서 양수로 바뀌어도 구조가 같다.
 // 강조는 원자료가 달라진 표식만 받는다. 위치만 달라진 표식(퍼센트에서 다른 조각, 축이 같을 때 움직인 선)은 조용히 옮겨진다.
-import { tokenize } from '../chart-tokens.js';
+import { tokenize } from './tokens.js';
 
 // 프레임 상태에서 빼는 속성: 이름, 원자료, 갱신 효과의 색은 프레임이 바꾸는 속성이 아니다.
 export const IDENTITY = new Set(['data-mark', 'data-mark-text', 'data-raw', 'data-effect']);

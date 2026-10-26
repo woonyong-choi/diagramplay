@@ -1,8 +1,8 @@
 // 여러 그림을 한 쪽에서 보는 목록과 문서 안 모습 미리보기.
 import { bindDiagramHost } from '@woonyong-choi/design-tokens/ui/runtime/diagram-host.js';
-import { STYLES } from '../styles.js';
-import { escapeXml, plainText, renderRichHtml } from '../text.js';
-import { hrefAttr } from '../href.js';
+import { STYLES } from '../draw/styles.js';
+import { escapeXml, plainText, renderRichHtml } from '../format/text.js';
+import { hrefAttr } from '../format/href.js';
 import { THEME_BUTTONS, THEME_SCRIPT } from './theme.js';
 
 const GALLERY_SCRIPT = `<script>${bindDiagramHost.toString()}; bindDiagramHost();</script>`;

@@ -3,7 +3,7 @@
 // 기대값은 최소 원본의 사건(이동 시각, 값 변화, 장면 길이)에서 따로 셈한다. 비공개 기록의 모양을 굳히지 않고 보이는 의미(선이 켜졌는가, 후광이 있는가, 보일 글)만 비교한다.
 import assert from 'node:assert/strict';
 import { PLAYER_SCRIPT } from '../src/html/player-script.js';
-import { MOVE, progressAt, timeAt, paceLength, paceProgress } from '../src/easing.js';
+import { MOVE, progressAt, timeAt, paceLength, paceProgress } from '../src/math/easing.js';
 import { test } from 'node:test';
 import vm from 'node:vm';
 import { build, diagramplay, findAll, parseMarkup, textContent, toHtml } from './support.js';

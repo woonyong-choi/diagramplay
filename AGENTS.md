@@ -6,25 +6,34 @@
 
 ## 구성
 
+`src/` 최상위에는 진입 파일(`index.js` 공개 API, `index.d.ts` 타입 선언, `cli.js` 명령)만 있고, 나머지 소스 파일은 모두 아래 폴더 가운데 하나에 속한다.
+
 | 경로 | 내용 |
 |---|---|
-| `src/source/` | 원본 읽기: 낱말 나누기, 문장 해석, 이름과 규칙 확인, 보기 정하기(이름 없는 보기와 기본 보기, `views-check.js`). 모형은 받은 원본 글을 `figure.source`로 간직한다 |
-| `src/measure/` | 글꼴 파일로 글 폭 재기(`fonts.js`), 카드의 안쪽 여백과 머리(`card.js`), 글 역할과 카드 안 글 한 줄 text의 자리와 폭(`texts.js`), 카드 내용 줄의 text 자리(`content.js`), 아이콘·배지·개수 장식 자리(`decor.js`), 도형·표·API·클래스·큐·격자 크기(`sizes.js`, `table.js`, `class.js`, `queue.js`), 글꼴 조각 넣기 |
-| `src/layout/` | elkjs 배치(구조, 상태, 데이터 관계)와 순서 그림 격자 배치 |
-| `src/chart/` | 차트 눈금, 숫자 표기, 차트 종류별 그리기(종류 목록은 `src/source/grammar.js`의 문법 표가 정본이다), 프레임 범위(`extent.js`)와 프레임(`frames.js`), 바뀐 표식의 겹침 효과(`pulse-overlay.js`) |
-| `src/draw/` | 장면 조립(`figure.js`), 카드(`card.js`)와 카드 면(`surface.js`), 카드 안 글(`texts.js`), 장식과 아이콘(`decor.js`), 카드 내용(`content.js`), 연결선과 선 라벨(`connector.js`), 화살촉(`arrow.js`), 색 이름과 표현을 읽는 곳(`look.js`) |
+| `src/compile/` | 원본 하나를 장면과 시간표로 만드는 순서(`figure.js`의 `buildFigure`, 내부 재배치 `reflowFigure`), 보기마다 크기·배치·글 상자를 정하고 장면을 잇는 곳(`scene.js`), 보기 모형으로 줄이기(`views.js`), 생성 예산(`budget.js`), 원본이 읽는 파일의 경로 경계(`base-path.js`), 명령이 쓰는 원본 읽기·만들기·진단 알림·결과 파일 쓰기(`reported.js`, `diagnostics.js`). 모형은 받은 원본 글을 `figure.source`로 간직한다 |
+| `src/source/` | 원본 읽기: 낱말 나누기, 문장 해석, 이름과 규칙 확인, 보기 정하기(이름 없는 보기와 기본 보기, `views-check.js`). 문법 표의 정본은 `grammar.js` |
+| `src/measure/` | 글꼴 파일로 글 폭 재기(`fonts.js`), 그림 폭 규칙(`canvas.js`), 카드의 안쪽 여백과 머리(`card.js`), 글 역할과 카드 안 글 한 줄의 자리와 폭(`texts.js`), 카드 내용 줄(`content.js`), 장식 자리(`decor.js`), 도형·표·API·클래스·큐·격자 크기(`sizes.js`, `table.js`, `class.js`, `queue.js`), 값 글자 자리(`value-slots.js`) |
+| `src/layout/` | elkjs 배치(구조, 상태, 데이터 관계)와 순서·시간·타이밍 그림 배치, 판 합치기(`panels.js`) |
+| `src/timeline/` | 시간 흐름을 시간표로 펴기(`compose.js`), 흐름 단계(`flow.js`), 값 바꾸기(`values.js`)와 값 모형 도우미(`value-texts.js`), 차트·카드 줄의 움직임 상태(`charts.js`, `rows.js`), 재생기가 읽는 표시 정보(`marks.js`, `pulse.js`), 시퀀스 구획 펴기, 이동 시간, 사라짐, 시간 눈금, 기존 사건 시각을 보존하는 재배치(`reflow.js`) |
+| `src/flow/` | 조건과 대기의 이벤트 처리(`events.js`, `reserve.js`, `event-support.js`, `event-budget.js`)와 흐름 경로 기하(`track-geometry.js`, `track-pace.js`) |
+| `src/chip/` | 점 위에 뜨는 글 상자의 크기와 자리(`place.js`), 박자 이동 계획(`plan.js`), 겹침과 흐려짐(`clash.js`, `fade.js`), 격자 색인, 도형 이름 가림을 피하는 여유(`room.js`) |
+| `src/math/` | 빌드와 재생기가 함께 쓰는 순수 수학: 움직임 곡선(`easing.js`, `motion.js`), 이동 구간(`hop.js`), 경로(`route.js`), 최댓값·최솟값(`extremes.js`). `motion.js`와 `hop.js`는 함수 원문을 HTML에 넣는다 |
+| `src/color/` | 정식 색 이름(팔레트 계열 일곱과 회색, `tone.js`), 범주 색 순서(`palette.js`), 명도 대비(`contrast.js`) |
+| `src/format/` | 출력 숫자 서식(`numbers.js`), SVG 글자와 좌표 다듬기(`text.js`), 파일 이름을 링크 주소로 바꾸기(`href.js`), 표 열의 키 표시(`columns.js`) |
+| `src/chart/` | 차트 눈금, 숫자 표기, 차트 종류별 그리기(종류 목록은 `src/source/grammar.js`의 문법 표가 정본이다), 차트 카드와 값에 묶인 프레임(`card-frames.js`, `frames.js`, `extent.js`), 바뀐 표식의 겹침 효과(`pulse-overlay.js`), 히스토그램 구간(`bins.js`) |
+| `src/draw/` | 장면 조립(`figure.js`), 카드(`card.js`)와 카드 면(`surface.js`), 카드 안 글(`texts.js`), 장식과 아이콘(`decor.js`), 카드 내용(`content.js`), 연결선과 선 라벨(`connector.js`), 화살촉(`arrow.js`), 색 이름과 표현을 읽는 곳(`look.js`), 공통 CSS 가져오기(`styles.js`, `@woonyong-choi/design-tokens/styles/diagram/`에서 읽음) |
+| `src/check/` | 그림 검사(`figure.js`). 항목 목록(`items.js`)과 항목별 판정 파일 |
+| `src/animate/` | 시간표 기반 SVG 효과(keyframes와 SMIL) |
+| `src/svg/` | 스크립트 없이 움직이는 SVG와 멈춘 SVG(`output.js`의 `toSvg`) |
+| `src/html/` | HTML 재생기 문서와 목록(`output.js`의 `toHtml`, `listing.js`), 그림 틀(도구 막대 하나와 탭 줄 하나, `player-script.js`), 좁은 배치 후보(`responsive.js`) |
+| `src/player/` | 브라우저에서 도는 재생기: 시각의 순수 표본 추출(`sample.js`), 시계와 장면 들어가기와 탭 연결(`play.js`), 모습 쓰기(`stage.js`, `effects.js`, `values.js`), 글의 백틱 나누기(`rich-text.js`), 전체화면과 전체화면 안의 확대·축소·끌어 옮기기(`view.js`), 폭에 따른 배치 바꾸기(`responsive.js`), 문법 복사와 HTML 다운로드(`export.js`), 이동 곡선(`curve.js`) |
+| `src/markdown/` | `md` 명령: 마크다운 블록 찾기와 이미지 줄 넣기(`find.js`, 파일을 다루지 않음), 실행(`run.js`), 원본 접기(`fold.js`), 둘째 장면부터를 `<details>`로 두는 장면 구간(`scenes.js`), CommonMark 블록 구조를 한 번 따라가는 걸음(`tags.js`)과 블록 판별(`blocks.js`), 만든 SVG의 소유 표시(`diagramplay md v2`, `owner.js`), 출력 폴더 잠금(`lock.js`), 파일 쓰기(임시 파일과 rename, 실패 때 되돌리기, `write.js`) |
+| `src/import/` | 다른 도구 원본(Mermaid, DBML, D2, draw.io, Excalidraw) 읽기와 `.diagramplay` 글 쓰기, `import` 명령 실행(`run.js`) |
 | `src/icons/` | 공통 카탈로그 읽기와 사용자 SVG 검증. 내장 도형과 조작 아이콘은 design-tokens 정본 |
-| `src/tone.js`, `src/chart-palette.js` | 정식 색 이름(팔레트 계열 일곱과 회색)과 범주 색 순서 |
-| `src/timeline.js`, `src/chip.js`, `src/build.js`, `src/build-scene.js`, `src/base-path.js` | 시간표, 글 상자 크기와 밀어 넣기, 장면 잇기와 장면 검사, 원본이 읽는 파일(`data`, `icons`)의 기준 폴더 경계 |
-| `src/track-geometry.js`, `src/reflow-timeline.js` | 흐름 경로 기하와 기존 사건 시각을 보존하는 재배치 |
-| `src/check.js`, `src/check/` | 그림 검사. 항목 목록(`items.js`)과 항목별 판정 파일 |
-| `src/styles.js`, `src/animate/` | 공통 CSS 가져오기와 시간표 기반 SVG 효과. 스타일은 `@woonyong-choi/design-tokens/styles/diagram/`에서 읽음 |
-| `src/svg.js`, `src/html.js`, `src/html/`, `src/href.js`, `src/cli.js` | 움직이는 SVG, HTML 재생기 문서와 목록, 그림 틀(도구 막대 하나와 탭 줄 하나, `html/player-script.js`), 파일 이름을 링크 주소로 바꾸기, 명령 |
-| `src/build-reported.js`, `src/md.js`, `src/md-run.js`, `src/md-owner.js`, `src/md-lock.js`, `src/md-write.js`, `src/md-fold.js`, `src/md-scenes.js`, `src/md-tags.js`, `src/md-blocks.js` | 원본 읽기·만들기와 진단 알림, 쓸 파일 겹침 판정, 결과 파일 쓰기와 그 오류 알림(`render`, `gallery`, `md`가 같은 것을 쓴다), 마크다운 블록 찾기와 이미지 줄 넣기(`md.js`는 파일을 다루지 않음), `md` 명령 실행, 원본 접기 배치(`md-fold.js`), 둘째 장면부터를 `<details>`로 두는 장면 구간의 배치와 읽기(`md-scenes.js`), 문서 줄을 CommonMark 블록 구조로 한 번 따라가며 울타리(코드 블록)와 `<details>` 태그를 함께 읽는 걸음(`md-tags.js`)과 그 블록 판별(`md-blocks.js`), 만든 SVG의 소유 표시(`diagramplay md v2`)와 판정, 출력 폴더 잠금, `md` 파일 쓰기(임시 파일과 rename, 실패 때 되돌리기) |
 | `action.yml`, `.github/workflows/` | GitHub Action(composite), CI, `v*` 태그 배포 |
-| `src/player/` | 브라우저에서 도는 재생기: 시각의 순수 표본 추출(`sample.js`), 시계와 장면 들어가기(`play.js`), 모습 쓰기(`stage.js`, `effects.js`, `values.js`), 탭과 모든 그림이 같은 도구 막대(문법 복사, HTML 다운로드, 전체화면. `controls.js`), 전체 화면·확대(`view.js`), 폭에 따른 배치 바꾸기(`responsive.js`), HTML 다운로드(`export.js`), 이동 곡선(`curve.js`) |
 | `examples/` | 표현마다 하나인 예제 원본(`icons/`, `data/`는 예제가 읽는 자료). 결과는 `npm run catalog`가 `.local/examples/`에 생성 |
 | `scripts/` | 문법·검사 문서, 예제·그림 생성, 설치 검사, 크기·비용 참고 검사 |
+| `test/` | 공개 진입점과 공통 부품의 계약 시험, 브라우저 시험(`browser/`, 시험 원본 `browser/fixtures/`) |
 | `docs/` | 설계 문서, 그림 종류별 레퍼런스(`reference/`), README 그림(`assets/showcase/`) |
 
 ## 명령
@@ -72,8 +81,8 @@ npm run check:package -- /absolute/new-consumer-path
 - 색: 핵심 넷(파랑 `#1e6bd6`, 노랑 `#f2d024`, 빨강 `#fa1955`, 초록 `#269c6e`)의 값과 순서는 바꾸지 않고, 대비를 맞추려고 핵심 RGB를 바꾸지 않는다. 확장 색은 후보를 실제 크기 라이트·다크 화면으로 검수한 뒤 고르고, 고른 순서는 한 번 기록한 뒤 뒤에만 더한다. 빌드마다 순서를 다시 찾지 않고 고른 값 밖으로 색상·밝기를 자동으로 옮기지 않는다. 색 수를 넘는 계열은 무늬·모양·직접 라벨로 구분하며 색만으로 구분하지 않는다. 대비는 그 요소가 실제로 그려지는 면(카드, 판, 라이트·다크 테마의 면)과 역할(글자, 선, 면)마다 그 면 위에서 잰다. 검은색·흰색 바탕 위의 계산은 보조 확인일 뿐 기준이 아니다. 노랑처럼 면 위 대비가 낮은 그래픽은 색을 바꾸지 않고 직접 라벨과 모양으로 보완하며, 그 낮은 그래픽 대비를 접근성 기준 충족이라고 쓰지 않는다. 범주 번호가 정하는 점 모양, 선·면적 끝 이름, 범례, 원·도넛 조각 바깥의 이름과 값 직접 라벨이 그 보완이다. 번호 키(`1`, `2`...)로 이름을 대신하지 않는다.
 - 디자인 수용은 자동 검사가 아니라 화면 비교로 한다. 모바일 320·390·430px와 데스크톱 실제 크기에서 공식 기준과 나란히 보고, 라이트·다크, 정지·재생 중 상태를 확인한다. 화면 비교는 실제 Chrome에서 사람이 직접 한다. 테스트 통과만으로 일관성이나 디자인 완료를 선언하지 않고 검수하지 않은 변경은 공개하지 않는다.
 - 결함을 덮어쓰기 CSS나 예제별 CSS·좌표 보정으로 숨기지 않는다. 공통 규칙을 고친다.
-- 그림은 정의된 부품을 가져다 조립한다(React처럼 합성하되 React 의존성은 없다). 흐름은 원본 문법 → 공통 모형 → 필요한 배치 → 공통 부품 → 조작부 하나다. 카드, 필드, 선, 화살촉, 라벨, 아이콘, 탭, 도구 막대의 모양과 상태는 각자 한 부품이 소유하고, 종류별 렌더러는 데이터와 배치 결과만 넘긴다. 같은 토큰을 읽는다는 이유로 같은 부품이라 하지 않고, 종류마다 새 카드, 새 컨트롤, 개별 보정을 만들지 않는다. 측정과 그리기는 같은 부품의 역할 규약을 쓴다. 실제 호출 지도는 [아키텍처](docs/architecture.md#부품-호출-지도)에 있다: 카드는 `build-scene.js`가 `measure/sizes.js`로 재고(머리는 `measure/card.js`, 글은 `measure/texts.js`) `draw/figure.js`가 `draw/shape.js` → `draw/card.js` → `draw/surface.js`와 `draw/texts.js`로 그리고, 선은 `draw/connector.js` → `draw/arrow.js`, 아이콘은 `icons/` 등록부 → `draw/decor.js`, 도구 막대와 탭 줄은 `html/player-script.js`의 `figureFrame` 하나, 켜짐과 평소의 모습은 `@woonyong-choi/design-tokens/styles/diagram/figure.css`의 `--fx-*` 하나다.
-- 뷰어는 사람이 보기만 하는 순수 시각화기다. 자동 스크롤, 화면 안 가시성 대기, 그림 위에 겹쳐 뜨는 고정 탭, 수동 복사 팝업 같은 뷰어 동작을 더하지 않는다. 사용자 조작은 장면 탭, 문법 복사, HTML 다운로드, 전체화면뿐이고 새 재생 설정을 만들지 않는다.
+- 그림은 정의된 부품을 가져다 조립한다(React처럼 합성하되 React 의존성은 없다). 흐름은 원본 문법 → 공통 모형 → 필요한 배치 → 공통 부품 → 조작부 하나다. 카드, 필드, 선, 화살촉, 라벨, 아이콘, 탭, 도구 막대의 모양과 상태는 각자 한 부품이 소유하고, 종류별 렌더러는 데이터와 배치 결과만 넘긴다. 같은 토큰을 읽는다는 이유로 같은 부품이라 하지 않고, 종류마다 새 카드, 새 컨트롤, 개별 보정을 만들지 않는다. 측정과 그리기는 같은 부품의 역할 규약을 쓴다. 실제 호출 지도는 [아키텍처](docs/architecture.md#부품-호출-지도)에 있다: 카드는 `compile/scene.js`가 `measure/sizes.js`로 재고(머리는 `measure/card.js`, 글은 `measure/texts.js`) `draw/figure.js`가 `draw/shape.js` → `draw/card.js` → `draw/surface.js`와 `draw/texts.js`로 그리고, 선은 `draw/connector.js` → `draw/arrow.js`, 아이콘은 `icons/` 등록부 → `draw/decor.js`, 도구 막대와 탭 줄은 `html/player-script.js`의 `figureFrame` 하나, 켜짐과 평소의 모습은 `@woonyong-choi/design-tokens/styles/diagram/figure.css`의 `--fx-*` 하나다.
+- 뷰어는 사람이 보기만 하는 순수 시각화기다. 자동 스크롤, 화면 안 가시성 대기, 그림 위에 겹쳐 뜨는 고정 탭, 수동 복사 팝업 같은 뷰어 동작을 더하지 않는다. 사용자 조작은 장면 탭, 문법 복사, HTML 다운로드, 전체화면과 전체화면 안의 확대·축소·끌어 옮기기뿐이고 새 재생 설정을 만들지 않는다.
 - npm 배포는 사용자가 명시 요청한 경우에만 실행한다. 검증한 기본 브랜치의 `v*` 태그에서 `release.yml`을 실행하고 레지스트리 설치 결과까지 확인한다.
 - `package.json`의 `files`는 `src`, `LICENSE`, `NOTICE`만. 바꾸면 `npm pack --dry-run`으로 올라가는 파일을 직접 확인한다
 - 배포 전에는 README에 npm 설치를 사용 가능으로 쓰지 않는다

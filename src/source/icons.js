@@ -25,7 +25,7 @@ export function readIcons({ tokens, line }, ctx) {
 // cost: time O(n + g), heap O(1), stack O(1)
 // vars: n = 도형 수, g = 그룹 수
 // basis: estimate
-/** 도형과 그룹의 `icon=` 이름이 기본 세트의 이름이거나 등록한 세트의 이름 모양인지 본다. 파일은 만들 때 읽는다(build.js). */
+/** 도형과 그룹의 `icon=` 이름이 기본 세트의 이름이거나 등록한 세트의 이름 모양인지 본다. 파일은 만들 때 읽는다(compile/figure.js). */
 export function checkIcons(figure, problems) {
   for (const item of [...figure.nodes, ...figure.groups]) {
     if (item.icon === undefined) continue;

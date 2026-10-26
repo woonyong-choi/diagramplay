@@ -5,7 +5,7 @@ import { syncBuiltinESMExports } from 'node:module';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { acquireLocks } from '../src/md-lock.js';
+import { acquireLocks } from '../src/markdown/lock.js';
 import { cli, read, snapshot, workspace } from './support.js';
 
 const document = '# Doc\n\n```diagramplay\ndiagramplay\nbox a "A"\n```\n';
