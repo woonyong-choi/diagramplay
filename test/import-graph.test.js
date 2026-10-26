@@ -18,7 +18,7 @@ function importGraph() {
   return new Map(files.map((file) => [relative(SRC, file), [...readFileSync(file, 'utf8').matchAll(pattern)].map((m) => relative(SRC, resolve(dirname(file), m[1] ?? m[2])))]));
 }
 
-const layerOf = (file) => (file === 'check.js' ? 'check' : file.includes('/') ? file.split('/')[0] : undefined);
+const layerOf = (file) => (file.includes('/') ? file.split('/')[0] : undefined);
 // 층마다 부르지 않는 층. 측정은 배치·그리기·검사를, 배치는 그리기·검사를, 검사는 그리기를 부르지 않는다.
 const FORBIDDEN = { measure: ['layout', 'draw', 'check'], layout: ['draw', 'check'], check: ['draw'] };
 

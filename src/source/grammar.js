@@ -1,7 +1,7 @@
 // 문법 정본. 낱말, 선택 사항, 값 목록, 기본값을 이 표 한 곳에만 둔다.
 // 파서, 검증, 오류 메시지, 문서 표(docs/design/figure-syntax.md의 문법 표 구간)가 모두 이 표를 읽는다.
 // 기능 추가는 이 표에 항목을 더하는 일이다.
-import { TONES } from '../tone.js';
+import { TONES } from '../color/tone.js';
 
 // 원형이 없는 표. `constructor` 같은 낱말이 표 항목으로 잡히지 않게 한다.
 const table = (entries) => Object.assign(Object.create(null), entries);
@@ -63,7 +63,7 @@ export const VALUES = {
   traceUnit: { default: 'ms', items: table({ ms: {}, us: {}, s: {} }) },
   scale: { default: 'linear', items: table({ linear: {}, log: {} }) },
   zero: { default: 'on', items: table({ on: {}, off: {} }) },
-  // seriesRange는 받는 계열 수의 범위다. 위는 Infinity라 상한이 없고, 계열 색은 범주 색 도우미(chart-palette.js)가 번호로 정한다.
+  // seriesRange는 받는 계열 수의 범위다. 위는 Infinity라 상한이 없고, 계열 색은 범주 색 도우미(color/palette.js)가 번호로 정한다.
   // allowsMissing은 값 자리에 `-`(빠진 값)를 받는 종류다. 빠진 값은 0이 아니다(막대는 그리지 않고, 선은 끊기고, 비율은 그 행을 정하지 않는다).
   chartType: {
     items: table({
@@ -85,7 +85,7 @@ export const VALUES = {
       waterfall: { rowWord: 'row', seriesRange: [0, 0], allowsMissing: true },
     }),
   },
-  // 색 이름은 범주 색 도우미의 계열과 무채색 gray다(tone.js). 이름이 계열을 따라 늘어난다.
+  // 색 이름은 범주 색 도우미의 계열과 무채색 gray다(color/tone.js). 이름이 계열을 따라 늘어난다.
   tone: {
     hint: 'Colors are names, not hex, so the contrast rules hold',
     items: table(Object.fromEntries(TONES.map((name) => [name, {}]))),

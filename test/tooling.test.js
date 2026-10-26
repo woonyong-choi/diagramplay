@@ -36,7 +36,7 @@ test('G3 the design is the peer package the host installs, pinned to a commit fo
   assert.match(pkg.devDependencies['@woonyong-choi/design-tokens'], /^https:\/\/raw\.githubusercontent\.com\/woonyong-choi\/design-tokens\/[0-9a-f]{40}\/artifacts\/diagram\.tgz$/);
   assert.equal(pkg.dependencies['@woonyong-choi/design-tokens'], undefined);
   assert.equal(existsSync(join(ROOT, 'src/vendor/theme')), false);
-  const resolved = createRequire(join(ROOT, 'src/styles.js')).resolve('@woonyong-choi/design-tokens/tokens.css');
+  const resolved = createRequire(join(ROOT, 'src/draw/styles.js')).resolve('@woonyong-choi/design-tokens/tokens.css');
   assert.equal(resolved, join(DESIGN, 'tokens.css'));
 });
 

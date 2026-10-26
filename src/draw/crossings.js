@@ -2,7 +2,7 @@
 // 경로 점은 그대로이고, 세로 구간을 가진 선의 path에 구멍 난 clipPath를 걸 뿐이다. 그룹과 판은 면이 없어(draw/figure.js drawGroup) 구멍으로 바탕이 그대로 보인다.
 // 장면마다 나타나는 선(순서 보기의 메시지처럼 장면 번호가 있는 선)은 늘 보이지 않으므로 끊지 않는다. 그 선이 숨은 장면에서 빈 구멍이 남기 때문이다.
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { roundCoord as r } from '../text.js';
+import { roundCoord as r } from '../format/text.js';
 
 const EDGE = values['border-width'].edge;
 /** 끊긴 자리의 반 길이: 위로 지나는 선 굵기의 절반과 양쪽 틈 */
@@ -18,7 +18,7 @@ const length = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 // cost: time O(p), heap O(p), stack O(1)
 // vars: p = 경로 점 수
 // basis: estimate
-// 꺾은선의 곧은 구간. 세로(v)와 가로(h)만 남긴다. lo~hi는 둥근 모서리(route.js cornerAt과 같은 깎는 길이)를 뺀 곧은 범위다. 선 끝(도형 테두리)은 깎지 않는다.
+// 꺾은선의 곧은 구간. 세로(v)와 가로(h)만 남긴다. lo~hi는 둥근 모서리(math/route.js cornerAt과 같은 깎는 길이)를 뺀 곧은 범위다. 선 끝(도형 테두리)은 깎지 않는다.
 // 가로 구간은 양 끝 모서리의 깎는 길이(cornerLo, cornerHi)와 곡선이 휘는 쪽(bendLo, bendHi: 다음 점의 위아래 부호)도 갖는다.
 function segmentsOf(points) {
   const corner = (i) => (i <= 0 || i >= points.length - 1 ? 0 : Math.min(ROUTE, length(points[i - 1], points[i]) / 2, length(points[i], points[i + 1]) / 2));
@@ -35,7 +35,7 @@ function segmentsOf(points) {
   });
 }
 
-// 모서리 곡선이 가로에서 45도가 될 때까지(깎는 길이의 3/4)는 위로 지나는 선으로 본다. 그 안에서 곡선의 높이는 2차 곡선 식으로 구한다(route.js quadAt과 같은 곡선).
+// 모서리 곡선이 가로에서 45도가 될 때까지(깎는 길이의 3/4)는 위로 지나는 선으로 본다. 그 안에서 곡선의 높이는 2차 곡선 식으로 구한다(math/route.js quadAt과 같은 곡선).
 const CURVE_REACH = 0.75;
 
 // cost: time O(1), heap O(1), stack O(1)

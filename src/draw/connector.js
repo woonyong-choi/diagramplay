@@ -3,8 +3,8 @@
 import { BADGE_STYLE, hasPill, sizePill } from '../measure/pills.js';
 import { pillFace } from './pill.js';
 import { STYLE } from '../measure/texts.js';
-import { routePolyline } from '../route.js';
-import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../text.js';
+import { routePolyline } from '../math/route.js';
+import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { edgeMarker } from './arrow.js';
 import { cutClip } from './crossings.js';

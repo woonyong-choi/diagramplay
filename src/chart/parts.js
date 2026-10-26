@@ -4,9 +4,9 @@
 // 이름은 원의 왼쪽과 오른쪽 열에 놓고, 같은 열 안에서는 끝 이름과 같은 배치(placeEndLabels)로 겹치지 않게 조각 높이 가까이 둔다.
 // 폭이 좁아 바깥 열이 들어가지 않으면 이름은 원 아래 목록으로 내려간다.
 import { STYLE } from '../measure/texts.js';
-import { categoryPaint } from '../chart-palette.js';
+import { categoryPaint } from '../color/palette.js';
 import { measure, wrap } from '../measure/fonts.js';
-import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../format/text.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 import { COPY } from './copy.js';
 import { placeEndLabels } from './end-labels.js';

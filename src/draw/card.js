@@ -5,7 +5,7 @@
 import { drawChartBody } from './chart.js';
 import { STACK_STEP } from '../measure/decor.js';
 import { queueSlots } from '../measure/queue.js';
-import { roundCoord as r, escapeXml } from '../text.js';
+import { roundCoord as r, escapeXml } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawDecor } from './decor.js';
 import { drawGridBody } from './grid.js';

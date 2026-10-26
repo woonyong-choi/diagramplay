@@ -2,8 +2,8 @@
 // 색은 표식이 싣고 온 계열의 effect 단계(`data-effect`, 그 계열 테두리를 같은 색상에서 밝힌 값) 하나뿐이다. 상태 파랑, 회색, 다른 계열의 색은 없다. 그래서 노랑 표식은 갱신 중에도 더 밝은 노랑이고 갈색이나 회색이나 파랑이 되지 않는다.
 // 고리는 표식 자신의 테두리 굵기와 같은 굵기로 같은 경로를 따라 그려 자라지 않고, 면은 effect를 `opacity.halo`로 덮어 면이 밝아진다. 표식 자신의 칠은 건드리지 않는다.
 // 움직이는 SVG(animate/frames.js)는 이 겹침에 SMIL을 걸고, HTML 재생기는 문서를 만들 때 같은 겹침을 넣어 두고 불투명도만 쓴다. 두 쪽이 같은 함수로 만들므로 모양 규칙(원, 사각형, 마름모, 삼각형 경로, 선, 글자)이 같다.
-import { tokenize } from '../chart-tokens.js';
-import { escapeXml } from '../text.js';
+import { tokenize } from './tokens.js';
+import { escapeXml } from '../format/text.js';
 
 /** 겹침이 표식에서 따라가는 속성. 위치와 모양만이고 칠, 움직임 class, 이름은 따라가지 않는다. 재생기가 프레임이 바뀐 표식을 따라 같은 이름들을 옮긴다. */
 export const GEOMETRY_ATTRS = Object.freeze(['x', 'y', 'width', 'height', 'rx', 'cx', 'cy', 'r', 'd', 'x1', 'x2', 'y1', 'y2', 'points', 'transform', 'visibility', 'fill-rule', 'text-anchor', 'dy', 'stroke-linecap', 'stroke-linejoin']);

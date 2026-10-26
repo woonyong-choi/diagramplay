@@ -2,8 +2,8 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildFigure } from '../src/build.js';
-import { toSvg } from '../src/svg.js';
+import { buildFigure } from '../src/compile/figure.js';
+import { toSvg } from '../src/svg/output.js';
 
 const SHOWCASE_DIR = fileURLToPath(new URL('../docs/assets/showcase/', import.meta.url));
 const HOW_IT_WORKS_SOURCE = fileURLToPath(new URL('../docs/assets/how-it-works.diagramplay', import.meta.url));

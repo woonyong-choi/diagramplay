@@ -3,7 +3,7 @@
 // 삭제 정책을 선 옆 글로 두면 외래 키 열이 붙어 있을 때 글이 두 열 줄 사이에 서서 어느 선의 것인지 읽히지 않는다. 선 위 알약은 자기 선에 붙어 있다.
 import { sizePill } from '../measure/pills.js';
 import { STYLE, textBlock } from '../measure/texts.js';
-import { deleteRule } from '../table.js';
+import { deleteRule } from '../format/columns.js';
 
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 표시 글자 수

@@ -2,9 +2,9 @@
 // 신뢰구간이 이어진 점이 하나뿐이면 띠가 면이 못 되므로 세로 오차 막대로 그린다.
 // 값이 없는 점(`-`)에서 선이 끊긴다. 끊긴 곳에는 점도 `data-at`도 없고 선이 자라는 시간도 쓰지 않는다. 계단은 값이 다음 점까지 이어지는 post 방식이다.
 // 기대값(reference) 계열은 회색 점선이고 꼭짓점 표식은 생략한다. 점선은 길이로 드러낼 수 없어 x 위치로 닦아 낸다(wipe).
-import { roundCoord as r } from '../text.js';
-import { curveOf, timeAt } from '../easing.js';
-import { roundToScale } from '../format.js';
+import { roundCoord as r } from '../format/text.js';
+import { curveOf, timeAt } from '../math/easing.js';
+import { roundToScale } from '../format/numbers.js';
 import { drawRules } from './axis.js';
 import { definedRuns, isValue, lengthFractions, linePath, spanFractions, stepVertices, hvPath } from './data.js';
 import { endLabelBoxes, endLabelHeight, endLabelMarks, endLabelRoom, endLabelX, hasEndLabels, placeEndLabels } from './end-labels.js';

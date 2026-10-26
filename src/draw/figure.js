@@ -3,7 +3,7 @@
 //   선 = 연결선과 선 라벨(draw/connector.js), 그룹 = 경계와 제목(여기), 메모와 보기 이름(여기)
 import { placeGroupHead } from '../measure/sizes.js';
 import { STYLE, textAt } from '../measure/texts.js';
-import { escapeXml, plainText, roundCoord as r } from '../text.js';
+import { escapeXml, plainText, roundCoord as r } from '../format/text.js';
 import { drawHead } from './card.js';
 import { drawEdge, drawEdgeLabel } from './connector.js';
 import { crossingCuts } from './crossings.js';

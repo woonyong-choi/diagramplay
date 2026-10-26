@@ -1,6 +1,6 @@
 // 박자별 상태를 CSS keyframes class와 SMIL 점으로 바꾼다. 시계, 켜짐 keyframes, 점, 차트는 이 폴더의 파일이 나눠 맡는다.
-import { litIds } from '../timeline.js';
-import { PULSE_MS } from '../pulse.js';
+import { litIds } from '../timeline/compose.js';
+import { PULSE_MS } from '../timeline/pulse.js';
 import { animateChart } from './chart.js';
 import { drawStatusPills } from '../draw/status.js';
 import { drawFlashes, drawValues } from '../draw/values.js';

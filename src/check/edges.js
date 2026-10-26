@@ -1,6 +1,6 @@
 // 3번, 4번, 5번: 선이 도형을 지나지 않고, 끝이 연결점에 있고, 다른 선과 붙지 않는다.
 import { CROWD, SAME_POINT } from '../layout/model.js';
-import { columnAnchorY } from '../table.js';
+import { columnAnchorY } from '../format/columns.js';
 import { THROUGH_INSET, capitalize, drawnBox, isCoVisible, near, onBorder, segmentHits } from './geometry.js';
 
 // cost: time O(e·(s + g)·p·d), heap O(1), stack O(1)

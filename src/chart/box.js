@@ -1,7 +1,7 @@
 // 상자 차트: 최소-최대 수염(양끝 눈금), q1-q3 상자(주 계열의 옅은 면), 가운데 값 선(주 계열의 굵은 선)과 그 값 글자
 import { measure } from '../measure/fonts.js';
 import { VALUES } from '../source/grammar.js';
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { COPY } from './copy.js';
@@ -9,7 +9,7 @@ import { valueRange } from './extent.js';
 import { inkGroup, rowName, valueText } from './labels.js';
 import { rowLabelLayout } from './label-layout.js';
 import { BAR, ROW, SPACE, TEXT } from './metrics.js';
-import { categoryPaint } from '../chart-palette.js';
+import { categoryPaint } from '../color/palette.js';
 import { tokens } from '@woonyong-choi/design-tokens/tokens.js';
 import { valueFormat } from './scale.js';
 

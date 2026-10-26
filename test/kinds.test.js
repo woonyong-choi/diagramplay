@@ -2,8 +2,8 @@
 // 예제 원본은 examples.test.js가 읽는다. 시험 이름 첫 낱말(K-arch 등)이 요구사항 번호이고, 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { FIGURE_PAD } from '../src/canvas.js';
-import { reflowFigure } from '../src/build.js';
+import { FIGURE_PAD } from '../src/measure/canvas.js';
+import { reflowFigure } from '../src/compile/figure.js';
 import { headReach } from '../src/measure/arrow.js';
 import { measure } from '../src/measure/fonts.js';
 import { sizePill } from '../src/measure/pills.js';

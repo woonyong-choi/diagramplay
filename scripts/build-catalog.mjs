@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-import { buildFigure } from '../src/build.js';
-import { toHtml } from '../src/html.js';
+import { buildFigure } from '../src/compile/figure.js';
+import { toHtml } from '../src/html/output.js';
 import { VALUES } from '../src/source/grammar.js';
-import { toSvg } from '../src/svg.js';
+import { toSvg } from '../src/svg/output.js';
 import { catalogCoverage } from './lib/catalog-coverage.mjs';
 import { galleryPage } from './lib/catalog-page.mjs';
 import { supportFiles } from './lib/catalog-support.mjs';

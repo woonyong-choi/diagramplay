@@ -1,5 +1,5 @@
 // 별칭이 아니다. 여기 적은 꼴은 어느 것도 받지 않고, 진단 글에 고칠 꼴만 더한다(docs/design/figure-syntax.md의 흔한 실수 절).
-import { TONES } from '../tone.js';
+import { TONES } from '../color/tone.js';
 
 const ARROWS = new Map([
   ...['-->', '--->', '=>', '==>', '->>', '-->>', '-)', '--)', '-.->', '~>', '→', '⟶', '⇒', '-x', '--x', '-o', '--o'].map((arrow) => [arrow, 'write the arrow as "->": a -> b. Did you mean "->"?']),

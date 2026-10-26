@@ -1,11 +1,11 @@
 // 카드 안에 보이는 내용(`show`와 값 줄)의 크기와 글 자리. 줄마다 태그, 본문, 표시, 값 자리를 한 번 놓고 모든 글을 카드 머리와 같은 text(measure/texts.js)로 담는다.
 // 그리는 쪽(draw/content.js, draw/values.js)과 그림 검사(check/fit.js)는 이 글 자리를 그대로 읽고 줄 나누기, 들여쓰기, 흐림 자리, 값 자리를 다시 계산하지 않는다.
 // 좌표는 내용 면 왼쪽 위가 원점이다. 내용 면의 도형 안 자리는 contentBox가 정한다.
-import { plainText } from '../text.js';
+import { plainText } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { indicatorText } from '../value-indicators.js';
+import { indicatorText } from '../source/indicators.js';
 import { queueSlots, slotLayout } from './queue.js';
-import { widestText } from '../value-slots.js';
+import { widestText } from './value-slots.js';
 import { measure, wrap } from './fonts.js';
 import { layoutMiniGraph, miniGraphWidth } from './minigraph.js';
 import { STYLE, textAt } from './texts.js';

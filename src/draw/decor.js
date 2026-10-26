@@ -1,8 +1,8 @@
 // 도형 윗줄과 그룹 제목 줄의 장식(아이콘, 글자 배지, 복제 개수 알약)과 단계별 상태 알약의 몸통(기호와 글자)을 그린다. 크기와 자리는 measure/decor.js가 정한 그대로다.
-import { ratio } from '../format.js';
+import { ratio } from '../format/numbers.js';
 import { BADGE_STYLE, STATUS_GAPS, STATUS_ICON, STATUS_KINDS } from '../measure/pills.js';
 import { markIcon } from '../icons/index.js';
-import { centerBaseline, escapeXml, roundCoord as r } from '../text.js';
+import { centerBaseline, escapeXml, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { iconBody } from '@woonyong-choi/design-tokens/ui/svg.mjs';
 import { pillFace } from './pill.js';

@@ -24,7 +24,7 @@ export interface BuildOptions {
 
 declare const builtFigure: unique symbol;
 
-/** buildFigure로만 얻으며 같은 패키지의 렌더러에 그대로 전달한다. */
+/** buildFigure로만 얻는 불투명한 값. warnings만 공개하고 내부 모양은 계약이 아니며, 같은 패키지의 toSvg, toHtml에 그대로 전달한다. */
 export interface BuiltFigure {
   readonly [builtFigure]: never;
   readonly warnings: readonly FigureDiagnostic[];
@@ -74,7 +74,7 @@ export interface ImportResult {
 }
 
 /**
- * Mermaid, DBML, D2 원본 글을 DiagramPlay 원본 글로 옮긴다. 파일은 다루지 않는다.
+ * Mermaid, DBML, D2, draw.io, Excalidraw 원본 글을 DiagramPlay 원본 글로 옮긴다. 파일은 다루지 않는다.
  * @throws FigureError 형식의 그림 종류를 모르거나 옮길 카드가 없는 경우(code `import`). 모르는 format은 TypeError다.
  */
 export function importDiagram(format: ImportFormat, text: string): ImportResult;

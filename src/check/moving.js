@@ -1,10 +1,10 @@
 // 7번: 이동 글 상자가 그림 안에 있고 이름을 가리지 않는다.
-import { CHIP_GAP, sizeChip } from '../chip.js';
-import { findClashes } from '../chip-clash.js';
-import { issuesOfHop } from '../chip-plan.js';
-import { visibleShare } from '../chip-motion.js';
+import { CHIP_GAP, sizeChip } from '../chip/place.js';
+import { findClashes } from '../chip/clash.js';
+import { issuesOfHop } from '../chip/plan.js';
+import { visibleShare } from '../chip/motion.js';
 import { chipLines, chipObstacles } from '../layout/boxes.js';
-import { flattenRoute } from '../route.js';
+import { flattenRoute } from '../math/route.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 // 박자 이동의 글 상자가 보여야 하는 비율의 하한(chip-plan.js와 같은 토큰)

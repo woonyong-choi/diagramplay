@@ -2,7 +2,7 @@
 import { parseMiniGraph } from './minigraph.js';
 import { VALUES } from './grammar.js';
 import { readOptions } from './options.js';
-import { NEUTRAL } from '../tone.js';
+import { NEUTRAL } from '../color/tone.js';
 
 // cost: time O(t + g), heap O(g), stack O(1)
 // vars: t = 문장 낱말 수, g = 관계 그래프 글자 수

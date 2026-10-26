@@ -1,7 +1,7 @@
 // 프레임이 바꿔 끼우는 표식의 이름. 값이 바뀌어도 이름이 변하지 않게 그리기가 직접 붙이고, 그림 구조를 정규식으로 읽어 이름을 짓지 않는다.
 // 이름은 `계열:행번호`에서 온다. 같은 칸의 다른 요소는 뒤에 `.p`(무늬), `.ci`(신뢰구간), `.t`(글자), `.k`(번호)를 붙여 문서 안에서 하나뿐이게 한다.
 // 계열이 없는 차트의 계열 자리는 `*`다. 표식은 값이 없거나 0이어도 모든 칸에 늘 있다. 값은 막대 길이, 보임 속성으로만 달라진다.
-import { escapeXml } from '../text.js';
+import { escapeXml } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { isReference, seriesStroke } from './metrics.js';
 

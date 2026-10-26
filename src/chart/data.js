@@ -1,7 +1,7 @@
 // 차트 데이터 계산: 그리기 좌표와 무관한 순수 함수. 그리기, 시간표, 시험이 같은 계산을 쓴다.
 // 값이 없는 칸(`-`)은 null이고 0과 다르다. 0은 길이 0인 값이고 null은 값이 없다는 뜻이다. 어느 함수도 null을 0으로 바꾸지 않는다.
-import { maxOf, minOf } from '../extremes.js';
-import { roundCoord as r } from '../text.js';
+import { maxOf, minOf } from '../math/extremes.js';
+import { roundCoord as r } from '../format/text.js';
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate

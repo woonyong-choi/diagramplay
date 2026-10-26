@@ -4,9 +4,9 @@
 import { axisLabels } from '../chart/axis.js';
 import { labelText } from '../chart/labels.js';
 import { PAD, SPACE, TEXT } from '../chart/metrics.js';
-import { categoryPaint } from '../chart-palette.js';
+import { categoryPaint } from '../color/palette.js';
 import { discreteWindows } from '../animate/discrete.js';
-import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../format/text.js';
 import { ARROW_LABEL_PAD, BAND_HALF, SLOPE } from '../layout/timing.js';
 import { edgeMarker } from './arrow.js';
 import { sceneTag } from './scene-tag.js';

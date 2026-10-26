@@ -1,9 +1,9 @@
 // 도형, 카드, 선 라벨 크기를 정한다. 여기서 정한 크기를 배치에 넘기고 그대로 그린다(docs/design/layout.md 도형 크기와 연결점).
-import { maxOf } from '../extremes.js';
-import { plainText } from '../text.js';
-import { CANVAS, FIGURE_PAD } from '../canvas.js';
+import { maxOf } from '../math/extremes.js';
+import { plainText } from '../format/text.js';
+import { CANVAS, FIGURE_PAD } from './canvas.js';
 import { emptyRegions } from '../source/grid-space.js';
-import { tableDescription } from '../table.js';
+import { tableDescription } from '../format/columns.js';
 import { tableLayout } from './table.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { INNER_MAX, PAD, headerDecor, headerOf, placeHeader } from './card.js';

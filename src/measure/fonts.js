@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import * as fontkit from 'fontkit';
 import subsetFont from 'subset-font';
-import { codeParts } from '../text.js';
+import { codeParts } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const require = createRequire(import.meta.url);
@@ -30,7 +30,7 @@ const FACES = {
   // 차트 숫자는 Pretendard의 tnum(자리 폭이 같은 숫자)으로 그린다. 파일과 @font-face는 base 글꼴의 것을 쓴다.
   num: { base: 'regular', features: ['tnum'], fallback: 'symRegular' },
   numSemibold: { base: 'semibold', features: ['tnum'], fallback: 'symSemibold' },
-  // 값 글은 굵은 글꼴로 글자 그대로 읽는다(text.js isLiteralFace). 파일과 @font-face는 semibold의 것을 쓴다.
+  // 값 글은 굵은 글꼴로 글자 그대로 읽는다(format/text.js isLiteralFace). 파일과 @font-face는 semibold의 것을 쓴다.
   semiboldLiteral: { base: 'semibold', fallback: 'symSemibold' },
   mono: { family: 'FigMono', weight: 400, file: 'jetbrains-mono/fonts/webfonts/JetBrainsMono-Regular.woff2', fallback: 'regular' },
 };
@@ -90,7 +90,7 @@ function runsOf(text, face) {
 // basis: estimate
 /**
  * 글 한 줄의 폭(px). 같은 글꼴과 글은 한 번만 잰다. 글꼴에 없는 글자는 대체 글꼴 폭으로 재서 글꼴이 바뀌는 구간마다 더한다.
- * 백틱으로 감싼 구간은 face와 상관없이 고정폭으로 잰다(표시 글자인 백틱은 폭이 없다). 글 그대로 읽는 글꼴(text.js isLiteralFace)이면 글 전체가 하나의 구간이라서 백틱은 표시 글자가 아니라 글자로 잰다.
+ * 백틱으로 감싼 구간은 face와 상관없이 고정폭으로 잰다(표시 글자인 백틱은 폭이 없다). 글 그대로 읽는 글꼴(format/text.js isLiteralFace)이면 글 전체가 하나의 구간이라서 백틱은 표시 글자가 아니라 글자로 잰다.
  * @param face 'regular' | 'semibold' | 'semiboldLiteral' | 'num' | 'numSemibold' | 'mono'
  * @throws Error 글꼴과 대체 글꼴 어디에도 없는 글자가 있을 때. 대신 그릴 글꼴의 폭을 알 수 없기 때문이다
  */

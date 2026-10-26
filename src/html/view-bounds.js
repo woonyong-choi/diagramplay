@@ -1,9 +1,9 @@
 // 모바일 보기 영역은 정적인 도형뿐 아니라 이동 점과 글상자의 전체 계획을 포함한다.
-import { tightView } from '../canvas.js';
-import { sizeChip } from '../chip.js';
-import { chipStateAt } from '../chip-motion.js';
-import { timeAtPosition } from '../easing.js';
-import { flattenRoute } from '../route.js';
+import { tightView } from '../measure/canvas.js';
+import { sizeChip } from '../chip/place.js';
+import { chipStateAt } from '../chip/motion.js';
+import { timeAtPosition } from '../math/easing.js';
+import { flattenRoute } from '../math/route.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { statusBoxes } from '../layout/status.js';
 

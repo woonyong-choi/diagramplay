@@ -1,4 +1,4 @@
-import { minOf } from '../extremes.js';
+import { minOf } from '../math/extremes.js';
 import { change } from './model.js';
 import { MISSING_TEXT } from './names.js';
 

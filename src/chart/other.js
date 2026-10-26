@@ -2,7 +2,7 @@
 // 묶인 항목도 자기 표식(조각, 막대 조각)과 행·계열 묶음(`cr-k`, `cs-i`)을 그대로 가진다. 그래서 장면의 밝히기·드러내기와 프레임 구조는 바뀌지 않고,
 // 칠만 중립색으로 같아지고 이름 글은 "기타" 하나가 맡는다. 값에 묶인 차트(프레임마다 값이 달라지는 차트)는 묶지 않는다. 묶음이 프레임마다 달라지면 범례와 이름 글의 구조가 흔들리기 때문이다.
 import { tokens } from '@woonyong-choi/design-tokens/tokens.js';
-import { PALETTE, categoryPaint } from '../chart-palette.js';
+import { PALETTE, categoryPaint } from '../color/palette.js';
 import { COPY } from './copy.js';
 
 /** 묶음의 이름 */

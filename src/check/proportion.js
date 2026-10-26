@@ -1,5 +1,5 @@
 // 9번과 10번: 그림 비율과 문서 폭에서 읽힘.
-import { ASPECT_MAX, canvasOf, displayRatio } from '../canvas.js';
+import { ASPECT_MAX, canvasOf, displayRatio } from '../measure/canvas.js';
 import { ROOT } from '../layout/model.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 

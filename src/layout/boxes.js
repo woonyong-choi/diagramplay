@@ -2,7 +2,7 @@
 import { placeGroupHead } from '../measure/sizes.js';
 import { hasPill, sizePill } from '../measure/pills.js';
 import { STYLE, allTexts, textSpan } from '../measure/texts.js';
-import { plainText } from '../text.js';
+import { plainText } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { queueSlots } from '../measure/queue.js';
 import { contentBox } from '../measure/content.js';
@@ -42,7 +42,7 @@ export function chipObstacles(scene, timeline) {
 // cost: time O(s), heap O(s), stack O(1)
 // vars: s = 도형 수
 // basis: estimate
-// 도형 안에서 글자처럼 읽히는 것: 카드가 차지하는 사각형과 큐의 칸. 도형 윤곽 사각형 안에 들어 있어 처음 계획은 이미 윤곽으로 피하므로 `isInner`로 가르고, 윤곽을 덮는 두 번째 계획(chip-plan.js)만 이것을 따로 피한다.
+// 도형 안에서 글자처럼 읽히는 것: 카드가 차지하는 사각형과 큐의 칸. 도형 윤곽 사각형 안에 들어 있어 처음 계획은 이미 윤곽으로 피하므로 `isInner`로 가르고, 윤곽을 덮는 두 번째 계획(chip/plan.js)만 이것을 따로 피한다.
 function innerBoxes(scene) {
   return scene.items.flatMap((it) => {
     const name = plainText(it.label ?? it.id);

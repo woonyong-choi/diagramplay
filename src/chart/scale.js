@@ -1,5 +1,5 @@
 // 차트 축 눈금, 숫자 표기, 바뀐 비율. 규칙은 docs/design/charts.md의 그리기 절이다.
-import { maxOf } from '../extremes.js';
+import { maxOf } from '../math/extremes.js';
 import { DECIMALS_MAX } from '../source/grammar.js';
 
 // cost: time O(1), heap O(1), stack O(1)

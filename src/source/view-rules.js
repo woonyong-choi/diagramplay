@@ -1,7 +1,7 @@
 // 추적 카드와 순서 보기의 규칙. 추적의 구간은 선언된 카드 위에 놓이고, 순서 보기는 자기에게 투영된 메시지로 생명주기와 참여자 순서를 확인한다.
 import { checkSequenceLife } from './sequence-life.js';
 import { unknownName } from './problems.js';
-import { sequenceFigure } from '../views.js';
+import { sequenceFigure } from '../compile/views.js';
 
 // cost: time O(t·s), heap O(k), stack O(1)
 // vars: t = 추적 카드 수, s = 구간 수, k = 이름 수

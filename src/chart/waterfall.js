@@ -1,10 +1,10 @@
 // 증감 막대는 직전 누계에서 시작하고, 합계 막대는 0에서 현재 누계까지 그린다.
-import { maxOf, minOf } from '../extremes.js';
+import { maxOf, minOf } from '../math/extremes.js';
 import { STYLE } from '../measure/texts.js';
 import { drawTextBack } from '../draw/texts.js';
-import { categoryPaint } from '../chart-palette.js';
+import { categoryPaint } from '../color/palette.js';
 import { measure, wrap } from '../measure/fonts.js';
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { COPY } from './copy.js';

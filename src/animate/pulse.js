@@ -1,6 +1,6 @@
 // 갱신 펄스의 SMIL. 같은 대상의 펄스를 하나의 불투명도 꺾은선으로 합친다(가장 센 값, 합하지 않는다). 펄스 길이는 재생 속도와 상관없는 화면 ms다.
-import { ratio } from '../format.js';
-import { envelopeKeys } from '../pulse.js';
+import { ratio } from '../format/numbers.js';
+import { envelopeKeys } from '../timeline/pulse.js';
 
 // cost: time O(p²), heap O(p), stack O(1)
 // vars: p = 같은 대상의 펄스 수

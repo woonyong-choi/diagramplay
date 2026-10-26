@@ -1,8 +1,8 @@
 // 카드 안 글(measure/texts.js의 text)과 글 뒤 바탕 면(drawTextBack)을 그린다. 머리, 열, 제약, 클래스 멤버, 격자 칸, 내용 줄(태그, 본문, 표시, 값), 메모와 구획 제목, 차트 제목이 모두 이 함수 하나다.
 // 글꼴과 색은 text의 역할(class)이 정하고, 글이 놓인 기준 점(anchor)은 text가 정한다. 그래서 같은 역할의 글은 어느 종류의 카드에서도 같은 모양이다.
-// 글을 읽는 방식은 text의 글꼴(style.face)이 정한다: 고정폭이거나 값 글꼴이면 백틱도 글자이고, 그 밖에는 백틱 구간이 코드다(text.js codeParts). 재기와 같은 규칙이다.
+// 글을 읽는 방식은 text의 글꼴(style.face)이 정한다: 고정폭이거나 값 글꼴이면 백틱도 글자이고, 그 밖에는 백틱 구간이 코드다(format/text.js codeParts). 재기와 같은 규칙이다.
 import { KEY_GAP } from '../measure/texts.js';
-import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../text.js';
+import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const SPACE = values.spacing;

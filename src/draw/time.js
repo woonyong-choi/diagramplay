@@ -3,7 +3,7 @@ import { CHART_FACES } from '../chart/draw.js';
 import { axisLabels } from '../chart/axis.js';
 import { rowName } from '../chart/labels.js';
 import { PAD, SPACE } from '../chart/metrics.js';
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 import { drawChartBody } from './chart.js';
 import { textSpan } from '../measure/texts.js';
 import { TEXT_BACK_PAD, drawTextBack, drawTexts, textMarkup } from './texts.js';

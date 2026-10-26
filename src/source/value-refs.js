@@ -1,4 +1,4 @@
-// 값 모형의 참조 사슬과 값 바꾸기 식 목록. 원본 확인(value-check.js)과 시간표·카드 크기 계산(values.js)이 같은 읽기를 쓴다.
+// 값 모형의 참조 사슬과 값 바꾸기 식 목록. 원본 확인(value-check.js)과 시간표·카드 크기 계산(timeline/value-texts.js)이 같은 읽기를 쓴다.
 
 // cost: time O(c), heap O(1), stack O(c)
 // vars: c = 참조 사슬 길이

@@ -1,5 +1,5 @@
 // 순서 그림의 활성 구간과 소멸 표식. 시간표를 바꾸지 않는 구조 표시다.
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { sceneTag } from './scene-tag.js';
 

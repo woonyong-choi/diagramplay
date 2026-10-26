@@ -33,7 +33,7 @@ export function buildModel(figure, sizes) {
   const pieces = new Map();
   for (const edge of edges) pieces.set(edge.index, splitEdge(edge, nodes, containers));
   fanColumnPorts(nodes);
-  // sweep은 박자 이동 글 상자가 선 옆을 쓸고 지나는 폭 Map<선 번호, { x, y }>이다(chip-room.js). 배치 뒤 선 옆에 놓는 그룹 제목과 끝 라벨이 비킨다.
+  // sweep은 박자 이동 글 상자가 선 옆을 쓸고 지나는 폭 Map<선 번호, { x, y }>이다(chip/room.js). 배치 뒤 선 옆에 놓는 그룹 제목과 끝 라벨이 비킨다.
   const model = { containers, nodes, edges, pieces, isSafe: figure.safeLayout === true, sweep: figure.chipSweep ?? new Map() };
   orderByFlow(model);
   return model;

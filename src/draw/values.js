@@ -1,9 +1,9 @@
 // 값 카드 줄의 값 글자와 바뀔 때 밝히는 테두리. 줄의 이름은 카드 층이 그리고, 값은 시간표(timeline.values)의 변화 목록대로 글자 요소를 값마다 하나씩 두고 불투명도로 바꾼다(docs/design/playback.md 값 변화).
 // 같은 카드가 여러 보기에 그려지면 도형마다 같은 값 글자를 한 벌씩 그린다(data-v는 같다). 카드에 놓이지 않은 값(`on=` 없음)은 그리지 않는다.
-import { indicatorText } from '../value-indicators.js';
+import { indicatorText } from '../source/indicators.js';
 import { CONTENT, valueText } from '../measure/content.js';
 import { filledSlots, queueSlots } from '../measure/queue.js';
-import { escapeXml, roundCoord as r } from '../text.js';
+import { escapeXml, roundCoord as r } from '../format/text.js';
 import { drawSlot } from './card.js';
 import { drawCellFlash } from './grid.js';
 import { contentBox, rowSpan } from '../measure/content.js';

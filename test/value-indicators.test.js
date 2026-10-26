@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { FigureError, toHtml, toSvg } from 'diagramplay';
-import { runAtomicUpdate } from '../src/timeline-values.js';
+import { runAtomicUpdate } from '../src/timeline/values.js';
 import { build, diagramplay, findAll, lineOf, parseMarkup, reject, textContent, textsOf } from './support.js';
 
 function source(options, scenes = '', extra = '') {

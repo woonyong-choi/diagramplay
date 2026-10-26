@@ -2,7 +2,7 @@
 // 값에 묶인 차트는 정적 행과 같은 값 규칙을 받는다(#171). 시험 이름 첫 낱말(K1~K9, C1~C5)이 요구사항 번호이고, 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { reflowFigure } from '../src/build.js';
+import { reflowFigure } from '../src/compile/figure.js';
 import { drawHeatmap } from '../src/chart/heatmap.js';
 import { DOT, PAD } from '../src/chart/metrics.js';
 import { measure } from '../src/measure/fonts.js';
@@ -291,7 +291,7 @@ test('K9 narrow value-axis labels keep both ends, thin out at an even stride and
       assert.equal(new Set(indices.slice(1).map((index, i) => index - indices[i])).size, 1, `${where}: even stride`);
       shown.slice(1).forEach((tick, i) => assert.ok(tick.center - tick.width / 2 - (shown[i].center + shown[i].width / 2) >= values.spacing["3"], `${where}: readable gap`));
       const [left, , width] = dom.attrs.viewBox.split(' ').map(Number);
-      // 좌표는 소수 첫째 자리로 쓰므로(format.js) 반올림 몫(0.05)만큼은 경계에 닿은 것으로 본다.
+      // 좌표는 소수 첫째 자리로 쓰므로(format/numbers.js) 반올림 몫(0.05)만큼은 경계에 닿은 것으로 본다.
       assert.ok(shown.every((t) => t.center - t.width / 2 >= PAD - ROUNDING && t.center + t.width / 2 <= left + width - PAD + ROUNDING), `${where}: inside the figure`);
     }
   }
