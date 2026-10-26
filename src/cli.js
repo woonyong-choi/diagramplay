@@ -102,7 +102,7 @@ function parseArgs(argv) {
 // cost: time O(f·build), heap O(f·out), stack O(1), io 4f
 // vars: f = 원본 수, build = 원본 하나를 만드는 비용, out = 결과 글자 수
 // basis: estimate
-// render는 쓸 파일 이름이 겹치는지 먼저 보고, 원본마다 만든 결과를 모아 한 번에 쓴다. 오류가 있는 원본은 파일을 쓰지 않고 다른 원본의 결과는 쓴다.
+// render는 쓸 파일 이름이 겹치는지 먼저 보고, 원본마다 만든 결과를 모아 한 번에 쓴다. 모든 원본의 진단을 알린 뒤 하나라도 실패하면 아무 파일도 쓰지 않는다.
 async function main(argv) {
   const args = parseArgs(argv);
   if (args.error) {
@@ -127,8 +127,8 @@ async function main(argv) {
     if (!result || (args.command === 'render' && !files)) failed = true;
     writes.push(...(files ?? []));
   }
-  const isWritten = commitReported(writes, { json: args.flags.has('json') });
-  return failed || !isWritten ? 1 : 0;
+  if (failed) return 1;
+  return commitReported(writes, { json: args.flags.has('json') }) ? 0 : 1;
 }
 
 // cost: time O(f), heap O(f), stack O(1)
