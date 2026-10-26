@@ -1,5 +1,5 @@
 // 2번과 6번: 글과 도형이 겹치지 않는다. 차트는 산점도 점 이름끼리 겹치지 않는 것만 본다.
-import { textBoxes } from '../draw/boxes.js';
+import { textBoxes } from '../layout/boxes.js';
 import { isCoVisible, labelOf, overlaps, segmentHits, THROUGH_INSET } from './geometry.js';
 
 // cost: time O((l + t)² + (l + t)·s), heap O(1), stack O(1)

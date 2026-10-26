@@ -1,7 +1,7 @@
 // 카드(도형의 바깥 면 하나)를 그린다. 상자, 사람, 큐, 표, API, 클래스, 차트, 격자, 순서 보기 참여자가 모두 이 구성을 거친다.
 //   Card = Surface(draw/surface.js) + 구분선 + 부분(표 열, 격자 칸) + 종류별 몸통(차트, 큐 칸, 격자 칸 묶음)
 //   Head = 장식(아이콘, 배지, 개수: draw/decor.js) + 글(draw/texts.js). 머리 제목, 부제, 열 이름, 형식, 제약, 클래스 멤버, 격자 칸 글이 모두 같은 text다.
-// 글과 구분선의 자리는 측정(measure/sizes.js)이 한 번 정한 값이고, 이동 글 상자가 피할 사각형(draw/boxes.js)도 같은 값을 읽는다. 종류별 코드는 어떤 글을 어디에 놓을지만 측정에 넘긴다.
+// 글과 구분선의 자리는 측정(measure/sizes.js)이 한 번 정한 값이고, 이동 글 상자가 피할 사각형(layout/boxes.js)도 같은 값을 읽는다. 종류별 코드는 어떤 글을 어디에 놓을지만 측정에 넘긴다.
 import { drawChartBody } from './chart.js';
 import { STACK_STEP } from '../measure/decor.js';
 import { queueSlots } from '../measure/queue.js';

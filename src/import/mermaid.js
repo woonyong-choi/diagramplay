@@ -5,7 +5,7 @@ import { readFlowchart } from './mermaid-flow.js';
 import { readEr } from './mermaid-er.js';
 import { readSequence } from './mermaid-sequence.js';
 import { readState } from './mermaid-state.js';
-import { decimal } from './names.js';
+import { decimal, unquote } from './names.js';
 
 // 그림 종류 낱말 → 읽기. flowchart와 graph는 같은 순서도다.
 const READERS = {
@@ -75,17 +75,6 @@ function readFrontmatter(lines, model) {
     if (pair?.[1] === 'title' && pair[2]) model.title = textOf(model, unquote(pair[2]), i + 2);
     else skip(model, i + 2, `the front matter "${pair?.[1] ?? line.trim()}" is not imported. DiagramPlay reads only title`);
   }
-}
-
-// cost: time O(n), heap O(n), stack O(1)
-// vars: n = 글자 수
-// basis: estimate
-/** 따옴표를 벗기고 Mermaid 글자 표기(`#quot;`, `#35;`)와 마크다운 글(`` "`글`" ``)의 백틱을 푼다. */
-export function unquote(raw) {
-  let text = String(raw).trim();
-  if (/^".*"$/s.test(text) || /^'.*'$/s.test(text)) text = text.slice(1, -1);
-  if (/^`.*`$/s.test(text)) text = text.slice(1, -1);
-  return text.replace(/#quot;/g, '"').replace(/#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)));
 }
 
 // cost: time O(r), heap O(r), stack O(1)

@@ -3,7 +3,7 @@ import { CHIP_GAP, sizeChip } from '../chip.js';
 import { findClashes } from '../chip-clash.js';
 import { issuesOfHop } from '../chip-plan.js';
 import { visibleShare } from '../chip-motion.js';
-import { chipLines, chipObstacles } from '../draw/boxes.js';
+import { chipLines, chipObstacles } from '../layout/boxes.js';
 import { flattenRoute } from '../route.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 

@@ -1,9 +1,8 @@
 // Mermaid 순서도(flowchart, graph) 읽기: 노드 모양, 선과 라벨, subgraph 중첩, 방향(docs/design/import.md 순서도).
 import { change, ensureNode, groupOf, skip, textOf } from './model.js';
-import { unquote } from './mermaid.js';
+import { DIRECTIONS } from './mermaid-lines.js';
+import { unquote } from './names.js';
 
-// 방향 낱말 → DiagramPlay 방향. 거꾸로 가는 방향은 없어서 같은 축의 방향으로 바꾼다.
-const DIRECTIONS = { TD: 'down', TB: 'down', LR: 'right', RL: 'right', BT: 'down' };
 const REVERSED = new Set(['RL', 'BT']);
 
 // 노드 모양: [여는 글, 닫는 글, 카드 종류, 상자로 바꿨는지]. 긴 여는 글을 먼저 본다.

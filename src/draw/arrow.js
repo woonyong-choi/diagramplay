@@ -2,16 +2,8 @@
 // 소유자는 둘이다. 연결선은 선 묶음 자신이 소유자라 묶음 안에 정의를 두고(`edgeMarker`, 상태색이 묶음의 color를 따른다), 차트 방향선은 역할(`CHART_ARROW`)이 소유자라 역할마다 정의 하나를 문서에 한 번 둔다(`roleArrowDefs`).
 // 어느 쪽이든 먼저 나온 차트가 색을 정하지 않는다. 마커 크기는 `markerUnits=strokeWidth`라 몸통 굵기에 비례해 커진다. 그러면 마커 안 선도 같은 비율로 굵어져 이중으로 굵어지므로, 마커 안 선 굵기를 `VIEW / size`로 정규화해 어떤 몸통 굵기에서도 실제 굵기가 몸통과 같게 한다.
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
+import { ARM_HALF, ARM_X, TIP_X, VIEW, markStroke } from '../measure/arrow.js';
 
-// 마커 좌표계 한 변
-const VIEW = 5;
-// 삼각형의 꼭지 x(몸통 끝과 만나는 자리), 팔 끝 x, 팔 끝의 중심선 기준 반높이(마커 좌표)
-const TIP_X = 4;
-const ARM_X = 1.1;
-const ARM_HALF = 2.25;
-
-/** 마커 안 선의 마커 좌표 굵기. 몸통 굵기 w에서 실제 굵기가 w가 되게 하는 값이다. */
-const markStroke = (size) => VIEW / size;
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
@@ -69,15 +61,4 @@ function relationMarker(id, shape) {
   const diamond = `M ${TIP_X} ${c} L ${VIEW / 2} ${c - ARM_HALF} L 0 ${c} L ${VIEW / 2} ${c + ARM_HALF} Z`;
   const fill = shape === 'diamond-filled' ? 'currentColor' : tokens.color.figure.canvas;
   return `<marker id="${id}" viewBox="0 0 ${VIEW} ${VIEW}" refX="${TIP_X}" refY="${c}" markerWidth="${size}" markerHeight="${size}" orient="auto-start-reverse" overflow="visible"><path d="${shape === 'triangle' ? triangle : diamond}" fill="${fill}" stroke="currentColor" stroke-width="${markStroke(size)}" stroke-linejoin="round"/></marker>`;
-}
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-/**
- * 몸통 굵기 width의 선 끝에 붙은 화살촉이 실제로 차지하는 크기(px). 꼭지(몸통 끝)에서 뒤로 length, 중심선에서 양옆으로 half, 몸통 끝 너머로 둥근 끝이 cap만큼 나온다.
- */
-export function headReach(width, size = values.spacing.figure.arrow.head) {
-  const unit = (width * size) / VIEW;
-  const cap = markStroke(size) / 2;
-  return { length: (TIP_X + cap - (ARM_X - cap)) * unit, half: (ARM_HALF + cap) * unit, cap: cap * unit };
 }

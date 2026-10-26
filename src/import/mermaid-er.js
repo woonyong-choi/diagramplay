@@ -1,6 +1,7 @@
 // Mermaid 개체 관계 그림(erDiagram) 읽기: 개체와 속성, 관계와 양쪽 기수(docs/design/import.md 개체 관계 그림).
 import { change, ensureNode, skip, textOf } from './model.js';
-import { unquote } from './mermaid.js';
+import { readCommonLine } from './mermaid-lines.js';
+import { unquote } from './names.js';
 
 // 기수 표기 → 다중성. 왼쪽 표기와 오른쪽 표기는 거울 꼴이다.
 const LEFT = { '|o': '0..1', '||': '1', '}o': '0..*', '}|': '1..*' };
@@ -10,7 +11,11 @@ const RELATION = new RegExp(String.raw`^(${NAME})\s+(\|o|\|\||\}o|\}\|)(--|\.\.)
 const ENTITY = new RegExp(String.raw`^(${NAME})\s*(\{)?\s*(\})?$`, 'u');
 const ATTRIBUTE = /^(\S+)\s+(\*?[\p{L}\p{N}_-]+)((?:\s+(?:PK|FK|UK)\s*,?)*)\s*(?:"([^"]*)")?$/u;
 
-const DIRECTIONS = { TB: 'down', TD: 'down', BT: 'down', LR: 'right', RL: 'right' };
+// 옮기지 않는 문장
+const LINE_RULES = {
+  ignored: /^(classDef|class|style|accTitle|accDescr)\b/,
+  why: (word) => `"${word}" is not imported`,
+};
 
 // cost: time O(n·e), heap O(n), stack O(1)
 // vars: n = 줄 수, e = 개체 수
@@ -39,12 +44,7 @@ function readLine(text, line, context) {
     else readAttribute(text, line, context);
     return;
   }
-  const word = text.split(/\s+/)[0];
-  if (word === 'direction') {
-    model.direction = DIRECTIONS[text.split(/\s+/)[1]] ?? model.direction;
-    return;
-  }
-  if (/^(classDef|class|style|accTitle|accDescr)\b/.test(word)) return void skip(model, line, `"${word}" is not imported`);
+  if (readCommonLine(text, line, model, { ...LINE_RULES, direction: (value) => (model.direction = value ?? model.direction) })) return;
   const relation = RELATION.exec(text);
   if (relation) return void readRelation(relation, line, model);
   const entity = ENTITY.exec(text);

@@ -1,39 +1,12 @@
-// 차트의 제목, 범례, 행 이름, 값 글자. 종류마다 같은 글자 규칙을 한 곳에 둔다.
-import { maxOf } from '../extremes.js';
-import { textMarkup } from '../draw/texts.js';
-import { measure, wrap } from '../measure/fonts.js';
-import { STYLE, stackTexts } from '../measure/texts.js';
+// 차트의 제목, 범례, 행 이름, 값 글자를 그린다. 종류마다 같은 글자 규칙을 한 곳에 둔다. 자리와 칸 폭은 chart/label-layout.js가 잰다.
+import { TEXT_BACK_PAD, drawTextBack, textMarkup } from '../draw/texts.js';
+import { measure } from '../measure/fonts.js';
 import { centerBaseline, escapeXml, plainText, renderRich, roundCoord as r } from '../text.js';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { COPY } from './copy.js';
-import { ecdfGroups } from './data.js';
 import { hasEndLabels } from './end-labels.js';
+import { headerLayout } from './label-layout.js';
 import { drawLegend } from './legend.js';
 import { markAttrs } from './marks.js';
-import { PAD, SIZE, SPACE, TEXT, WIDTH } from './metrics.js';
-import { formatNumber } from './scale.js';
-
-const LABEL_W = SIZE.chart.label;
-const LABEL_MAX = SIZE.chart['label-max'];
-const LABEL_GAP = SPACE["3"];
-// 차트 항목 이름이 칸에 들어가는 최대 폭
-const LABEL_ROOM = LABEL_MAX - LABEL_GAP;
-
-// cost: time O(r·n), heap O(1), stack O(1)
-// vars: r = 항목 수, n = 이름 글자 수
-// basis: estimate
-/** 항목 이름 칸 너비. 가장 긴 이름에 맞추되 LABEL_W와 LABEL_MAX 사이다. 넘는 이름은 그림 검사 1번이 알린다. */
-export function labelColumn(names) {
-  return Math.min(LABEL_MAX, maxOf(names.map((name) => measure(name, TEXT['13'], 'regular') + LABEL_GAP), LABEL_W));
-}
-
-// cost: time O(n), heap O(1), stack O(1)
-// vars: n = 이름 글자 수
-// basis: estimate
-/** 항목 이름이 이름 칸에 들어가야 한다는 그림 검사 항목 */
-export function labelFit(name, line) {
-  return { text: name, width: measure(name, TEXT['13'], 'regular'), room: LABEL_ROOM, line, what: 'item name' };
-}
+import { PAD, SPACE, TEXT } from './metrics.js';
 
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 글자 수
@@ -66,11 +39,10 @@ export function inkGroup(k, inner, i) {
 export function valueText({ x, cy }, text, className, mark) {
   const size = TEXT['11'];
   const width = measure(plainText(text), size, /ours|second/.test(className) ? 'numSemibold' : 'num');
-  // 바탕 면은 위아래로 글자 높이에 꼭 맞고, 좌우로는 격자와 기준선이 글자 끝에 붙어 보이지 않도록 spacing.1만큼 넓다. 값 글자는 표식에서 spacing.1-5 떨어져 놓이므로 바탕 면이 표식을 덮지 않는다.
-  const [padX, padY] = [SPACE["1"], SPACE["0-25"]];
+  // 바탕 면은 한 줄 글 여백(TEXT_BACK_PAD.line)이다. 값 글자는 표식에서 spacing.1-5 떨어져 놓이므로 바탕 면이 표식을 덮지 않는다.
   const left = x - (className.includes('end') ? width : 0);
   const attrs = (suffix, isText) => (mark ? markAttrs(mark.chart, `${mark.id}${suffix}`, isText ? { isText } : { raw: mark.raw, paint: mark.paint }) : '');
-  const back = `<rect x="${r(left - padX)}" y="${r(cy - size / 2 - padY)}" width="${r(width + padX * 2)}" height="${size + padY * 2}" class="chart-text-bg${className.includes('late') ? ' late' : ''}"${attrs('.b', false)}/>`;
+  const back = drawTextBack({ x: left, y: cy - size / 2, w: width, h: size }, { pad: TEXT_BACK_PAD.line, late: className.includes('late'), attrs: attrs('.b', false) });
   return back + `<text x="${r(x)}" y="${r(centerBaseline(cy, size))}" class="${className}"${attrs('.t', true)}>${escapeXml(text)}</text>`;
 }
 
@@ -85,46 +57,17 @@ export function insideText(chart, { text, x, cy, paint, fits, id }) {
   return `<text x="${r(x)}" y="${r(centerBaseline(cy, TEXT['11']))}" text-anchor="middle" fill="${paint.on}" class="chart-seg-key late"${fits ? '' : ' visibility="hidden"'}${markAttrs(chart, id, { isText: true })}>${escapeXml(text)}</text>`;
 }
 
-// cost: time O(s), heap O(s), stack O(1)
-// vars: s = 계열 수
-// basis: estimate
-// 누적분포와 히스토그램에서 결측이라 뺀 표본이 있으면 알리는 한 줄(부제 아래). 누적분포는 계열이 있으면 계열 이름이 앞에 붙는다.
-function excludedNote(figure) {
-  if (figure.chartType === 'histogram') return figure.chart.missingCount ? COPY.excluded(figure.chart.missingCount) : undefined;
-  if (figure.chartType !== 'ecdf') return undefined;
-  const notes = ecdfGroups(figure.chart).flatMap((group, i) => (group.missing ? [`${figure.chart.series[i] ? `${figure.chart.series[i].label} ` : ''}${COPY.excluded(group.missing)}`] : []));
-  return notes.join(' · ') || undefined;
-}
-
-// cost: time O(n), heap O(n), stack O(1)
-// vars: n = 기준선 이름 글자 수
-// basis: estimate
-// 좁은 배치의 기준선 한 줄. 이름에 값이 이미 있으면(`SLO 1%`의 1) 값을 덧붙이지 않는다.
-function ruleNote(rule) {
-  const value = formatNumber(rule.value);
-  const named = new RegExp(`(^|[^\\d.])${value.replace('.', '\\.')}($|[^\\d.])`).test(rule.label);
-  return named ? rule.label : `${rule.label} ${value}`;
-}
-
 // cost: time O(s·n), heap O(out), stack O(1)
 // vars: s = 계열 수, n = 계열 이름 글자 수, out = 만든 SVG 글자 수
 // basis: estimate
 /**
  * 제목, 부제, 계열 범례. bottom은 그림 영역이 시작하는 y다.
- * 제목은 카드 제목(label), 부제와 덧붙임과 좁은 배치의 기준선 이름은 카드 부제(sub)와 같은 글 역할과 줄 높이로 위에서 아래로 쌓는다. 차트는 플롯 배치라 왼쪽에 맞추고, 긴 글은 어느 폭에서나 그림 폭 안에서 줄을 나눈다.
+ * 글 자리는 chart/label-layout.js의 headerLayout이 정하고 이 함수는 그 글과 범례를 그린다.
  */
 export function drawHeader(figure) {
-  const { layout } = figure.chart;
-  const rules = layout ? figure.chart.rules.map(ruleNote) : [];
-  const room = (layout?.width ?? WIDTH) - PAD * 2;
-  const linesOf = (text, role, style) => wrap(text, room, style).map((line) => ({ role, text: line, style }));
-  const lines = [
-    ...(figure.title ? linesOf(figure.title, 'label', STYLE.label) : []),
-    ...[figure.subtitle, excludedNote(figure), ...rules].filter(Boolean).flatMap((text) => linesOf(text, 'sub', STYLE.sub)),
-  ];
-  const texts = stackTexts(lines, { x: PAD, top: PAD, anchor: 'start' });
+  const { texts, bottom } = headerLayout(figure);
   const parts = texts.map((t) => textMarkup(t, { x: 0, y: 0 }));
-  let y = lines.reduce((bottom, line) => bottom + line.style.line, PAD);
+  let y = bottom;
   // 끝 이름이 계열마다 이름을 직접 다는 차트(선, 계단, 면적의 둘 이상 계열)는 범례를 두지 않는다. 같은 이름을 두 번 적지 않고 그림 영역이 위로 넓어진다(Vega-Lite 끝 이름 예제와 같은 읽기).
   if (figure.chart.series.length && !hasEndLabels(figure)) {
     const legend = drawLegend(figure, y);
@@ -132,18 +75,6 @@ export function drawHeader(figure) {
     y = legend.bottom;
   }
   return { svg: parts.join('\n'), bottom: y + SPACE["3"] };
-}
-
-// cost: time O(r·n²), heap O(r·n), stack O(1)
-// vars: r = 행 수, n = 이름 글자 수
-// basis: estimate
-/** 좁은 행 차트의 이름 줄과 공통 높이. 모든 행이 같은 막대 시작 위치를 쓴다. */
-export function rowLabelLayout(chart) {
-  // 넓은 배치의 이름은 이름 칸 오른쪽(값 축 시작에서 LABEL_GAP 앞)에 맞춰 막대 바로 옆에 붙는다.
-  if (!chart.layout) return { space: 0, right: PAD + labelColumn(chart.rows.map((row) => row.label)) - LABEL_GAP };
-  const lines = chart.rows.map((row) => wrap(row.label, chart.layout.width - PAD * 2, { size: TEXT['13'], face: row.total ? 'semibold' : 'regular' }));
-  const lineHeight = TEXT['13'] * values.leading.normal;
-  return { lines, lineHeight, space: maxOf(lines.map((row) => row.length)) * lineHeight + SPACE["3"] };
 }
 
 // cost: time O(n), heap O(n), stack O(1)
