@@ -48,12 +48,12 @@ runs:
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: ${{ inputs.node-version || '20' }}
-    # 실행에 필요한 의존성만 잠금 파일대로 설치한다. 디자인은 package.json의 dependencies에 고정한 commit tarball이라 같은 설치에 든다(잠금 파일을 읽지 않고 설치하면 글 폭을 재는 harfbuzzjs 같은 의존성이 새 판으로 바뀐다). 선택 의존성은 디자인의 빌드 전용 esbuild 바이너리뿐이라 받지 않는다.
+    # 실행에 필요한 의존성만 잠금 파일대로 설치한다. 디자인은 package.json의 dependencies에 고정한 commit tarball이라 같은 설치에 든다(잠금 파일을 읽지 않고 설치하면 글 폭을 재는 harfbuzzjs 같은 의존성이 새 판으로 바뀐다).
     - name: Install diagramplay
       shell: bash
       run: |
         set -euo pipefail
-        npm ci --omit=dev --omit=optional --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
+        npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
     - name: Run diagramplay
       shell: bash
       env:

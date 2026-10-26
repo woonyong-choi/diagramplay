@@ -49,9 +49,7 @@
     "showcase": "node scripts/build-showcase.mjs",
     "figures": "npm run catalog && node src/cli.js render docs/assets/how-it-works.diagramplay && npm run showcase && node scripts/run-md.mjs",
     "catalog": "node scripts/build-catalog.mjs",
-    "check:package": "node scripts/check-package.mjs",
-    "prepack": "node scripts/pack-bundle.mjs aside",
-    "postpack": "node scripts/pack-bundle.mjs restore"
+    "check:package": "node scripts/check-package.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -59,7 +57,7 @@
   "dependencies": {
     "@expo-google-fonts/noto-sans": "^0.4.2",
     "@expo-google-fonts/noto-sans-math": "^0.4.2",
-    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/9341b1fc0b6006204b825a697f0717513a25f5a0/artifacts/diagram.tgz",
+    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/c942a519c2fb962b7fb47e96c886c8a82bc40c8a/artifacts/diagram.tgz",
     "elkjs": "^0.9.3",
     "fontkit": "^2.0.4",
     "jetbrains-mono": "^1.0.6",
@@ -70,6 +68,9 @@
   "bundleDependencies": [
     "@woonyong-choi/design-tokens"
   ],
+  "acceptDependencies": {
+    "@woonyong-choi/design-tokens": "0.2.0"
+  },
   "devDependencies": {
     "playwright-core": "^1.63.0",
     "typescript": "7.0.2"
