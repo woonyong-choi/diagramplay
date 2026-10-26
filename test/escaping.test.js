@@ -207,7 +207,7 @@ test('I2 an icon root size is a finite positive viewBox, or width and height onl
     'viewBox too small to fit the grid': [' viewBox="0 0 1e-320 1e-320"', /too large or too small/],
     'width and height too small to fit the grid': [' width="1e-320" height="1e-320"', /too large or too small/],
   };
-  const dir = workspace(t, Object.fromEntries(Object.entries(invalid).map(([name, [attrs]], i) => [`icons/bad${i}.svg`, root(attrs)])));
+  const dir = workspace(t, Object.fromEntries(Object.entries(invalid).map(([, [attrs]], i) => [`icons/bad${i}.svg`, root(attrs)])));
   for (const [i, [name, [, message]]] of Object.entries(invalid).entries()) {
     const source = usingIcon(`bad${i}`);
     const problems = await reject(source, { baseDir: dir });

@@ -199,7 +199,7 @@ const textAt = (row, t) => (row.periods.find(([from, to]) => from <= t && t < to
  * @returns { frames, marks, rows, body, defs } 또는 묶은 값이 없으면 undefined. rows는 장면마다 { si, t0, t1, periods: [[from, to, 프레임 번호, 바뀐 표식 id[]]] }, body는 표식 id를 붙인 처음 그림이다. 바뀐 표식은 원자료가 달라진 것뿐이다(위치만 밀린 표식은 조용히 옮겨진다).
  * @throws FigureError 묶은 값이 숫자가 아닌 글을 가질 때나 원본 행과 같은 값 규칙(음수, 로그 0 이하, 크기 상한)을 어길 때(value-type)나 프레임끼리 표식 이름이 다를 때(chart-frames, 그리기의 버그)
  */
-export function buildChartFrames(card, { figure, timeline, base, pin }, problems) {
+export function buildChartFrames(card, { figure, timeline, pin }, problems) {
   const ids = boundIds(card);
   if (!ids.length) return undefined;
   const assigns = [Object.fromEntries(ids.map((id) => [id, startText(id, figure)]))];

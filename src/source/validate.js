@@ -40,7 +40,7 @@ export function validateFigure(figure, problems) {
   for (const card of figure.nodes) for (const row of card.content ?? []) {
     if (!row.valueId) checkCardTarget({ type: 'content', node: card.id, line: row.line }, { figure, names }, problems);
   }
-  checkChartCards(figure, names, problems);
+  checkChartCards(figure, problems);
   checkTimeline(figure, names, problems);
   if (problems.errors.length > before) return;
   numberProjections(figure);
@@ -228,7 +228,7 @@ function checkBeat(beat, { figure, names, problems, usedEdges }) {
     resolveHop(hop, deps, usedEdges);
     // 시간 초과로 끝난 점이 갈 선도 이동처럼 고른다(출발 도형에서 `else` 도형으로).
     if (hop.condition?.elseNode) resolveHop((hop.elseLeg = { from: hop.from, to: hop.condition.elseNode, line: hop.line }), deps, usedEdges, { graphOnly: true });
-    checkSequenceHop(hop, { beatSize: beat.hops.length, figure }, problems);
+    checkSequenceHop(hop, { beatSize: beat.hops.length }, problems);
   }
   for (const op of beat.ops) checkCardTarget(op, deps, problems);
   for (const target of beat.light) checkLightTarget(target, { line: beat.line, ...deps }, problems);
@@ -241,7 +241,7 @@ function checkBeat(beat, { figure, names, problems, usedEdges }) {
 // vars: v = 보기 수
 // basis: estimate
 // 순서 보기에 보이는 이동은 글이 있고 한 줄에 하나다. dashed, create, destroy는 순서 보기의 낱말이라 두 끝을 담은 순서 보기가 있어야 한다.
-function checkSequenceHop(hop, { beatSize, figure }, problems) {
+function checkSequenceHop(hop, { beatSize }, problems) {
   const isSequence = hop.projections?.some((p) => p.kind === 'sequence');
   if (isSequence && hop.data === undefined) problems.error(hop.line, 'a sequence message needs text: a -> b "message"');
   if (isSequence && beatSize > 1) problems.error(hop.line, 'a sequence message cannot use "&". Write one message per line');

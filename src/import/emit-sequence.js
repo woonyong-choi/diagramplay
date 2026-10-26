@@ -39,7 +39,6 @@ const participantOrder = (sequence, senders) => [...senders, ...sequence.partici
 // basis: estimate
 // 단계 목록을 줄로 쓴다. 메모와 활성 구간은 바로 앞 메시지 뒤(메모가 먼저)에 놓는다. 구획 안에는 활성 구간과 생성·소멸을 둘 수 없다.
 function writeSteps(steps, context, { depth, isTop }) {
-  const { model } = context;
   const lines = [];
   const senders = [];
   let beat;

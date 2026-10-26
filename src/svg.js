@@ -29,7 +29,7 @@ export async function toSvg(result, { scene: selector = 0, isStatic = false, nam
   const si = result.timeline.steps.length ? sceneIndex(result.timeline.steps, selector) : 0;
   const step = result.timeline.steps[si] ?? { label: '', mode: 'static', speed: 1 };
   const mode = isStatic ? 'static' : step.mode;
-  const sliced = sliceTimeline(result.timeline, si, result.scene);
+  const sliced = sliceTimeline(result.timeline, si);
   // 정지 장면과, 표시 길이가 0인 장면(움직임도 효과도 없다)은 마지막 모습 하나다. 길이 0의 SMIL은 올바르지 않아 `<animate>`를 만들지 않는다.
   const isStill = mode === 'static' || result.timeline.presentation[si] === 0;
   const timeline = isStill ? finalState(sliced) : sliced;
@@ -131,7 +131,7 @@ function noSceneMessage(steps, shown) {
 /**
  * 시간표에서 장면 하나만 떼어 시각을 0부터 다시 센다. 값 줄, 펄스, 차트 프레임은 그 장면 것만 남는다. 장면이 없는 문서는 모든 것이 보이는 구간 하나다.
  */
-function sliceTimeline(timeline, si, scene) {
+function sliceTimeline(timeline, si) {
   const segs = timeline.segs.filter((s) => s.si === si);
   if (!segs.length) return { segs: [emptySeg(timeline.initialCards)], total: 1, growMs: timeline.growMs, pulses: [], values: timeline.values ?? [], charts: {}, tracks: timeline.tracks };
   const t0 = segs[0].t0;

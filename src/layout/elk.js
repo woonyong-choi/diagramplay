@@ -3,7 +3,6 @@ import { FIGURE_PAD } from '../canvas.js';
 import { endMarks } from './end-marks.js';
 import { groupTitleWidth } from '../measure/sizes.js';
 import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
-import { STYLE, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { isInnerEdge } from './cell-ports.js';
 import { ROOT } from './model.js';

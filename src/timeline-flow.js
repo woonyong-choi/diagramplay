@@ -191,7 +191,7 @@ function conditionalTracks(plans, { step, indexes, length, chips, run, scene, en
   const { started } = engine.runLaunches({ launches, start: t0, lengthTicks });
   const starts = plans.map(() => []);
   const branches = [];
-  for (const { launch, at, via, isElse } of started) {
+  for (const { launch, at, isElse } of started) {
     if (at >= lengthTicks) continue;
     if (isElse) branches.push({ launch, rel: msOfTicks(at) });
     else starts[launch.track].push(msOfTicks(at));

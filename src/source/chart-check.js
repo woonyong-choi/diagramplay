@@ -7,7 +7,7 @@ import { NUMBER_PATTERN } from './words.js';
 // vars: c = 차트 카드 수, r = 행 수, k = 행의 값 수, b = 박자 수
 // basis: estimate
 /** 차트 카드마다 값 묶음과 움직임 줄(plot.motion)을 정하고 차트 규칙을 확인한다. */
-export function checkChartCards(figure, names, problems) {
+export function checkChartCards(figure, problems) {
   const byId = new Map(figure.values.map((v) => [v.id, v]));
   const beats = figure.steps.flatMap((step, si) => step.beats.map((beat) => ({ beat, si })));
   for (const card of figure.nodes.filter((n) => n.shape === 'chart' && !n.isRejected)) {

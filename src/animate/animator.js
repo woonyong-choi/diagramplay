@@ -60,7 +60,7 @@ export function createAnimator({ segs, growMs, pulses = [], marks = {} }, clock,
 function borderPulse(shape, anim) {
   if (!anim) return '';
   return [...shape.matchAll(/<(\w+)\b[^>]*\sclass="(fl-stroke[^"]*)"[^>]*\/>/g)]
-    .map(([tag, name, classes]) => {
+    .map(([tag, name]) => {
       // 도착 후광은 도형이 고른 색과 상관없이 공통 UI 강조다.
       return `${tag.replace(/\sclass="[^"]*"/, ` class="fl-pulse" opacity="0" aria-hidden="true"`).replace(/\s*\/>$/, '>')}${anim}</${name}>`;
     })
