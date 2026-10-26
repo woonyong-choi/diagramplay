@@ -117,6 +117,7 @@ export const STATEMENTS = table({
   pace: { section: 'header' },
   aspect: { section: 'header' },
   width: { section: 'header', positional: ['width'] },
+  require: { section: 'header', display: 'require "글" [or "글" ...]' },
   person: { section: 'declare', node: { hasSub: false }, scopes: ['node'] },
   box: { section: 'declare', node: { hasSub: true }, scopes: ['box', 'node'] },
   external: { section: 'declare', node: { hasSub: true }, scopes: ['node'] },

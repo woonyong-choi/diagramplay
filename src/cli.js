@@ -13,22 +13,22 @@ import { toSvg } from './svg/output.js';
 
 const USAGE = [
   'usage:',
-  '  diagramplay render <file.diagramplay ...> [--out dir] [--html] [--static] [--scene n|label] [--strict] [--budget name=value ...] [--json]',
-  '  diagramplay check <file.diagramplay ...> [--strict] [--budget name=value ...] [--json]',
+  '  diagramplay render <file.diagramplay ...> [--out dir] [--html] [--static] [--scene n|label] [--strict] [--docs] [--budget name=value ...] [--json]',
+  '  diagramplay check <file.diagramplay ...> [--strict] [--docs] [--budget name=value ...] [--json]',
   '  diagramplay gallery <dir> [--out dir] [--title "text"] [--strict] [--budget name=value ...]',
-  '  diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|label] [--strict] [--budget name=value ...] [--json]',
+  '  diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|label] [--strict] [--docs] [--budget name=value ...] [--json]',
   '  diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <file|-> [--out file.diagramplay] [--json]',
   `budget names: ${BUDGET_NAMES.join(', ')}`,
 ].join('\n');
 // gallery가 받는 옵션. --html은 gallery가 늘 HTML을 쓰므로 받기만 한다.
 const GALLERY_FLAGS = ['html', 'strict'];
 const VALUE_OPTIONS = ['--out', '--title', '--out-dir', '--fold-title', '--scene'];
-const FLAGS = ['--html', '--static', '--strict', '--json', '--check', '--fold', '--unfold'];
+const FLAGS = ['--html', '--static', '--strict', '--json', '--check', '--fold', '--unfold', '--docs'];
 // md 명령이 받지 않는 옵션과 md 명령만 받는 옵션
 const MD_REFUSED = ['out', 'title', 'html'];
 const MD_ONLY = ['check', 'out-dir', 'fold', 'unfold', 'fold-title'];
 // 나머지 명령이 받지 않는 옵션. check는 파일을 쓰지 않으니 쓰는 옵션을 모두 거절하고, 목록 제목은 gallery만 받는다.
-const OTHER_REFUSED = { check: ['out', 'html', 'static', 'scene', 'title'], render: ['title'], gallery: ['scene'], import: ['html', 'static', 'scene', 'title', 'strict'] };
+const OTHER_REFUSED = { check: ['out', 'html', 'static', 'scene', 'title'], render: ['title'], gallery: ['scene'], import: ['html', 'static', 'scene', 'title', 'strict', 'docs'] };
 const SOURCE_EXT = /\.diagramplay$/;
 // gallery가 목록과 문서 미리보기로 쓰는 쪽 이름(확장자 없이)
 const RESERVED_PAGES = new Set(['index', 'document']);

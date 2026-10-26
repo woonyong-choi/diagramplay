@@ -64,6 +64,8 @@ function emptyFigure(source) {
     subtitle: undefined,
     paceMs: undefined,
     aspect: undefined,
+    // `require` 줄의 요구 항목 { alternatives, line }. 판정은 문서 품질 검사(--docs)가 한다
+    requires: [],
     // 캔버스 폭 선택: standard(생략과 같음)나 wide
     width: undefined,
     nodes: [],
@@ -189,7 +191,8 @@ function readStatement(statement, ctx) {
 function readByPart({ word, section }, statement, ctx) {
   const { line } = statement;
   if (section === 'header') {
-    if (ctx.headers.has(word)) ctx.problems.error(line, `"${word}" is written twice (line ${ctx.headers.get(word)})`);
+    // require는 요구 항목마다 한 줄이라 여러 번 쓴다(docs/design/figure-quality.md)
+    if (word !== 'require' && ctx.headers.has(word)) ctx.problems.error(line, `"${word}" is written twice (line ${ctx.headers.get(word)})`);
     ctx.headers.set(word, line);
     readHeader(statement, ctx);
   } else if (section === 'timeline') {

@@ -14,6 +14,10 @@ inputs:
     description: '`true` also fails on warnings.'
     required: false
     default: 'false'
+  docs:
+    description: '`true` adds the document quality checks (`--docs`): kind badges, highlights, `require` items, long names, folded chains and text size in a 680px column. With `strict`, their warnings fail too.'
+    required: false
+    default: 'false'
   fold:
     description: '`keep` leaves the folded state of each document as it is (new figures stay unfolded). `fold` puts the figure first and folds each diagramplay block into a details section. `unfold` undoes only the folds diagramplay made. Applies to the Markdown files in both modes.'
     required: false
@@ -59,6 +63,7 @@ runs:
         PATHS: ${{ inputs.paths }}
         MODE: ${{ inputs.mode }}
         STRICT: ${{ inputs.strict }}
+        DOCS: ${{ inputs.docs }}
         FOLD: ${{ inputs.fold }}
         FOLD_TITLE: ${{ inputs.fold-title }}
         BUDGET: ${{ inputs.budget }}
@@ -67,6 +72,7 @@ runs:
         set -f
         case "$MODE" in check|render) ;; *) echo "::error::mode must be check or render, not '$MODE'"; exit 1 ;; esac
         case "$STRICT" in true) strict_flag=--strict ;; false) strict_flag= ;; *) echo "::error::strict must be true or false, not '$STRICT'"; exit 1 ;; esac
+        case "$DOCS" in true) docs_flag=--docs ;; false) docs_flag= ;; *) echo "::error::docs must be true or false, not '$DOCS'"; exit 1 ;; esac
         fold_flags=()
         case "${FOLD:-keep}" in
           keep) ;;
@@ -101,9 +107,9 @@ runs:
         cli="$GITHUB_ACTION_PATH/src/cli.js"
         status=0
         if [ "${#source_files[@]}" -gt 0 ]; then
-          node "$cli" "$source_command" $strict_flag ${budget_args[@]+"${budget_args[@]}"} -- "${source_files[@]}" || status=1
+          node "$cli" "$source_command" $strict_flag $docs_flag ${budget_args[@]+"${budget_args[@]}"} -- "${source_files[@]}" || status=1
         fi
         if [ "${#md_files[@]}" -gt 0 ]; then
-          node "$cli" md $md_flag $strict_flag ${fold_flags[@]+"${fold_flags[@]}"} ${budget_args[@]+"${budget_args[@]}"} -- "${md_files[@]}" || status=1
+          node "$cli" md $md_flag $strict_flag $docs_flag ${fold_flags[@]+"${fold_flags[@]}"} ${budget_args[@]+"${budget_args[@]}"} -- "${md_files[@]}" || status=1
         fi
         exit "$status"
