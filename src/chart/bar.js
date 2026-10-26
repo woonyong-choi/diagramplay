@@ -1,7 +1,7 @@
-// 막대 차트: 행마다 계열 막대를 쌓고, 신뢰구간 막대기와 값 글자를 붙인다. 계열 수에 상한이 없다.
+// 막대 차트: 행마다 계열 막대를 쌓고, 신뢰구간과 값 글자를 붙인다. 계열 수에 상한이 없다.
 // 칸마다 막대(또는 값이 없다는 안내 글)가 늘 하나씩 있다. 값 0은 가장 짧은 막대와 값 글자 `0`이고, 결측은 막대 없이 안내 글이다.
 // 막대는 테두리 없는 평평한 면이다. 신뢰구간은 막대 끝 위에 겹쳐 긋고 값 글자는 그 바로 뒤에 둔다.
-// 기대값(reference) 계열은 슬롯을 차지하지 않고 행 막대 묶음을 가로지르는 세로 눈금이다. 색 수를 넘는 계열은 막대 위에 무늬가 덮인다.
+// 기대값(reference) 계열은 슬롯을 차지하지 않고 행 막대 묶음을 가로지르는 세로 눈금이다. 눈금은 신뢰구간과 만나는 자리를 비운다. 색 수를 넘는 계열은 막대 위에 무늬가 덮인다.
 import { measure } from '../measure/fonts.js';
 import { renderRich, centerBaseline, roundCoord as r } from '../text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
@@ -96,7 +96,7 @@ function barFace(ctx, { i, k }, face) {
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 값 글자 수
 // basis: estimate
-// 기대값 계열: 행 막대 묶음을 위아래로 조금 넘는 세로 눈금과 그 위 값 글자. 값이 없으면 자리만 두고 숨긴다.
+// 기대값 계열: 행 막대 묶음을 위아래로 조금 넘는 세로 눈금과 그 위 값 글자. 값이 없으면 자리만 두고 숨긴다. 신뢰구간과 만나는 자리는 비운다(intervalCrossings).
 function referenceTick(ctx, row, { k, i, y }) {
   const { chart, scale, plotX, formats } = ctx;
   const v = row.values[chart.series[i].id];
@@ -104,14 +104,50 @@ function referenceTick(ctx, row, { k, i, y }) {
   const x = typeof v === 'number' ? scale.at(v) : plotX;
   const hidden = typeof v === 'number' ? '' : ' visibility="hidden"';
   const { from, to, below } = barSpan(ctx, row, y);
-  const span = `x1="${r(x)}" x2="${r(x)}" y1="${r(from - RULE_OVERHANG)}" y2="${r(to + (below ? 0 : RULE_OVERHANG))}"`;
-  const tick = `<line ${span} stroke="${paint.ink}" stroke-width="${values["border-width"].strong}" stroke-linecap="round" class="pop"${hidden}${markAttrs(chart, markId(chart, i, k), { raw: v, paint })}/>`;
+  const runs = tickRuns({ from: from - RULE_OVERHANG, to: to + (below ? 0 : RULE_OVERHANG) }, intervalCrossings(ctx, row, { x, y }));
+  const d = runs.map(([a, b]) => `M${r(x)} ${r(a)}V${r(b)}`).join('');
+  const tick = `<path d="${d}" stroke="${paint.ink}" stroke-width="${values["border-width"].strong}" stroke-linecap="round" fill="none" class="pop"${hidden}${markAttrs(chart, markId(chart, i, k), { raw: v, paint })}/>`;
   // 공통 기준선(rule)과 같은 값이면 그 기준선의 라벨이 이미 값을 말하므로 숫자를 되풀이하지 않는다.
   const isRuleValue = typeof v === 'number' && chart.rules.some((rule) => rule.value === v);
   const label = typeof v === 'number' && !isRuleValue ? formats[i](v) : '';
   const isLeft = label !== '' && labelSide(ctx, row, { x, label }) === 'left';
   const text = `<text x="${r(isLeft ? x - SPACE["1"] : x + SPACE["1"])}" y="${r(y - RULE_LABEL_RISE)}" class="chart-rule-label${isLeft ? ' end' : ''} late"${hidden}${markAttrs(chart, markId(chart, i, k, '.t'), { isText: true })}>${label}</text>`;
   return { mark: `<g class="cr-${k}"><g class="cs-${i}">${tick}</g></g>`, value: inkGroup(k, text, i) };
+}
+
+// cost: time O(s), heap O(s), stack O(1)
+// vars: s = 계열 수
+// basis: estimate
+// 기대값 눈금이 신뢰구간과 만나는 세로 구간들. 신뢰구간은 자료이고 눈금은 기준이라 만나는 자리에서 눈금이 비킨다.
+// 눈금이 가로선(low~high)을 지나면 그 선 둘레(선 굵기 절반 + spacing.1)만, 끝 수염과 spacing.2 안으로 붙으면 수염 높이(막대 두께)만큼 비운다. 수염과 눈금이 같은 회색 세로선이라 붙으면 한 선으로 읽히기 때문이다.
+// 비운 자리 끝은 눈금의 둥근 끝(굵기 절반)만큼 더 물러나 둥근 끝이 수염 높이 안으로 들어오지 않는다. 막대 사이 틈과 묶음 위아래로 나온 부분의 눈금은 남아 목표 자리가 보인다.
+function intervalCrossings(ctx, row, { x, y }) {
+  const { chart, scale, slots } = ctx;
+  const round = values["border-width"].strong / 2;
+  const half = values["border-width"].tag / 2 + SPACE["1"] + round;
+  return chart.series.flatMap((s, i) => {
+    const [low, high] = [row.values[`${s.id}.low`], row.values[`${s.id}.high`]];
+    if (slots[i] === undefined || typeof row.values[s.id] !== 'number' || high === undefined) return [];
+    const cy = y + slots[i] * STEP + BAR / 2;
+    const [x1, x2] = [scale.at(low), scale.at(high)];
+    if (Math.min(Math.abs(x - x1), Math.abs(x - x2)) < SPACE["2"]) return [[cy - BAR / 2 - round, cy + BAR / 2 + round]];
+    return x > x1 && x < x2 ? [[cy - half, cy + half]] : [];
+  });
+}
+
+// cost: time O(c log c), heap O(c), stack O(1)
+// vars: c = 비울 구간 수
+// basis: estimate
+// 눈금 [from, to]에서 비울 구간을 뺀 남은 조각들. 남는 조각이 없으면 위쪽 끝의 길이 0 조각 하나라 요소와 표식 이름은 늘 있다.
+function tickRuns({ from, to }, cuts) {
+  const runs = [];
+  let at = from;
+  for (const [a, b] of [...cuts].sort((p, q) => p[0] - q[0])) {
+    if (a > at) runs.push([at, Math.min(a, to)]);
+    at = Math.max(at, b);
+  }
+  if (at < to) runs.push([at, to]);
+  return runs.length ? runs : [[from, from]];
 }
 
 // cost: time O(s), heap O(1), stack O(1)
