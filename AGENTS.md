@@ -32,7 +32,7 @@
 | `src/icons/` | 공통 카탈로그 읽기와 사용자 SVG 검증. 내장 도형과 조작 아이콘은 design-tokens 정본 |
 | `action.yml`, `.github/workflows/` | GitHub Action(composite), CI, `v*` 태그 배포 |
 | `examples/` | 표현마다 하나인 예제 원본(`icons/`, `data/`는 예제가 읽는 자료). 결과는 `npm run catalog`가 `.local/examples/`에 생성 |
-| `scripts/` | 문법·검사 문서, 예제·그림 생성, 배포물 묶기(`pack-bundle.mjs`), 설치 검사, 크기·비용 참고 검사 |
+| `scripts/` | 문법·검사 문서, 예제·그림 생성, 설치 검사, 크기·비용 참고 검사 |
 | `test/` | 공개 진입점과 공통 부품의 계약 시험, 브라우저 시험(`browser/`, 시험 원본 `browser/fixtures/`) |
 | `docs/` | 설계 문서, 그림 종류별 레퍼런스(`reference/`), README 그림(`assets/showcase/`) |
 
@@ -57,7 +57,7 @@ npm run check:package -- /absolute/new-consumer-path
 
 - 런타임 `dependencies`는 `^` 범위로 적고, 이 저장소와 Action은 `package-lock.json`(`npm ci`)으로 정확한 버전을 고정한다. 배포한 패키지를 설치하는 쪽은 범위 안의 최신을 받는다.
 - 정확한 버전으로 적는 것은 범위 안의 새 판이 출력 바이트를 바꿀 수 있는 의존성뿐이다. 지금은 `postcss`(디자인 패키지와 같은 판을 써야 같은 CSS가 나온다)와 `typescript`(선언 검사 결과가 판마다 달라진다)다. 그 밖의 의존성에 정확한 버전을 더하지 않는다.
-- 디자인 `@woonyong-choi/design-tokens`는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. `dependencies`에 그 tarball URL을 적고 `bundleDependencies`로 배포물에 묶는다. 주소는 `package.json`과 잠금 파일에만 있고 Action과 `check:package`는 잠금 파일과 배포물로 설치한다. 묶을 때 디자인의 빌드 전용 `esbuild`는 `prepack`·`postpack`(`scripts/pack-bundle.mjs`)이 빼고, 소비자가 다른 디자인 commit을 쓰는 방법은 [아키텍처의 배포](docs/architecture.md#배포)에 있다.
+- 디자인 `@woonyong-choi/design-tokens`는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. `dependencies`에 그 tarball URL을 적고 `bundleDependencies`로 배포물에 묶는다. 주소는 `package.json`과 잠금 파일에만 있고 Action과 `check:package`는 잠금 파일과 배포물로 설치한다. 디자인 도표 tarball의 실행 의존성은 `postcss` 하나라 묶을 때 따로 빼는 단계가 없다. 묶은 사본이 `npm ls`에서 유효하도록 `acceptDependencies`에 디자인 `version`을 적는다. 소비자가 다른 디자인 commit을 쓰는 방법은 [아키텍처의 배포](docs/architecture.md#배포)에 있다.
 - 워크플로의 Action은 공식 release의 commit SHA로 고정하고 판 이름을 주석으로 단다.
 
 `npm run check`는 design-tokens의 `design-tokens-check`로 소스의 하드코딩을 검사한다. 디자인은 `dependencies`에 commit을 고정해 배포물에 묶는다. 공통 정본 변경 후 새 commit의 `diagram` 배포 tarball URL로 `dependencies`와 잠금 파일을 갱신하고 `npm run figures`, `npm test`, `npm run check` 순서로 확인한다.

@@ -27,12 +27,12 @@ try {
   const run = (command, args, cwd = consumer) => execFileSync(command, args, { cwd, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 16 * 1024 * 1024 });
   const [pack] = JSON.parse(run('npm', ['pack', '--json', '--pack-destination', consumer], root));
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-  // 디자인은 npm 레지스트리에 없으므로 배포물 안에 고정 commit 그대로 묶는다(bundleDependencies). 묶는 것은 디자인과 그 실행 의존성이고, 디자인의 빌드 전용 esbuild는 빠진다(scripts/pack-bundle.mjs).
+  // 디자인은 npm 레지스트리에 없으므로 배포물 안에 고정 commit 그대로 묶는다(bundleDependencies). 묶는 것은 디자인과 그 실행 의존성(postcss)이고, 디자인의 도표 tarball은 esbuild를 선언하지 않는다.
   const bundledRoots = (pack.bundled ?? []).map((name) => `node_modules/${name}/`);
   assert.deepEqual(pkg.bundleDependencies, ['@woonyong-choi/design-tokens']);
   assert.ok(pack.bundled.includes('@woonyong-choi/design-tokens'), '디자인 패키지가 배포물에 묶여야 합니다.');
   assert.ok(pack.files.some(({ path }) => path === 'node_modules/@woonyong-choi/design-tokens/package.json'), '묶은 디자인의 package.json');
-  assert.deepEqual(pack.bundled.filter((name) => /esbuild/.test(name)), [], '디자인의 빌드 전용 esbuild는 묶지 않습니다.');
+  assert.deepEqual(pack.bundled.filter((name) => /esbuild/.test(name)), [], '디자인 tarball은 esbuild를 묶지 않습니다.');
   const allowed = /^(?:src\/|LICENSE$|NOTICE$|README(?:\.en)?\.md$|package\.json$)/;
   assert.deepEqual(pack.files.filter(({ path }) => !allowed.test(path) && !bundledRoots.some((prefix) => path.startsWith(prefix))), [], '배포 허용 목록 밖 파일');
   writeFileSync(join(consumer, 'package.json'), JSON.stringify({ private: true, type: 'module' }) + '\n');
@@ -42,7 +42,10 @@ try {
   const design = join(installed, 'node_modules/@woonyong-choi/design-tokens/package.json');
   assert.ok(existsSync(design), '디자인은 배포물에 묶인 사본에서 설치됩니다.');
   for (const name of Object.keys(pkg.devDependencies ?? {})) assert.ok(!existsSync(join(consumer, 'node_modules', name)), `개발 의존성 ${name}이 소비 환경에 있습니다.`);
-  for (const name of ['esbuild', '@esbuild']) assert.ok(!existsSync(join(consumer, 'node_modules', name)) && !existsSync(join(installed, 'node_modules', name)), `빌드 전용 ${name}이 소비 환경에 있습니다.`);
+  // 설치 트리에 누락·불일치 의존성이 없어야 한다(묶은 디자인 포함). 문제가 있으면 npm ls가 0이 아닌 코드로 끝나 run이 실패한다.
+  const tree = JSON.parse(run('npm', ['ls', '--all', '--json']));
+  assert.equal(tree.problems, undefined, `npm ls 문제: ${tree.problems}`);
+  for (const name of ['esbuild', '@esbuild']) assert.ok(!existsSync(join(consumer, 'node_modules', name)) && !existsSync(join(installed, 'node_modules', name)), `${name}이 소비 환경에 있습니다.`);
   copyFileSync(join(root, 'examples/flow.diagramplay'), join(consumer, 'flow.diagramplay'));
   const cli = join(consumer, 'node_modules/.bin/diagramplay');
   run(cli, ['check', 'flow.diagramplay', '--strict']);
