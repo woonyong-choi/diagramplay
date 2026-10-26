@@ -90,7 +90,7 @@ function resolveGraph(view, { figure, cards, byId, groups, problems, refused }, 
     for (const c of cards.filter((card) => !card.parent && isRoot(card.id))) included.add(c.id);
     for (const g of figure.groups.filter((group) => !group.parent && isRoot(group.id))) addGroupTree(g.id);
     for (const c of cards) if (c.shape === 'trace' || plotOwned.has(c.id)) included.delete(c.id);
-    pruneEmptyGroups(view, { figure, included, includedGroups });
+    pruneEmptyGroups({ figure, included, includedGroups });
   } else {
     for (const m of view.members) memberInGraph(m, { view, byId, groups, problems, included, includedGroups, addGroupTree, figure, refused });
     for (const m of view.members) checkNestedMember(m, { byId, groups, includedGroups, problems });
@@ -120,7 +120,7 @@ function checkNestedMember(m, { byId, groups, includedGroups, problems }) {
 }
 
 // 구성원을 적지 않은 그래프에서 담을 카드가 모두 빠진 그룹은 빼고, 그 그룹을 품은 그룹이 비면 그것도 뺀다.
-function pruneEmptyGroups(view, { figure, included, includedGroups }) {
+function pruneEmptyGroups({ figure, included, includedGroups }) {
   for (let changed = true; changed; ) {
     changed = false;
     for (const g of figure.groups) {

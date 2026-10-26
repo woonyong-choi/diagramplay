@@ -95,8 +95,8 @@ test('administrator illustrations accompany visible role labels in the shipped e
   const documents = [];
   for (const [path, label] of [
     ['examples/queue.diagramplay', '운영자'],
-    ['docs/assets/showcase/cloud-architecture-ko.diagramplay', '운영자'],
-    ['docs/assets/showcase/cloud-architecture-en.diagramplay', 'Operator'],
+    ['test/browser/fixtures/cloud-architecture-ko.diagramplay', '운영자'],
+    ['test/browser/fixtures/cloud-architecture-en.diagramplay', 'Operator'],
   ]) {
     const source = new URL(`../../${path}`, import.meta.url);
     const built = await buildFigure(await readFile(source, 'utf8'), { baseDir: fileURLToPath(new URL('.', source)), strict: true });

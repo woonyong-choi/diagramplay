@@ -12,7 +12,7 @@ import { STYLE } from './measure/texts.js';
 import { hasUnpairedBacktick, isLiteralFace } from './text.js';
 import { checkChartLightTargets, checkChartRows, hasRowRule } from './source/chart-rules.js';
 import { readFigure } from './source/parse.js';
-import { createProblems, FigureError } from './source/problems.js';
+import { createProblems } from './source/problems.js';
 
 // 원소 키. 종류마다 행 이름이 들어 있는 키다.
 const LABEL_KEY = { bar: 'label', stacked: 'label', percent: 'label', dumbbell: 'label', difference: 'label', box: 'label', pie: 'label', donut: 'label', scatter: 'name' };
@@ -230,4 +230,3 @@ function faceOfKey(owner, parent, key) {
   return LITERAL_KEYS[owner]?.[key] ?? PROSE_FACE;
 }
 
-export { FigureError };

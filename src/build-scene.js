@@ -221,8 +221,8 @@ function attachCharts(figure, { scene, timeline, charts }, local) {
   timeline.charts = {};
   const bodies = new Map();
   for (const card of chartCards(figure)) {
-    const { drawn, pin } = charts.get(card.id);
-    const built = buildChartFrames(card, { figure, timeline, base: drawn, pin }, local);
+    const { pin } = charts.get(card.id);
+    const built = buildChartFrames(card, { figure, timeline, pin }, local);
     if (!built) continue;
     scene.chartFrames[card.id] = { marks: built.marks, frames: built.frames };
     timeline.charts[card.id] = { id: card.id, rows: built.rows };

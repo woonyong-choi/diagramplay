@@ -46,10 +46,9 @@
     "check:sources": "node src/cli.js check examples/*.diagramplay docs/assets/*.diagramplay docs/assets/showcase/*.diagramplay --strict",
     "check:figures": "node scripts/run-md.mjs --check --strict && node scripts/build-showcase.mjs --check",
     "check:advisory": "node scripts/check-cost-comments.mjs --advisory src test && node scripts/check-size.mjs --advisory src scripts",
-    "examples": "node scripts/build-catalog.mjs",
     "showcase": "node scripts/build-showcase.mjs",
     "figures": "npm run catalog && node src/cli.js render docs/assets/how-it-works.diagramplay && npm run showcase && node scripts/run-md.mjs",
-    "catalog": "npm run examples",
+    "catalog": "node scripts/build-catalog.mjs",
     "check:package": "node scripts/check-package.mjs"
   },
   "engines": {

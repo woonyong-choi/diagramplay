@@ -18,7 +18,7 @@ export function emit(model) {
   const lines = ['diagramplay'];
   if (model.title) lines.push(`title ${quote(model.title)}`);
   lines.push('');
-  const edges = resolveEdges(model, ids, groups);
+  const edges = resolveEdges(model, groups);
   writeTree(lines, { model, ids, groups }, undefined, 0);
   writeStates(lines, model, ids);
   if (edges.length) lines.push('', ...edges.map((edge) => edgeLine(edge, ids)));
@@ -213,7 +213,7 @@ function writeStates(lines, model, ids) {
 // cost: time O(e·(n + g)), heap O(e), stack O(g)
 // vars: e = 선 수, n = 카드 수, g = 그룹 수
 // basis: estimate
-function resolveEdges(model, ids, groups) {
+function resolveEdges(model, groups) {
   const edges = [...model.edges, ...foreignKeyEdges(model)];
   const kept = [];
   for (const edge of edges) {

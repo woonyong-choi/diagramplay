@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildFigure } from '../src/build.js';
 import { toSvg } from '../src/svg.js';
 
-export const SHOWCASE_DIR = fileURLToPath(new URL('../docs/assets/showcase/', import.meta.url));
+const SHOWCASE_DIR = fileURLToPath(new URL('../docs/assets/showcase/', import.meta.url));
 const HOW_IT_WORKS_SOURCE = fileURLToPath(new URL('../docs/assets/how-it-works.diagramplay', import.meta.url));
 const HOW_IT_WORKS_SVG = HOW_IT_WORKS_SOURCE.replace(/\.diagramplay$/, '.svg');
 const DARK_OPEN = '@media (prefers-color-scheme: dark) {';
@@ -41,9 +41,9 @@ function themedSvgs(svg) {
 // vars: build = 원본 하나를 만드는 비용, out = 결과 글자 수
 // basis: estimate
 // 원본 파일 하나의 SVG 글(시스템 테마를 따르는 한 벌). 오류가 있으면 던진다. strict면 경고도 던진다.
-async function figureSvg(dapPath, { strict }) {
-  const result = await buildFigure(readFileSync(dapPath, 'utf8'), { baseDir: dirname(dapPath), strict });
-  return toSvg(result, { isStatic: false, name: basename(dapPath, '.diagramplay') });
+async function figureSvg(sourcePath, { strict }) {
+  const result = await buildFigure(readFileSync(sourcePath, 'utf8'), { baseDir: dirname(sourcePath), strict });
+  return toSvg(result, { isStatic: false, name: basename(sourcePath, '.diagramplay') });
 }
 
 // cost: time O(f·build), heap O(f·out), stack O(1), io 2f

@@ -34,7 +34,7 @@ DiagramPlay는 텍스트로 문서용 그림을 만드는 도구이다. 구성 �
 | JavaScript·TypeScript 연동 | [JavaScript에서 조립하기](#javascript에서-조립하기) |
 | 오류 수정과 지원 범위 확인 | [문제가 있을 때](#문제가-있을-때) |
 
-문법을 바로 찾으려면 [문서 안내](README.md)의 문법·검사 항목을 사용한다. 이 문서는 저장소 기본 브랜치 기준이다. [GitHub 릴리스](https://github.com/woonyong-choi/diagramplay/releases)에는 이름 변경 전 배포 기록도 있다. npm 공개 배포 전이므로 아래 저장소 실행 경로를 쓴다. 옛 `thinkflow@0.2.0`은 현재 이름과 문법의 배포판이 아니다. 원본의 `diagramplay` 선언에는 패키지 버전을 붙이지 않는다.
+문법을 바로 찾으려면 [문서 안내](README.md)의 문법·검사 항목을 사용한다. 이 문서는 저장소 기본 브랜치 기준이다. npm 공개 배포 전이므로 아래 저장소 실행 경로를 쓴다. 원본의 `diagramplay` 선언에는 패키지 버전을 붙이지 않는다.
 
 ## 설치와 버전 확인
 
