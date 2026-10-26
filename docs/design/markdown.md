@@ -272,6 +272,9 @@ npm 공개 배포 전이므로 소스에서 실행한다. GitHub 릴리스 기�
 
 저장소 루트 `action.yml`은 composite Action이다. 의존 패키지를 Action 폴더에 설치한 뒤 입력에 맞춰 명령을 돌린다.
 
+- Node: 호출한 작업의 PATH에 Node 20 이상이 있으면 그 Node를 그대로 쓰고 설치하지 않는다. 없거나 20보다 낮을 때만 `actions/setup-node`로 `node-version` 입력(빈 값이면 20)을 설치한다. 호출한 작업이 고른 Node를 Action이 바꾸지 않게 하기 위해서다.
+- 의존성: `npm ci --omit=dev --ignore-scripts`로 실행에 필요한 의존성만 설치한다. 디자인(`@woonyong-choi/design-tokens`)은 peer 의존성이라 이 설치에 들지 않으므로, `package.json`의 `devDependencies`에 고정한 commit tarball 주소를 읽어 `npm install --no-save --save-prod --omit=dev`로 따로 설치한다. Action 폴더의 `package.json`과 잠금 파일은 바꾸지 않고 잠금 파일의 판을 그대로 지킨다(잠금 파일을 읽지 않으면 글 폭을 재는 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다). 주소는 `package.json` 한 곳에만 적는다. 시험 도구(TypeScript, playwright-core)는 설치하지 않는다.
+
 | 입력 | 기본값 | 뜻 |
 |---|---|---|
 | `paths` | `**/*.diagramplay **/*.md` | 공백으로 나눈 git 글롭 목록. 추적 중인 파일만 대상이다. 다른 확장자 파일은 모으지 않는다. 글롭이 `.diagramplay`나 `.md`와 맞는 파일이 하나도 없으면 `no tracked .diagramplay or .md file matches` 오류로 실패한다 |
@@ -279,6 +282,7 @@ npm 공개 배포 전이므로 소스에서 실행한다. GitHub 릴리스 기�
 | `strict` | `false` | `true`면 경고도 실패다 |
 | `fold` | `keep` | `.md`에만 적용하고 두 모드 모두에 쓴다. `keep`은 옵션 없이 돌리고, `fold`는 `--fold`, `unfold`는 `--unfold`를 넘긴다. 그 밖의 값은 실패다 |
 | `fold-title` | 빈 값 | `fold: fold`일 때 `--fold-title`로 넘기는 `<summary>` 글. 다른 `fold` 값과 쓰면 실패다 |
+| `node-version` | 빈 값 | 작업에 Node 20 이상이 없을 때만 설치할 Node 버전. 빈 값이면 20 |
 | `budget` | 빈 값 | 생성 예산을 올리는 `이름=값` 목록(공백이나 쉼표로 나눈다). 예: `grid-elements=2000000`. `--budget`과 같은 해석이라 이름이 없거나 값이 양의 안전한 정수가 아니면 그림을 만들기 전에 실패한다. 이름과 기본 한도는 [칸 격자](grid.md#예산) |
 
 경로는 `git ls-files -z`의 NUL 구분 출력으로 모으고 명령에는 `--` 뒤에 넘기므로 `-`로 시작하는 이름도 옵션으로 읽히지 않는다. 추적 중인 심볼릭 링크는 가리키는 문서와 같은 출력이라 함께 넘기면 거절되므로 모으지 않는다(가리키는 문서가 추적 중이면 그 문서가 처리된다). 줄 단위 출력은 Git이 한글 이름을 따옴표와 escape로 감싸(`core.quotepath` 기본값) 확장자 분류에서 빠지기 때문이다. 한글, 공백, 줄바꿈이 든 이름도 같게 검사하고, 여러 글롭이 고른 같은 파일은 한 번만 검사한다. Action이 모으는 것은 글롭이 고른 `.diagramplay`와 `.md` 파일뿐이다. 글롭이 다른 확장자 파일을 골라도 그 파일은 읽지 않고 모으지도 않으며, 이름이나 확장자가 특이한 `.diagramplay`와 `.md`는 빠지지 않고 모은다. 대상 파일이 하나도 없으면 실패한다. 빈 글롭이 조용히 통과하는 일을 막기 위해서다. `render` 모드는 파일을 쓸 뿐 커밋하지 않는다.
@@ -289,9 +293,13 @@ npm 공개 배포 전이므로 소스에서 실행한다. GitHub 릴리스 기�
 
 1. 태그가 `v{package.json version}`과 다르면 실패한다.
 2. `secrets.NPM_TOKEN`이 없으면 해당 메시지로 실패한다. 현재 인증 방식은 대상 패키지에 쓰기 권한과 bypass 2FA를 가진 granular access token이다. 토큰을 금지한 패키지 설정에서는 이 방식으로 배포할 수 없다. 인증 조건은 [npm 공식 안내](https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/)를 따른다.
-3. `npm ci`로 설치하고 `npm test`, `npm run check`, `npm run check:sources`(예제와 문서 그림, showcase 원본 `--strict`), `npm run check:figures`(모든 마크다운 문서의 `md --check --strict`와 showcase SVG 낡음 검사)를 돌고, Node 22 작업은 `npm run test:browser`로 설치된 Chrome에서 좁은 화면 HTML 회귀 검사를 돈다. 이어서 `npm run check:package`로 실제 배포물의 독립 설치를 확인한다. `npm test`는 브라우저를 열지 않는 공개 계약 시험이라 브라우저 설치가 필요 없다. 워크플로의 실행 여부와 날짜는 GitHub Actions 기록과 이슈가 맡고 이 문서는 설정과 요구만 적는다.
-4. `npm publish --provenance --access public`을 한다. 버전에 `-`가 있으면 `--tag next`를 붙인다.
+3. 배포 전에 `check` 작업이 CI의 `test` 작업과 같은 검사 목록을 Node 20·22에서 돈다. `npm ci --ignore-scripts`로 설치하고 `npm test`, `npm run check`, `npm run check:docs`, `npm run check:sources`(예제와 문서 그림, showcase 원본 `--strict`), `npm run check:figures`(모든 마크다운 문서의 `md --check --strict`와 showcase SVG 낡음 검사)를 돌고, Node 22 작업은 `npm run test:browser`로 설치된 Chrome에서 좁은 화면 HTML 회귀 검사를 돈다. 이어서 `npm run check:package`로 실제 배포물의 독립 설치를 확인한다. 배포 작업(`release`)은 `needs: check`라 검사가 모두 통과해야 돈다. 두 목록이 같은지는 `test/tooling.test.js`(G4)가 본다. `npm test`는 브라우저를 열지 않는 공개 계약 시험이라 브라우저 설치가 필요 없다. 워크플로의 실행 여부와 날짜는 GitHub Actions 기록과 이슈가 맡고 이 문서는 설정과 요구만 적는다.
+4. `npm publish --provenance --access public`을 한다. 배포물은 `files` 목록만 묶으므로 이 작업은 의존성을 설치하지 않는다. 버전에 `-`가 있으면 `--tag next`를 붙인다.
 5. `gh release create`로 GitHub Release를 만든다. 버전에 `-`가 있으면 사전 배포 표시를 한다.
+
+권한: 두 워크플로의 기본 권한은 `contents: read`다. 쓰기 권한(`contents: write`는 Release 생성, `id-token: write`는 npm provenance)은 `release` 작업에만 준다. 설치 스크립트가 있는 의존성은 디자인의 개발용 스타일 빌드가 쓰는 `esbuild` 하나이고 이 저장소의 검사는 그것을 부르지 않으므로 CI와 배포 검사는 `npm ci --ignore-scripts`로 설치한다.
+
+디자인 패키지는 npm 레지스트리에 배포하지 않는다. 배포한 `diagramplay`의 peer `@woonyong-choi/design-tokens@^0.2.0`은 레지스트리에서 찾을 수 없으므로 설치하는 쪽이 commit 고정 tarball을 직접 함께 설치한다(`check:package`가 같은 방식으로 설치한다). 디자인을 배포물에 함께 넣는 패키지 구조 변경은 별도 이슈(#404)에서 다룬다.
 
 ### 패키지
 

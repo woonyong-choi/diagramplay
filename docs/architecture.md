@@ -88,7 +88,8 @@
 1. 디자인은 `@woonyong-choi/design-tokens` 패키지다. `peerDependencies`(`^0.2.0`)로 선언하므로 DiagramPlay를 설치한 앱이 고른 commit 하나를 그림도 읽는다. 홈페이지 같은 호스트의 그림은 호스트의 토큰·CSS·아이콘으로 그려진다.
 2. 이 저장소는 자체 시험·그림 생성을 위해 공통 정본이 생성한 `diagram` 배포 tarball을 `devDependencies`에 Git commit URL로 고정한다. 설치용 커밋은 공통 저장소의 기본 브랜치 이력에서 도달 가능한 것을 사용한다. 작업 브랜치를 정리한 뒤에도 같은 원본을 받을 수 있도록 URL과 잠금 파일을 함께 갱신한다. 공통 패키지의 이름과 peer 계약은 같다. 코드는 패키지 이름으로 가져오고(`@woonyong-choi/design-tokens/ui/index.mjs`) 파일은 `createRequire(import.meta.url).resolve`로 찾는다. 저장소에 디자인 사본을 두지 않는다. `measure/decor.js`는 모듈을 읽을 때 `spacing.figure.icon.brand`가 유한한 양수인지 검사한다. 필드가 없는 구버전은 최소 버전과 필드 이름을 안내하는 오류로 중단하며 숫자로 대체하지 않는다.
 3. 디자인을 올릴 때는 정본의 새 `diagram` tarball URL로 개발 의존성과 잠금 파일을 갱신한 뒤 `npm run figures`, `npm test`, `npm run check`를 실행해 PR로 반영한다. DiagramPlay에서 토큰을 합치거나 다시 생성하지 않는다. 전체 카탈로그를 쓰는 호스트는 공통 전체 패키지를 직접 선택할 수 있다.
-4. 다른 저장소로 파일을 밀어 넣는 자동 전달은 없다. 소비자 저장소는 자기 `package.json`에서 렌더러와 디자인의 commit을 고른다.
+4. 디자인 패키지는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. composite Action은 실행 의존성만(`--omit=dev`) 설치한 뒤 `package.json`의 `devDependencies`에 적힌 그 tarball을 따로 설치한다. 의존성 버전 고정 정책은 [AGENTS.md 명령](../AGENTS.md#명령) 절에 있다.
+5. 다른 저장소로 파일을 밀어 넣는 자동 전달은 없다. 소비자 저장소는 자기 `package.json`에서 렌더러와 디자인의 commit을 고른다.
 
 ### 재생하기
 
