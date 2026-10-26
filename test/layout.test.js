@@ -4,6 +4,7 @@ import { test } from 'node:test';
 
 import { buildFigure, toSvg } from '../src/index.js';
 import { reflowFigure } from '../src/build.js';
+import { isSoundGraph } from '../src/check.js';
 import { buildModel } from '../src/layout/model.js';
 import { compactOrderVariants, orderCompactGroups } from '../src/layout/order.js';
 import { viewFigure } from '../src/views.js';
@@ -200,7 +201,7 @@ test('layoutOrFail_optional_candidate_failure_preserves_the_fitting_original', a
     const graphUrl = new URL('../src/layout/graph.js', import.meta.url);
     const code = readFileSync(graphUrl, 'utf8').replace(/from '([^']+)'/g, (_, specifier) => `from ${JSON.stringify(specifier === 'elkjs/lib/elk.bundled.js' ? replacement : specifier.startsWith('.') ? new URL(specifier, graphUrl).href : import.meta.resolve(specifier))}`);
     const { layoutOrFail } = await import(`data:text/javascript,${encodeURIComponent(code)}`);
-    const scene = await layoutOrFail(figure, sizes, { width: 390 });
+    const scene = await layoutOrFail(figure, sizes, { width: 390, isSound: isSoundGraph });
 
     assert.equal(scene.width, 305.959375, `${failure}: keep the original fitting candidate`);
     assert.equal(scene.height, 977, failure);

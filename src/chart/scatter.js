@@ -1,7 +1,9 @@
 // 산점도: 같은 크기 점, 이름 글자, link 화살표. 계열이 있으면 계열 색이다. 신뢰구간은 받지 않는다.
 // 계열이 둘 이상이면 점 이름 앞에 그 점 계열의 번호 키(`3 검색 전`)를 붙인다. 번호는 계열 목록 순서이고 범례의 번호와 같다.
 import { centerBaseline, renderRich, roundCoord as r } from '../text.js';
-import { CHART_ARROW, headReach, roleArrow } from '../draw/arrow.js';
+import { CHART_ARROW, roleArrow } from '../draw/arrow.js';
+import { headReach } from '../measure/arrow.js';
+import { TEXT_BACK_PAD, drawTextBack } from '../draw/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawRules } from './axis.js';
 import { inkGroup } from './labels.js';
@@ -26,7 +28,7 @@ const seriesOf = (chart, p) => Math.max(0, chart.series.findIndex((s) => s.id ==
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 // 화살표가 끝 점에서 tip만큼 떨어져 끝날 때 화살촉(보이는 꼭지에서 시작 쪽으로 뻗은 삼각형)이 글자 상자 box와 겹치는가. end는 화살촉의 보이는 꼭지 좌표, dir은 시작 점에서 끝 점으로 향하는 단위 방향이다.
-// 화살촉은 선 굵기에 비례하는 크기다(draw/arrow.js headReach). 꼭지, 뒤쪽 양 끝, 뒤쪽 가운데, 가운데를 상자에 간격 `space.2`를 더해 본다.
+// 화살촉은 선 굵기에 비례하는 크기다(measure/arrow.js headReach). 꼭지, 뒤쪽 양 끝, 뒤쪽 가운데, 가운데를 상자에 간격 `space.2`를 더해 본다.
 function arrowheadHits(end, dir, box) {
   const { length, half } = headReach(values["border-width"].strong);
   const [bx, by] = [end.x - dir.ux * length, end.y - dir.uy * length];
@@ -86,8 +88,7 @@ function pointMark(ctx, { p, text, toLeft, shift, side, lines, box }, k) {
   const centerY = isStacked ? (box.y0 + box.y1) / 2 : y + shift * NAME_STEP;
   const label = chart.layout ? lines.map((line, i) => `<tspan x="${r(textX)}" dy="${i ? NAME_STEP : -(lines.length - 1) * NAME_STEP / 2}">${i ? ' ' : ''}${renderRich(line)}</tspan>`).join('') : renderRich(text);
   const name = `<text x="${r(textX)}" y="${r(centerBaseline(centerY, TEXT['11']))}"${isStacked ? ' text-anchor="middle"' : ''} class="chart-name late${toLeft ? ' end' : ''}">${label}</text>`;
-  const pad = SPACE["0-25"];
-  const back = `<rect x="${r(box.x0 - pad)}" y="${r(box.y0 - pad)}" width="${r(box.x1 - box.x0 + pad * 2)}" height="${r(box.y1 - box.y0 + pad * 2)}" class="chart-text-bg late"/>`;
+  const back = drawTextBack({ x: box.x0, y: box.y0, w: box.x1 - box.x0, h: box.y1 - box.y0 }, { pad: TEXT_BACK_PAD.tight, late: true });
   const dot = markShape({ shape: seriesPaint(chart, i).shape, cx: x, cy: y, radius: DOT, attrs: dotAttrs(chart, i, ` class="pop"${markAttrs(chart, markId(chart, i, k), { raw: `${p.values.x},${p.values.y}`, paint: seriesPaint(chart, i) })}`) });
   return `<g class="cr-${k}"><g class="cs-${i}">${dot}</g></g>${inkGroup(k, back + name, i)}`;
 }

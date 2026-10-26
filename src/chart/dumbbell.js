@@ -2,11 +2,13 @@
 import { maxOf, minOf } from '../extremes.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { STYLE } from '../measure/texts.js';
-import { CHART_ARROW, headReach, roleArrow } from '../draw/arrow.js';
+import { CHART_ARROW, roleArrow } from '../draw/arrow.js';
+import { headReach } from '../measure/arrow.js';
 import { measure, wrap } from '../measure/fonts.js';
 import { centerBaseline, roundCoord as r } from '../text.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
-import { inkGroup, rowLabelLayout, rowName, valueText } from './labels.js';
+import { inkGroup, rowName, valueText } from './labels.js';
+import { rowLabelLayout } from './label-layout.js';
 import { dotAttrs } from './legend.js';
 import { markAttrs, markId } from './marks.js';
 import { DOT, ROW, SIZE, SPACE, TEXT, WIDTH, PAD, seriesPaint, seriesStroke } from './metrics.js';

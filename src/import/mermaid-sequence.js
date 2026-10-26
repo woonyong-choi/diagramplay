@@ -1,6 +1,7 @@
 // Mermaid 순서 그림(sequenceDiagram) 읽기: 참여자, 메시지, 메모, 활성 구간, alt·loop·opt·par 구획(docs/design/import.md 순서 그림).
 import { change, ensureNode, skip, textOf } from './model.js';
-import { unquote } from './mermaid.js';
+import { readCommonLine } from './mermaid-lines.js';
+import { unquote } from './names.js';
 
 // 화살표 → 점선 여부와 바꿔 그린 끝. 긴 것을 먼저 본다.
 const ARROWS = ['<<-->>', '<<->>', '-->>', '->>', '--x', '-x', '--)', '-)', '-->', '->'];
@@ -9,6 +10,11 @@ const FRAGMENTS = { alt: 'alt', loop: 'loop', opt: 'opt', par: 'par' };
 const BRANCHES = { else: 'alt', and: 'par' };
 // 구획 없이 안의 줄만 옮기는 블록
 const FLATTENED = { critical: 'critical', break: 'break', rect: 'rect', box: 'box' };
+// 옮기지 않는 문장. 순서 그림에는 방향 줄이 없다
+const LINE_RULES = {
+  ignored: /^(accTitle|accDescr|links?|properties|details)\b/,
+  why: (word) => `"${word}" is not imported`,
+};
 // 참여자 종류(@{ "type": ... })
 const PARTICIPANT_KINDS = { database: 'store', actor: 'person' };
 
@@ -55,7 +61,7 @@ function readLine(text, line, context) {
   if (word === 'activate' || word === 'deactivate') return void steps(context).push({ type: word, key: participant(tail, line, context), line });
   if (/^note$/i.test(word)) return readNote(tail, line, context);
   if (word === 'autonumber') return skip(model, line, 'autonumber is not imported. DiagramPlay numbers edges with no=, not messages');
-  if (/^(accTitle|accDescr|links?|properties|details)\b/.test(word)) return skip(model, line, `"${word}" is not imported`);
+  if (readCommonLine(text, line, model, LINE_RULES)) return undefined;
   const message = MESSAGE.exec(text);
   if (message) return readMessage(message, line, context);
   return skip(model, line, `"${text}" is not imported. It is not a Mermaid sequence statement`);

@@ -5,7 +5,7 @@ import { chipStateAt } from '../chip-motion.js';
 import { timeAtPosition } from '../easing.js';
 import { flattenRoute } from '../route.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { statusBoxes } from '../draw/status.js';
+import { statusBoxes } from '../layout/status.js';
 
 // cost: time O(h·(p + k)·(p + k)), heap O(p + k), stack O(1)
 // vars: h = 이동 수, p = 경로 지점 수, k = 글상자 계획 지점 수

@@ -1,7 +1,8 @@
 // 배치 모형을 elkjs 그래프로 바꾼다. 선택 사항 값은 모두 토큰이다(docs/design/layout.md 간격과 결정성).
 import { FIGURE_PAD } from '../canvas.js';
 import { endMarks } from './end-marks.js';
-import { groupTitleWidth, hasPill, isOnLinePill, sizePill } from '../measure/sizes.js';
+import { groupTitleWidth } from '../measure/sizes.js';
+import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
 import { STYLE, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { isInnerEdge } from './cell-ports.js';

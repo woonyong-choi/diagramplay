@@ -5,7 +5,7 @@ import { categoryPaint } from '../chart-palette.js';
 import { lineHeight, textAt } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { axisEnd, fitLength, tickReach } from '../chart/axis.js';
-import { labelColumn, drawHeader, rowLabelLayout } from '../chart/labels.js';
+import { headerBottom, headerLayout, labelColumn, rowLabelLayout } from '../chart/label-layout.js';
 import { BAR, PAD, SPACE, TEXT, WIDTH } from '../chart/metrics.js';
 import { makeScale } from '../chart/scale.js';
 
@@ -24,11 +24,12 @@ const NAME_GAP = SPACE['3'];
  * 추적 카드를 시간 보기로 배치한다.
  * @param card 추적 카드 { id, label, unit, spans }
  * @param names 카드 이름 → 레인 이름 글(레인은 카드 이름이다)
- * @returns { kind: 'time', id, width, height, header, lanes, axisY, scale, unit, plotX, plotRight, text }. text는 글꼴 조각에 모을 글자다. 레인은 { id, label, y, h, paint, spans }이고 구간은 { id, label, key, x, y, w, h, nameX, at, dur }이다. key는 `카드.구간`으로 light가 가리키는 이름이다
+ * @returns { kind: 'time', id, width, height, header, lanes, axisY, scale, unit, plotX, plotRight, text }. header는 머리 글(measure/texts.js의 text 목록)이고 text는 글꼴 조각에 모을 글자다. 레인은 { id, label, y, h, paint, spans }이고 구간은 { id, label, key, x, y, w, h, nameX, at, dur }이다. key는 `카드.구간`으로 light가 가리키는 이름이다
  */
 export function layoutTime(card, names, width = WIDTH) {
   const layout = width < WIDTH ? { width } : undefined;
-  const header = drawHeader({ title: card.label, subtitle: undefined, chartType: 'time', chart: { series: [], rules: [], layout } });
+  // 머리는 계열과 범례가 없는 차트 머리와 같다. 글 자리만 정하고 그리기는 draw/time.js가 한다.
+  const header = headerLayout({ title: card.label, subtitle: undefined, chartType: 'time', chart: { series: [], rules: [], layout } });
   const lanes = [...new Set(card.spans.map((s) => s.lane))];
   const labelLayout = rowLabelLayout({ layout, rows: lanes.map((id) => ({ label: names.get(id) ?? id })) });
   const labelW = layout ? 0 : labelColumn(lanes.map((id) => names.get(id) ?? id));
@@ -36,7 +37,7 @@ export function layoutTime(card, names, width = WIDTH) {
   const plotRight = width - PAD;
   const total = Math.max(...card.spans.map((s) => s.at + s.dur));
   const scale = makeScale('linear', { min: 0, max: total, start: plotX, length: layout ? plotRight - plotX : wideLength(card.spans, { total, plotX, plotRight }) });
-  let y = header.bottom;
+  let y = headerBottom(header);
   const laid = lanes.map((id, k) => {
     const source = card.spans.filter((s) => s.lane === id);
     const rows = layout ? compactRows(source, scale, y + labelLayout.space) : wideRows(source, scale, { y, right: plotRight });
@@ -48,7 +49,7 @@ export function layoutTime(card, names, width = WIDTH) {
   const axisY = y + SPACE['4'];
   const bottom = axisEnd(axisY, Boolean(card.unit));
   const text = `${[card.label, card.unit, ...laid.map((l) => l.label), ...card.spans.map((s) => s.label)].join('')}0123456789.ekM−+%=-`;
-  return { kind: 'time', id: card.id, width, height: bottom + PAD, header: header.svg, lanes: laid, labelLayout, axisY, scale, unit: card.unit, plotX, plotRight, text };
+  return { kind: 'time', id: card.id, width, height: bottom + PAD, header: header.texts, lanes: laid, labelLayout, axisY, scale, unit: card.unit, plotX, plotRight, text };
 }
 
 const SPAN_TEXT = { size: TEXT['11'], face: 'regular', line: lineHeight(TEXT['11'], values.leading.normal) };

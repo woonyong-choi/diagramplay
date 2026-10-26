@@ -115,7 +115,12 @@ export function buildTimeline(figure, deps) {
 // 장면 하나의 구간들과 그 장면의 값 줄. 흐름 장면은 구간 하나이고 박자 장면은 박자마다 하나다.
 function stepSegs({ step, si }, run, deps) {
   const { figure } = run;
-  step = sequenceStep(step, run, deps);  // 조건을 쓴 장면만 이벤트 처리 그릇을 만든다. 쓰지 않은 장면은 옛 경로 그대로다(같은 원본 안에서도).
+  step = sequenceStep(step, run, deps);
+  // 조건(`when`, `wait`, `reserve=`)을 쓴 장면만 이벤트 처리 그릇(flow-events.js)을 거친다. 두 경로는 같은 결과가 아니라서 합치지 않는다.
+  // 모든 예제·문서 원본(54개)을 그릇을 강제한 경로로 만들어 비교하면 53개의 시간표가 달랐다(#399):
+  // 1. 그릇은 시각을 눈금(time-grid.js, 소수 다섯째 자리)으로 세어 펄스·이동 시각이 반올림되고, 일반 경로는 계산한 실수를 그대로 둔다.
+  // 2. 그릇은 박자 안의 이어지는 이동(순서 보기의 연쇄, `at` 오프셋)을 사건 큐로 다시 놓아 박자 길이와 출발 시각이 바뀐다.
+  // 3. 그릇은 대기·건너뜀·교착 기록(waits, skips, stalls, events)을 시간표에 더하고 사건 예산(budget.js)을 센다.
   const engine = step.hasConditions ? createStepEngine({ figure, step, si, t0: run.t, start: startOf(step, run), run }) : undefined;
   const { segs, moves } = step.tracks.length ? flowSeg({ step, si, engine }, run, deps) : beatSegs({ step, si, engine }, run, deps);
   if (!figure.values.length) return segs;
@@ -136,9 +141,8 @@ function declaredRows(figure, cards) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 장면의 시작 값 { keep, carried, sets }. keep도 장면 set=도 없는 장면은 undefined라 값 처리가 옛 경로 그대로다.
+// 장면의 시작 값 { keep, carried, sets }. keep도 장면 set=도 없는 장면은 두 목록이 비어 선언한 처음 값에서 시작한다(시작 값을 따로 건너뛰는 경로는 없다).
 function startOf(step, run) {
-  if (!step.keep?.length && !step.sets?.length) return undefined;
   return { keep: (step.keep ?? []).map((k) => k.id), carried: run.carry, sets: step.sets ?? [] };
 }
 

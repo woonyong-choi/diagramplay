@@ -1,7 +1,7 @@
 // 연결선(Connector)과 선 라벨(EdgeLabel)을 그린다. 구조, 순서, 상태, 데이터 관계 그림의 모든 선이 이 두 함수만 거친다.
 // 선 경로의 기하는 layout과 route.js가 정하고, 화살촉은 draw/arrow.js 한 곳이 정의한다. 선 라벨 알약의 크기는 measure/sizes.js의 sizePill이 정한다.
-import { BADGE_STYLE } from '../measure/decor.js';
-import { hasPill, sizePill } from '../measure/sizes.js';
+import { BADGE_STYLE, hasPill, sizePill } from '../measure/pills.js';
+import { pillFace } from './pill.js';
 import { STYLE } from '../measure/texts.js';
 import { routePolyline } from '../route.js';
 import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../text.js';
@@ -63,7 +63,7 @@ function drawMainPill(e, j, { decorate, glyphs }) {
 
 // 알약 테두리. 가운데 { x, y }와 크기 { w, h }, 움직이는 SVG가 넣는 박자 class(state)
 function drawPillFrame({ x, y, w, h }, state) {
-  return `<rect x="${r(x - w / 2)}" y="${r(y - h / 2)}" width="${r(w)}" height="${r(h)}" rx="${r(h / 2)}" class="pill ${state}"/>`;
+  return pillFace({ x: x - w / 2, y: y - h / 2, w, h }, 'edge', ` ${state}`);
 }
 
 // 선 라벨 글. 번호 원이 왼쪽에 붙으면 글 가운데가 그만큼 오른쪽이다.
@@ -80,7 +80,7 @@ function drawNumber(no, { x: left, y, numW, numH }, glyphs) {
   glyphs.add(String(no), BADGE_STYLE.face);
   const h = numH;
   return (
-    `<rect x="${r(left)}" y="${r(y - h / 2)}" width="${r(numW)}" height="${r(h)}" rx="${r(h / 2)}" class="number-pill"/>` +
+    pillFace({ x: left, y: y - h / 2, w: numW, h }, 'number') +
     `<text x="${r(left + numW / 2)}" y="${r(centerBaseline(y, BADGE_STYLE.size))}" class="number">${no}</text>`
   );
 }

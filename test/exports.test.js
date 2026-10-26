@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { figureViewBounds } from '../src/html/view-bounds.js';
-import { statusBoxes } from '../src/draw/status.js';
+import { statusBoxes } from '../src/layout/status.js';
 import { toElk } from '../src/layout/elk.js';
 import { buildModel } from '../src/layout/model.js';
 

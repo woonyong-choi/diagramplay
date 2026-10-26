@@ -3,8 +3,10 @@
 import { CHECKS } from './check/items.js';
 import { warnStalls } from './event-budget.js';
 import { createFamily, drawnBox, pillBox, titleBox } from './check/geometry.js';
-import { statusBoxes } from './draw/status.js';
-import { hasPill } from './measure/sizes.js';
+import { statusBoxes } from './layout/status.js';
+import { hasPill } from './measure/pills.js';
+import { composePanels } from './layout/panels.js';
+import { createProblems } from './source/problems.js';
 
 // cost: time O(e·p + s + g), heap O(e + s + g), stack O(1)
 // vars: e = 선 수, p = 경로 점 수, s = 도형 수, g = 그룹 수
@@ -46,4 +48,15 @@ export function checkFigure({ figure, scene, timeline }, problems) {
 /** 차트 검사. 차트에는 선과 도형이 없어 1번(항목 이름, 열 이름, 점 이름이 자기 칸에 들어간다)과 2번(산점도 점 이름끼리 겹치지 않는다)만 해당한다. */
 export function checkChartFigure(chart, problems) {
   for (const { judgeChart } of CHECKS) judgeChart?.(chart, problems);
+}
+
+// cost: time O(check), heap O(s + e), stack O(1)
+// vars: check = 그림 검사 시간, s = 도형 수, e = 선 수
+// basis: estimate
+/** 그래프 배치 후보가 선·라벨·상태 알약의 기하 검사를 통과하는지. 실제 사건 처리와 이동 글 검사는 선택 뒤 build-scene.js의 검사가 맡는다. 배치(layout/graph.js)가 받는 판정이다. */
+export function isSoundGraph(figure, scene) {
+  const problems = createProblems();
+  const timeline = { segs: figure.steps.map((step) => ({ hops: [], status: step.status })) };
+  checkFigure({ figure: { ...figure, views: [{ strategy: 'graph' }] }, scene: composePanels([{ strategy: 'graph', scene }]), timeline }, problems);
+  return !problems.errors.length;
 }

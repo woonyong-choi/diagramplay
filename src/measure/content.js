@@ -1,6 +1,6 @@
 // 카드 안에 보이는 내용(`show`와 값 줄)의 크기와 글 자리. 줄마다 태그, 본문, 표시, 값 자리를 한 번 놓고 모든 글을 카드 머리와 같은 text(measure/texts.js)로 담는다.
 // 그리는 쪽(draw/content.js, draw/values.js)과 그림 검사(check/fit.js)는 이 글 자리를 그대로 읽고 줄 나누기, 들여쓰기, 흐림 자리, 값 자리를 다시 계산하지 않는다.
-// 좌표는 내용 면 왼쪽 위가 원점이다. 내용 면의 도형 안 자리는 draw/content.js의 contentBox가 정한다.
+// 좌표는 내용 면 왼쪽 위가 원점이다. 내용 면의 도형 안 자리는 contentBox가 정한다.
 import { plainText } from '../text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { indicatorText } from '../value-indicators.js';
@@ -9,6 +9,7 @@ import { widestText } from '../value-slots.js';
 import { measure, wrap } from './fonts.js';
 import { layoutMiniGraph, miniGraphWidth } from './minigraph.js';
 import { STYLE, textAt } from './texts.js';
+import { bodyOf } from './decor.js';
 
 const SPACE = values.spacing;
 
@@ -162,4 +163,16 @@ function placeIndicator(indicator, { width, top }) {
   const layout = slotLayout(max, width);
   const rects = queueSlots({ x: CONTENT.side, y: top, w: width, h: layout.h, slots: max }, { maxWidth: width, padY: 0 });
   return { ...indicator, h: layout.h, rects };
+}
+
+/** 내용 면 자리. 카드 면 아래쪽 안이다(표와 API는 열 아래, 상자와 사람은 이름 아래). */
+export function contentBox(it) {
+  const { w, h } = it.content;
+  const body = bodyOf(it);
+  return { x: it.x + CONTENT.margin, y: body.y + body.h - CONTENT.margin - h, w, h };
+}
+
+/** 내용의 줄 하나가 차지한 자리: 맨 위 y와 높이. 값 글자(draw/values.js)가 줄 오른쪽 끝에 얹힐 자리를 찾는 데 쓴다. 자리는 sizeContent가 정한 그대로다. */
+export function rowSpan(layout, box, index) {
+  return { y: box.y + layout.rows[index].top, h: layout.rows[index].height };
 }

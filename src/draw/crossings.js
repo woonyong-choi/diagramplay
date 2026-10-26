@@ -10,8 +10,8 @@ const GAP_HALF = EDGE / 2 + values.spacing['1'];
 /** 구멍의 반 폭: 끊기는 선 굵기를 덮을 만큼 */
 const CUT_HALF = EDGE;
 const ROUTE = values.radius.route;
-/** 좌표 반올림 여유(px) */
-const TOUCH = 1;
+/** 위로 지나는 가로 구간이 선 끝(도형 테두리)에 닿았다고 보는 거리(px). 그려지는 크기가 아니라 좌표 반올림 여유라 화면 토큰이 아니다. */
+const END_REACH = 1;
 
 const length = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
@@ -42,7 +42,7 @@ const CURVE_REACH = 0.75;
 // basis: estimate
 /** 가로 구간 h 위에서 x를 지나는 높이. 곧은 범위면 h.y, 모서리 곡선의 앞쪽이면 곡선 위 높이, 그 밖이거나 선 끝(도형 테두리) 가까이면 undefined다. */
 function crossingY(x, h) {
-  if (x > h.lo && x < h.hi) return x - h.lo < TOUCH && h.endLo ? undefined : h.hi - x < TOUCH && h.endHi ? undefined : h.y;
+  if (x > h.lo && x < h.hi) return x - h.lo < END_REACH && h.endLo ? undefined : h.hi - x < END_REACH && h.endHi ? undefined : h.y;
   const [depth, c, sign] = x <= h.lo ? [h.lo - x, h.cornerLo, h.bendLo] : [x - h.hi, h.cornerHi, h.bendHi];
   if (!c || depth > c * CURVE_REACH) return undefined;
   // 곡선 x(t) = 시작 + c(2t - t²)에서 t를 풀고, 높이는 c·t²만큼 휘는 쪽으로 간다.

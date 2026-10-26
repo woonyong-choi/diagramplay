@@ -23,7 +23,7 @@ import { checkChips } from '../src/check/moving.js';
 import { createProblems } from '../src/source/problems.js';
 import { widenForHiddenChips } from '../src/chip-room.js';
 import { checkLabels } from '../src/check/overlap.js';
-import { BADGE_STYLE } from '../src/measure/decor.js';
+import { BADGE_STYLE } from '../src/measure/pills.js';
 import { measure, createGlyphSet } from '../src/measure/fonts.js';
 import { PAD } from '../src/measure/card.js';
 import { STYLE, allTexts, textAt, textSpan } from '../src/measure/texts.js';

@@ -11,7 +11,9 @@ import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../text.
 import { ARROW_LABEL_PAD, BAND_HALF, SLOPE } from '../layout/timing.js';
 import { edgeMarker } from './arrow.js';
 import { sceneTag } from './scene-tag.js';
-import { sizeStatus, statusPillBody } from './status.js';
+import { drawTextBack } from './texts.js';
+import { sizeStatus } from '../measure/pills.js';
+import { drawStatusPill } from './decor.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const STROKE = values['border-width'];
@@ -104,7 +106,7 @@ function drawRow(row, shape, { panel, glyphs, end }) {
 function drawStatus(row, shape, { panel, glyphs, prefix }) {
   if (!shape.status) return '';
   const { w, h } = sizeStatus(shape.status);
-  return `<g class="fl-status-${shape.status}">${statusPillBody({ x: panel.pillX, y: row.cy - h / 2, w, h }, shape.status, { glyphs, prefix })}</g>`;
+  return `<g class="fl-status-${shape.status}">${drawStatusPill({ x: panel.pillX, y: row.cy - h / 2, w, h }, shape.status, { glyphs, prefix })}</g>`;
 }
 
 // 값 띠 하나: 값이 바뀌는 양 끝이 비스듬한 육각 띠와 그 안의 값 글.
@@ -131,7 +133,7 @@ function drawArrow(arrow, id, glyphs) {
 function arrowLabel({ label, labelBox: box }, glyphs) {
   glyphs.add(label, 'regular');
   const cy = box.y + box.h / 2;
-  return `<rect x="${r(box.x)}" y="${r(box.y)}" width="${r(box.w)}" height="${r(box.h)}" rx="${LABEL_BG}" class="chart-text-bg"/><text x="${r(box.x + box.w / 2)}" y="${r(centerBaseline(cy, TEXT['13']))}" text-anchor="middle" class="chart-label">${renderRich(label)}</text>`;
+  return `${drawTextBack(box, { rx: LABEL_BG })}<text x="${r(box.x + box.w / 2)}" y="${r(centerBaseline(cy, TEXT['13']))}" text-anchor="middle" class="chart-label">${renderRich(label)}</text>`;
 }
 
 // 구간 표시: 값이 상태를 가진 구간의 양쪽 화살표와 그 위 글.

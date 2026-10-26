@@ -6,7 +6,7 @@ import { animateFrameBody } from './animate/frames.js';
 import { createAnimator } from './animate/animator.js';
 import { createClock } from './animate/clock.js';
 import { drawScene } from './draw/figure.js';
-import { hasStatus } from './draw/status.js';
+import { hasStatus } from './layout/status.js';
 import { paintCss } from './draw/paint.js';
 import { drawTrackPaths } from './draw/tracks.js';
 import { createGlyphSet, embedFonts } from './measure/fonts.js';

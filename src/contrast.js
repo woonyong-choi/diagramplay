@@ -1,4 +1,4 @@
-// WCAG 명도 대비 계산. 칸 색에 맞는 글자색을 빌드 때 고르고, 테스트가 글자와 그래픽 쌍의 기준을 잰다.
+// WCAG 명도 대비 계산. 칸 색에 맞는 글자색을 빌드 때 고른다.
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
@@ -27,24 +27,9 @@ function luminance(hex) {
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 /** 두 `#rrggbb` 색의 대비(1~21). 순서와 상관없다. */
-export function contrast(a, b) {
+function contrast(a, b) {
   const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (high + 0.05) / (low + 0.05);
-}
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-/** from에서 to로 amount(0~1)만큼 sRGB 보간한 `#rrggbb` */
-function mixHex(from, to, amount) {
-  const [a, b] = [channels(from), channels(to)];
-  return `#${a.map((v, i) => Math.round(v + (b[i] - v) * amount).toString(16).padStart(2, '0')).join('')}`;
-}
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-/** 바탕 위에 색을 불투명도 alpha로 얹은 `#rrggbb` */
-export function over(background, color, alpha) {
-  return mixHex(background, color, alpha);
 }
 
 // cost: time O(1), heap O(1), stack O(1)

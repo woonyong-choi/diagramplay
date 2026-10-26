@@ -7,7 +7,7 @@ import { statementsIn } from './grammar.js';
 import { didYouMean } from './problems.js';
 
 /** 눈금자(`unit=`)를 단 격자의 열 수 상한. 한 행에 64비트(8바이트)까지 눈금 숫자를 칸마다 읽을 수 있다. */
-export const RULER_COLS_MAX = 64;
+const RULER_COLS_MAX = 64;
 
 // cost: time O(t), heap O(t), stack O(1)
 // vars: t = 문장 낱말 수

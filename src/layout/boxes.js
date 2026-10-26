@@ -1,10 +1,11 @@
 // 이동 글 상자가 피할 사각형. 글자(도형 이름과 부제, 테이블 머리와 열, 그룹 제목), 아이콘과 알약 장식, 카드와 큐 안, 도형 테두리(원통 뚜껑 포함), 선 라벨 알약이다.
-import { hasPill, placeGroupHead, sizePill } from '../measure/sizes.js';
+import { placeGroupHead } from '../measure/sizes.js';
+import { hasPill, sizePill } from '../measure/pills.js';
 import { STYLE, allTexts, textSpan } from '../measure/texts.js';
 import { plainText } from '../text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { queueSlots } from '../measure/queue.js';
-import { contentBox } from './content.js';
+import { contentBox } from '../measure/content.js';
 import { statusBoxes } from './status.js';
 
 const SPACE = values.spacing;
