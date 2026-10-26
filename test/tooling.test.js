@@ -68,5 +68,7 @@ test('G5 #398 the Action keeps a Node 20 or newer that the job has, and installs
   assert.match(action, /if: steps\.node\.outputs\.install == 'true'\n\s+uses: actions\/setup-node@/);
   assert.match(action, /npm ci --omit=dev --ignore-scripts/);
   assert.match(action, /devDependencies\['@woonyong-choi\/design-tokens'\]/, 'the design version is read from package.json, not written twice');
-  assert.match(action, /npm install --no-save --no-package-lock --save-prod --omit=dev --ignore-scripts .*"@woonyong-choi\/design-tokens@\$design"/);
+  assert.match(action, /npm install --no-save --save-prod --omit=dev --ignore-scripts .*"@woonyong-choi\/design-tokens@\$design"/);
+  // 잠금 파일을 읽지 않으면 이미 설치한 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다
+  assert.doesNotMatch(action, /--no-package-lock/);
 });

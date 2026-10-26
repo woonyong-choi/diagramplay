@@ -273,7 +273,7 @@ npm 공개 배포 전이므로 소스에서 실행한다. GitHub 릴리스 기�
 저장소 루트 `action.yml`은 composite Action이다. 의존 패키지를 Action 폴더에 설치한 뒤 입력에 맞춰 명령을 돌린다.
 
 - Node: 호출한 작업의 PATH에 Node 20 이상이 있으면 그 Node를 그대로 쓰고 설치하지 않는다. 없거나 20보다 낮을 때만 `actions/setup-node`로 `node-version` 입력(빈 값이면 20)을 설치한다. 호출한 작업이 고른 Node를 Action이 바꾸지 않게 하기 위해서다.
-- 의존성: `npm ci --omit=dev --ignore-scripts`로 실행에 필요한 의존성만 설치한다. 디자인(`@woonyong-choi/design-tokens`)은 peer 의존성이라 이 설치에 들지 않으므로, `package.json`의 `devDependencies`에 고정한 commit tarball 주소를 읽어 `npm install --no-save --no-package-lock --save-prod --omit=dev`로 따로 설치한다. Action 폴더의 `package.json`과 잠금 파일은 바꾸지 않고, 주소는 `package.json` 한 곳에만 적는다. 시험 도구(TypeScript, playwright-core)는 설치하지 않는다.
+- 의존성: `npm ci --omit=dev --ignore-scripts`로 실행에 필요한 의존성만 설치한다. 디자인(`@woonyong-choi/design-tokens`)은 peer 의존성이라 이 설치에 들지 않으므로, `package.json`의 `devDependencies`에 고정한 commit tarball 주소를 읽어 `npm install --no-save --save-prod --omit=dev`로 따로 설치한다. Action 폴더의 `package.json`과 잠금 파일은 바꾸지 않고 잠금 파일의 판을 그대로 지킨다(잠금 파일을 읽지 않으면 글 폭을 재는 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다). 주소는 `package.json` 한 곳에만 적는다. 시험 도구(TypeScript, playwright-core)는 설치하지 않는다.
 
 | 입력 | 기본값 | 뜻 |
 |---|---|---|
