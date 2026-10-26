@@ -1,6 +1,6 @@
 // elkjs 결과를 그림 좌표로 바꾼다. 그룹 경계 연결점에서 끊긴 선 조각은 이어 붙인다(docs/design/layout.md 선 그리기).
 import { endMarks } from './end-marks.js';
-import { isOnLinePill, sizePill } from '../measure/pills.js';
+import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { LayoutError } from './error.js';
 import { withLeads } from './cell-ports.js';
@@ -32,7 +32,7 @@ export function readElk(laid, model) {
   });
   settleLabels(edges, items, laid, groups);
   clearEndLabels(edges, { items, sweep: model.sweep });
-  placeTitles(groups, edges, model.sweep);
+  placeTitles(groups, edges, { sweep: model.sweep, labels: labelBoxes(edges) });
   return { items, groups, edges, width: laid.width, height: laid.height };
 }
 
@@ -67,6 +67,17 @@ function clearEndLabels(edges, { items, sweep }) {
 function laneOf(a, b, sweep, edge) {
   const [dx, dy] = a.x === b.x ? [sweep.x, 0] : [0, sweep.y];
   return { x: Math.min(a.x, b.x) - dx, y: Math.min(a.y, b.y) - dy, w: Math.abs(a.x - b.x) + dx * 2, h: Math.abs(a.y - b.y) + dy * 2, edge };
+}
+
+// cost: time O(e + l), heap O(e + l), stack O(1)
+// vars: e = 선 수, l = 끝 라벨 수
+// basis: estimate
+// 제목이 비킬 라벨 사각형: 선 위 알약(라벨과 번호)과 끝 라벨. 그림 검사 2번이 제목과 견주는 것과 같다(check/figure.js).
+function labelBoxes(edges) {
+  return edges.flatMap((e) => [
+    ...(!e.isMark && hasPill(e) && e.labelAt ? [labelBox({ ...e.labelAt, ...sizePill(e.label, e.no) })] : []),
+    ...(e.endpointLabels ?? []).map(labelBox),
+  ]);
 }
 
 const labelBox = (label) => ({ x: label.x - label.w / 2, y: label.y - label.h / 2, w: label.w, h: label.h });

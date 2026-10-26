@@ -95,12 +95,12 @@ function checkSpeeds(figure, timeline) {
 // 선이 도형을 뚫거나 선 끝이 연결점을 벗어나거나 두 선이 붙거나 그룹 제목 줄을 지나거나 선 번호 알약이 도형과 겹치는 그림 검사(2번, 3번, 4번, 5번, 13번). elkjs의 줄 바꿈(aspect)과 모델 순서 배치가 낸다.
 const LAYOUT_CHECKS = new Set(['check-2', 'check-3', 'check-4', 'check-5', 'check-13']);
 
-// cost: time O(2·(elk + check)), heap O(s + e), stack O(1)
+// cost: time O(3·(elk + check)), heap O(s + e), stack O(1)
 // vars: elk = 배치 시간, check = 그림 검사 시간, s = 도형 수, e = 선 수
 // basis: estimate
 /**
  * 한 번의 값 글자 자리로 배치, 시간표, 그림 검사를 하고 장면을 돌려준다. 그래프 보기가 3번이나 4번 오류를 내면 안전 배치(줄 바꿈, 모델 순서 없음)로 한 번 더 하고,
- * 그 오류가 줄면 그쪽을 쓴다. aspect를 적었는데 안전 배치를 쓰면 무시했다고 경고한다.
+ * 그 오류가 줄면 그쪽을 쓴다. 둘 다 걸리면 층 안 순서를 원본 순서로 둔 안전 배치를 마지막으로 본다. aspect를 적었는데 안전 배치를 쓰면 무시했다고 경고한다.
  */
 async function placeScene(figure, { texts, source, limits, layoutWidth, chartWidth, reference }, problems) {
   const cards = collectCards(figure, texts);
@@ -114,15 +114,28 @@ async function placeScene(figure, { texts, source, limits, layoutWidth, chartWid
   const first = await widenForHiddenChips(await attempt(new Map()), { attempt, failures, directions });
   if (!graphs.length || !failures(first)) return first;
   const second = await attemptScene(figure, inputs, { safe: new Set(graphs.map((v) => v.id)), room: new Map() });
+  if (failures(second) && failures(first)) {
+    // 처음 배치와 안전 배치가 모두 걸리면 층 안 순서를 원본 순서로 둔 배치(keepOrder)를 마지막으로 본다. elkjs 교차 줄이기가 고른 순서에서는
+    // 같은 도형에서 나가는 두 꼬리 라벨이 한자리에 놓이거나 두 선이 붙어 라벨 자리 고르기가 풀지 못한다(docs/design/layout.md 선 라벨). 통과하는 그림의 출력은 바뀌지 않는다.
+    const kept = new Set(graphs.map((v) => v.id));
+    const attemptKept = (asked) => attemptScene(figure, inputs, { safe: kept, keep: kept, room: roomByView(asked), sweep: sweepByView(asked) });
+    const third = await widenForHiddenChips(await attemptKept(new Map()), { attempt: attemptKept, failures, directions });
+    if (failures(third) < Math.min(failures(first), failures(second))) return ignoredAspect(figure, third, problems);
+  }
   if (failures(second) >= failures(first)) return first;
+  return ignoredAspect(figure, second, problems);
+}
+
+// 안전 배치는 줄 바꿈을 하지 않으므로 aspect를 적은 그림이면 무시했다고 경고한다.
+function ignoredAspect(figure, attempt, problems) {
   if (figure.aspect !== undefined) problems.warn(figure.line, 'the layout ignored "aspect" because wrapping drew an edge through a shape or off its connection point. Remove the aspect line or change a group direction');
-  return second;
+  return attempt;
 }
 
 // cost: time O(elk + check), heap O(s + e), stack O(1)
 // vars: elk = 배치 시간, check = 그림 검사 시간, s = 도형 수, e = 선 수
 // basis: estimate
-// 장면 한 번. variant는 안전 배치로 다시 배치할 보기(safe)와 보기별 선 간격 요구(room), 선 옆 폭 요구(sweep)다. 검사 결과는 따로 모은 진단 그릇(local)에 담는다.
+// 장면 한 번. variant는 안전 배치로 다시 배치할 보기(safe), 층 안 순서를 원본 순서로 둘 보기(keep), 보기별 선 간격 요구(room), 선 옆 폭 요구(sweep)다. 검사 결과는 따로 모은 진단 그릇(local)에 담는다.
 async function attemptScene(figure, inputs, variant) {
   const { cards, charts, source, limits, reference } = inputs;
   const local = createProblems(source);
@@ -160,7 +173,7 @@ async function layoutPanel(figure, view, { cards, charts, texts, names, layoutWi
     return { ...base, scene: layoutSequence(sequence, sizes) };
   }
   const isSafe = variant.safe.has(view.id);
-  const graph = { ...viewFigure(figure, view), ...(isSafe ? { aspect: undefined, safeLayout: true } : {}), chipRoom: variant.room.get(view.id), chipSweep: variant.sweep?.get(view.id) };
+  const graph = { ...viewFigure(figure, view), ...(isSafe ? { aspect: undefined, safeLayout: true } : {}), chipRoom: variant.room.get(view.id), chipSweep: variant.sweep?.get(view.id), keepOrder: variant.keep?.has(view.id) === true };
   const contentOf = (id) => (cards.contents.get(id) ?? []).map((rows) => rows.map((row) => row.chartId ? { ...row, chart: charts.get(row.chartId).drawn } : row));
   const sizes = new Map(graph.nodes.map((n) => [n.id, sizeNode(n, contentOf(n.id), countLines(graph, n.id), charts.get(n.id)?.drawn, texts)]));
   checkGridExtent(graph, sizes, local);

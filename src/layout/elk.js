@@ -181,8 +181,15 @@ function containerOptions(c, ctx) {
     'elk.portAlignment.south': 'CENTER',
     'elk.portAlignment.east': 'CENTER',
     'elk.portAlignment.west': 'CENTER',
+    ...crossingOptions(ctx),
     ...(c.id === ROOT ? rootOptions(c, ctx) : groupOptions(c, ctx)),
   };
+}
+
+// 층 안 순서. 보통은 elkjs의 교차 줄이기(LAYER_SWEEP)가 정한다. 처음 배치와 안전 배치가 모두 기하 검사에 걸린 그림의 마지막 후보(keepOrder)는 INTERACTIVE로 교차 줄이기를 하지 않는다.
+// 도형에 입력 좌표를 주지 않으므로 INTERACTIVE는 층 안 순서를 층을 나눈 순서(원본 순서) 그대로 둔다(compile/scene.js placeScene).
+function crossingOptions(ctx) {
+  return ctx.figure.keepOrder ? { 'elk.layered.crossingMinimization.strategy': 'INTERACTIVE' } : {};
 }
 
 function cycleStrategy(c, ctx) {

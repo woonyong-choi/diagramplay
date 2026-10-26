@@ -14,28 +14,33 @@ const TITLE_CLEAR = values.spacing["2"];
 /**
  * 그룹마다 제목 글의 왼쪽 끝 거리 titleDx를 정한다. 아이콘 탭이 있으면 탭과 제목이 한 덩어리로 비킨다. 비킬 자리가 없으면 기본 거리를 둔다.
  * @param sweep 박자 이동 글 상자가 쓸고 지나는 선의 옆 폭 Map<선 번호, { x }>. 그 선의 세로 구간에는 TITLE_CLEAR 대신 이 폭만큼 비킨다
+ * @param labels 먼저 자리를 정한 선 라벨과 끝 라벨의 사각형. 제목 덩어리는 선처럼 이 사각형도 비킨다(그림 검사 2번)
  */
-export function placeTitles(groups, edges, sweep = new Map()) {
+export function placeTitles(groups, edges, { sweep = new Map(), labels = [] } = {}) {
   for (const g of groups) {
-    g.titleDx = g.label ? titleDx(g, edges, sweep) : TITLE_INSET + groupHead(g).lead;
+    g.titleDx = g.label ? titleDx(g, edges, { sweep, labels }) : TITLE_INSET + groupHead(g).lead;
     g.isTitleBlocked = g.label ? crossesTitle(g, edges) : false;
   }
 }
 
-// cost: time O(e·p·(e·p)), heap O(e·p), stack O(1)
-// vars: e = 선 수, p = 선 하나의 경로 점 수
+// cost: time O((e·p + l)²), heap O(e·p + l), stack O(1)
+// vars: e = 선 수, p = 선 하나의 경로 점 수, l = 라벨 수
 // basis: estimate
-// 제목 덩어리가 선분을 지나지 않는 가장 왼쪽 자리. 후보는 기본 거리, 선분 오른쪽 끝 바로 너머, 선분 왼쪽 끝 바로 앞이다(덩어리가 선분 사이 틈에 들어가는 자리도 찾는다).
-// 어느 후보도 맞지 않으면 기본 거리를 둔다(그림 검사 13번이 알린다).
-function titleDx(g, edges, sweep) {
+// 제목 덩어리가 선분과 라벨을 지나지 않는 가장 왼쪽 자리. 후보는 기본 거리, 선분이나 라벨의 오른쪽 끝 바로 너머, 왼쪽 끝 바로 앞이다(덩어리가 그 사이 틈에 들어가는 자리도 찾는다).
+// 선 라벨은 제목보다 먼저 자리를 정하고(layout/labels.js) 제목 줄 높이에 놓일 수 있어, 제목이 선만 비키면 라벨과 겹친다.
+// 어느 후보도 맞지 않으면 기본 거리를 둔다(그림 검사 13번이나 2번이 알린다).
+function titleDx(g, edges, { sweep, labels }) {
   const head = groupHead(g);
   const [w, inset] = [head.w, TITLE_INSET + head.lead];
   const limit = g.w - TITLE_INSET - w;
   // 선분마다 비켜 설 간격: 박자 이동 글 상자가 쓸고 지나는 선은 그 옆 폭, 그 밖의 선은 TITLE_CLEAR
   const segments = edges.flatMap((e) => e.points.slice(1).map((p, i) => [e.points[i], p, Math.max(TITLE_CLEAR, sweep.get(e.index)?.x ?? 0)]));
+  // 제목 줄 높이에 걸치는 라벨만 비킨다. 라벨은 선과 같은 간격(TITLE_CLEAR)을 둔다.
+  const band = labels.filter((r) => r.y < g.y + SIZE.group.title && g.y < r.y + r.h);
+  const spans = [...segments.map(([a, b, clear]) => [Math.min(a.x, b.x), Math.max(a.x, b.x), clear]), ...band.map((r) => [r.x, r.x + r.w, TITLE_CLEAR])];
   // 덩어리는 탭 왼쪽 끝(dx - inset)에서 제목 글 오른쪽 끝(dx + w)까지다. 탭이 없으면 제목 글만이다.
-  const candidates = [inset, ...segments.flatMap(([a, b, clear]) => [Math.max(a.x, b.x) - g.x + clear + (head.lead ? inset : 0), Math.min(a.x, b.x) - g.x - clear - w])].filter((dx) => dx >= inset && dx <= limit).sort((x, y) => x - y);
-  const fits = (dx) => !segments.some(([a, b, clear]) => crosses(a, b, headBox(g, dx, clear)));
+  const candidates = [inset, ...spans.flatMap(([left, right, clear]) => [right - g.x + clear + (head.lead ? inset : 0), left - g.x - clear - w])].filter((dx) => dx >= inset && dx <= limit).sort((x, y) => x - y);
+  const fits = (dx) => !segments.some(([a, b, clear]) => crosses(a, b, headBox(g, dx, clear))) && !band.some((r) => meets(r, headBox(g, dx, TITLE_CLEAR)));
   return candidates.find(fits) ?? inset;
 }
 
@@ -47,6 +52,8 @@ export function headBox(g, dx, clear = 0) {
   const left = head.lead ? dx - TITLE_INSET - head.lead : dx;
   return { x: g.x + left - clear, y: g.y, w: dx + head.w - left + clear * 2, h: SIZE.group.title };
 }
+
+const meets = (p, q) => p.x < q.x + q.w && q.x < p.x + p.w && p.y < q.y + q.h && q.y < p.y + p.h;
 
 // 가로 또는 세로 선분이 사각형 안쪽과 만나는가
 function crosses(a, b, box) {
