@@ -10,7 +10,7 @@
 
 | 경로 | 내용 |
 |---|---|
-| `src/compile/` | 원본 하나를 장면과 시간표로 만드는 순서(`figure.js`의 `buildFigure`, 내부 재배치 `reflowFigure`), 보기마다 크기·배치·글 상자를 정하고 장면을 잇는 곳(`scene.js`), 보기 모형으로 줄이기(`views.js`), 생성 예산(`budget.js`), 원본이 읽는 파일의 경로 경계(`base-path.js`), 명령이 쓰는 원본 읽기·만들기·진단 알림·결과 파일 쓰기(`reported.js`, `diagnostics.js`). 모형은 받은 원본 글을 `figure.source`로 간직한다 |
+| `src/compile/` | 원본 하나를 장면과 시간표로 만드는 순서(`figure.js`의 `buildFigure`, 내부 재배치 `reflowFigure`), 보기마다 크기·배치·글 상자를 정하고 장면을 잇는 곳(`scene.js`), 보기 모형으로 줄이기(`views.js`), 생성 예산(`budget.js`), 원본이 읽는 파일의 경로 경계(`base-path.js`), 명령이 쓰는 원본 읽기·만들기·진단 알림·결과 파일 쓰기(`reported.js`, `diagnostics.js`), `--docs` 문서 품질 검사 실행(`docs-check.js`). 모형은 받은 원본 글을 `figure.source`로 간직한다 |
 | `src/source/` | 원본 읽기: 낱말 나누기, 문장 해석, 이름과 규칙 확인, 보기 정하기(이름 없는 보기와 기본 보기, `views-check.js`). 문법 표의 정본은 `grammar.js` |
 | `src/measure/` | 글꼴 파일로 글 폭 재기(`fonts.js`), 그림 폭 규칙(`canvas.js`), 카드의 안쪽 여백과 머리(`card.js`), 글 역할과 카드 안 글 한 줄의 자리와 폭(`texts.js`), 카드 내용 줄(`content.js`), 장식 자리(`decor.js`), 도형·표·API·클래스·큐·격자 크기(`sizes.js`, `table.js`, `class.js`, `queue.js`), 값 글자 자리(`value-slots.js`) |
 | `src/layout/` | elkjs 배치(구조, 상태, 데이터 관계)와 순서·시간·타이밍 그림 배치, 판 합치기(`panels.js`) |
@@ -22,7 +22,7 @@
 | `src/format/` | 출력 숫자 서식(`numbers.js`), SVG 글자와 좌표 다듬기(`text.js`), 파일 이름을 링크 주소로 바꾸기(`href.js`), 표 열의 키 표시(`columns.js`) |
 | `src/chart/` | 차트 눈금, 숫자 표기, 차트 종류별 그리기(종류 목록은 `src/source/grammar.js`의 문법 표가 정본이다), 차트 카드와 값에 묶인 프레임(`card-frames.js`, `frames.js`, `extent.js`), 바뀐 표식의 겹침 효과(`pulse-overlay.js`), 히스토그램 구간(`bins.js`) |
 | `src/draw/` | 장면 조립(`figure.js`), 카드(`card.js`)와 카드 면(`surface.js`), 카드 안 글(`texts.js`), 장식과 아이콘(`decor.js`), 카드 내용(`content.js`), 연결선과 선 라벨(`connector.js`), 화살촉(`arrow.js`), 색 이름과 표현을 읽는 곳(`look.js`), 공통 CSS 가져오기(`styles.js`, `@woonyong-choi/design-tokens/styles/diagram/`에서 읽음) |
-| `src/check/` | 그림 검사(`figure.js`). 항목 목록(`items.js`)과 항목별 판정 파일 |
+| `src/check/` | 그림 검사(`figure.js`). 항목 목록(`items.js`)과 항목별 판정 파일. `--docs` 문서 품질 검사의 목록은 `docs-items.js`, 판정은 `docs.js`와 `docs-text.js`이고 실행은 `compile/docs-check.js` |
 | `src/animate/` | 시간표 기반 SVG 효과(keyframes와 SMIL) |
 | `src/svg/` | 스크립트 없이 움직이는 SVG와 멈춘 SVG(`output.js`의 `toSvg`) |
 | `src/html/` | HTML 재생기 문서와 목록(`output.js`의 `toHtml`, `listing.js`), 그림 틀(도구 막대 하나와 탭 줄 하나, `player-script.js`), 좁은 배치 후보(`responsive.js`) |
@@ -89,7 +89,7 @@ npm run check:package -- /absolute/new-consumer-path
 - 렌더러나 그림 CSS를 바꾼 뒤에는 `npm run figures`가 끝난 다음 `npm test`를 실행한다. 생성 그림을 검사하는 테스트와 그림 재생성을 병렬로 돌리지 않는다.
 - 커밋 전 `npm test`와 `npm run check` 통과. `npm run check:advisory`는 항목을 읽어 보되 0건을 요구하지 않는다
 - 동작, 계약, 설정 변경은 같은 PR에서 설계 문서 갱신
-- 문법 표(`figure-syntax.md`)와 검사 표(`figure-check.md`)는 생성물이다. `src/source/grammar.js`나 `src/check/items.js`를 고친 뒤 `npm run grammar`, `npm run checkdoc`으로 다시 만들고 표를 손으로 고치지 않는다.
+- 문법 표(`figure-syntax.md`)와 검사 표(`figure-check.md`, `figure-quality.md`)는 생성물이다. `src/source/grammar.js`나 `src/check/items.js`, `src/check/docs-items.js`를 고친 뒤 `npm run grammar`, `npm run checkdoc`으로 다시 만들고 표를 손으로 고치지 않는다.
 - 새 문서는 `docs/README.md` 문서 목록 안에서만 추가
 - 배치에 넘긴 도형 크기와 연결점은 그리는 도형과 동일
 - elkjs 경로 점 수정 금지. 예외는 `docs/design/layout.md` 선 그리기 절의 선 끝 계단 펴기 하나

@@ -6,6 +6,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
+import { ICON_NAMES } from '../src/icons/index.js';
 import { randomChart } from './lib/fuzz-chart.mjs';
 
 const LCG_MUL = 1664525;
@@ -46,7 +47,8 @@ const HEADS = ['both', 'none', 'end'];
 // 번호, 배지, 아이콘, 복제 개수 섞기(흐름 그림)
 const DECOR_CHANCE = 0.3;
 const NUMBER_CHANCE = 0.25;
-const ICONS = ['server', 'db', 'lb', 'user', 'region', 'cdn'];
+// 설치된 디자인 카탈로그의 내장 아이콘 이름. 카탈로그에 없는 이름은 올바른 입력이 아니므로 고정 목록을 두지 않는다.
+const ICONS = Object.keys(ICON_NAMES).sort();
 const ASPECTS = ['0.6', '1', '1.4', '1.6', '2.4'];
 const DIRECTIONS = ['right', 'down'];
 

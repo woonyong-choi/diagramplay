@@ -19,7 +19,7 @@
 
 1. 기여자가 `docs/assets/architecture.diagramplay`를 고친다.
 2. 기여자가 저장소 루트에서 `python3 <스킬 폴더>/scripts/render_figures.py docs/assets/architecture.diagramplay`를 실행한다.
-3. 스크립트가 `diagramplay render --strict docs/assets/architecture.diagramplay`를 부르고, 같은 폴더에 움직이는 SVG `architecture.svg`가 생긴다.
+3. 스크립트가 `diagramplay render --strict --docs docs/assets/architecture.diagramplay`를 부르고, 같은 폴더에 움직이는 SVG `architecture.svg`가 생긴다.
 4. 그림 검사 오류가 있으면 스크립트가 실패하고 결과 파일은 생기지 않는다.
 
 ### 실험 차트 변환
@@ -199,7 +199,7 @@
 
 | 스킬 규칙 | 이 도구 |
 |---|---|
-| 변환은 `render_figures`로만 | `render_figures`가 `.diagramplay` 원본마다 `diagramplay render --strict`를 부른다. 경고도 실패다 |
+| 변환은 `render_figures`로만 | `render_figures`가 `.diagramplay` 원본마다 `diagramplay render --strict --docs`를 부른다. 경고와 [문서 품질 검사](figure-quality.md) 경고도 실패다 |
 | 실험 차트의 자료 출처와 신뢰구간 | 문서 작성 과정에서 확인한다. DiagramPlay는 inline 행과 외부 JSON의 값·구간 유효성을 검사한다([차트](charts.md#값-출처)) |
 | 원본과 만든 그림 함께 커밋 | 그대로 |
 | 변환 뒤 그림을 열어 겹침, 잘림, 빈 영역 확인 | [그림 검사](figure-check.md)는 겹침과 잘림의 자동 증거를 낸다. 눈 확인을 대신하지 않으며 빈 영역은 검사 항목이 없다 |

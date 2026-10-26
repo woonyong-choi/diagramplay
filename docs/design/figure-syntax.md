@@ -319,6 +319,7 @@ scene "소비자 하나가 느려진다" for=6s status="slow=warn"
 | `pace 3s` | 점이 기준 길이 `spacing.figure.packet.hop-ref`의 선을 지나는 시간. 선 길이에 비례해 이동 시간이 정해져 모든 이동이 같은 속도로 표시된다(아래 이동 시간). 차트 카드에서는 계열이 자라는 시간이다 | 토큰 `duration.hop`과 `spacing.figure.packet.hop-ref`, 자라는 시간은 `duration.reveal` |
 | `width wide` | 캔버스 폭. `wide`는 `spacing.figure.figure-canvas-wide`(1440)이고 `standard`는 표준 폭(960)이다. [배치](layout.md) | 생략하면 표준 폭 |
 | `aspect 1.6` | 그래프 보기의 목표 가로세로 비율. [배치](layout.md) | 없음(캔버스 폭보다 넓으면 도구가 자동으로 접는다) |
+| `require "글" [or "글" ...]` | 그림의 보이는 글에 들어 있어야 하는 요구 항목. 여러 줄을 쓸 수 있고 `or`로 이은 대안은 하나만 있으면 된다. 판정은 `--docs`일 때만 한다. [문서 품질 검사](figure-quality.md) | 없음 |
 
 `pace`는 점의 이동 속도이고, 장면의 `speed`는 재생 배속이다. 둘은 다르다. `pace`는 시간표의 ms를 바꾸고 `speed`는 바꾸지 않는다.
 
@@ -684,7 +685,7 @@ scene "같은 시각에 요청한다" for=8s
 - [그림 검사](figure-check.md)는 배치가 끝나야 돌므로, 원본 오류가 없을 때만 그 오류를 알린다.
 - 생성 예산을 넘으면 `budget-exceeded` 오류다. 필요한 양, 지금 한도, 올리는 방법(`--budget 이름=값`, Action 입력 `budget`)을 적고 파일을 쓰기 전에 끝난다. 격자 예산과 이동 글 상자 계획의 색인 예산(`chip-index`)의 이름과 기본 한도는 [칸 격자](grid.md#예산)가, 이벤트 예산(`events`, `chain`)은 [재생](playback.md#이벤트-예산)이 정한다. `--budget` 값이 틀리면 그림을 만들기 전에 사용법 오류(종료 2)다.
 - 경고는 파일을 쓰고 표준 오류에 남긴다. `--strict`면 경고도 실패다.
-- `--json`은 진단마다 한 줄을 표준 출력에 쓴다. `code`는 `syntax`(문법), `check-1`~`check-14`([그림 검사](figure-check.md) 번호), `time-limit`, `time-precision`, `value-type`(값 종류, 차트 묶음 포함), `leg-time`, `wait-stalled`, `budget-exceeded`, `invalid-speed`, `layout-unstable`(값 글 집합이 수렴하지 않음), `chart-frames`(프레임 구조가 값마다 다름), `binding-unsupported`, `missing-preamble`, `invalid-preamble`, `unsupported-extension`, `layout`, `layout-width`, `layout-timing`, `io`, `internal`이다. 줄 하나는 `{ "file", "line", "message", "severity", "code", "column" }` 여섯 필드이고 `severity`는 `error`나 `warning`이다. 이 밖의 필드와 옛 이름의 별칭은 없다.
+- `--json`은 진단마다 한 줄을 표준 출력에 쓴다. `code`는 `syntax`(문법), `check-1`~`check-14`([그림 검사](figure-check.md) 번호), `docs-1`~`docs-16`(`--docs`일 때 [문서 품질 검사](figure-quality.md) 번호), `time-limit`, `time-precision`, `value-type`(값 종류, 차트 묶음 포함), `leg-time`, `wait-stalled`, `budget-exceeded`, `invalid-speed`, `layout-unstable`(값 글 집합이 수렴하지 않음), `chart-frames`(프레임 구조가 값마다 다름), `binding-unsupported`, `missing-preamble`, `invalid-preamble`, `unsupported-extension`, `layout`, `layout-width`, `layout-timing`, `io`, `internal`이다. 줄 하나는 `{ "file", "line", "message", "severity", "code", "column" }` 여섯 필드이고 `severity`는 `error`나 `warning`이다. 이 밖의 필드와 옛 이름의 별칭은 없다.
 
 ### 시작 선언과 없앤 형태
 
@@ -717,7 +718,7 @@ scene "같은 시각에 요청한다" for=8s
 |---|---|---|
 | 선언 | 테이블 블록 안 | `pk (열, ...)`, `unique (열, ...)`, `fk (열, ...) -> 테이블 (열, ...)` |
 | 시작 선언 | 문서 줄 | `diagramplay` |
-| 머리 | 문서 줄 | `title`, `subtitle`, `pace`, `aspect`, `width` |
+| 머리 | 문서 줄 | `title`, `subtitle`, `pace`, `aspect`, `width`, `require "글" [or "글" ...]` |
 | 선언 | 문서 줄 | `person`, `box`, `external`, `store`, `decision`, `queue`, `state`, `group`, `grid`, `icons`, `value`, `on node id+N`, `start`, `final`, `table`, `api id "METHOD /url" {`, `class`, `interface`, `chart id "title" type ["subtitle"] {`, `trace id "title" [unit=ms] {`, `view graph|sequence|plot|time|timing ["label"] [{]`, `a -> b` |
 | 선언 | 격자 블록 안 | `item id "글" ["보조 글"]`, `gap`, `region "글" [row=N] [rows=N]` |
 | 선언 | 카드 본문 안 | `text`, `graph` |
