@@ -32,7 +32,7 @@
 | `src/icons/` | 공통 카탈로그 읽기와 사용자 SVG 검증. 내장 도형과 조작 아이콘은 design-tokens 정본 |
 | `action.yml`, `.github/workflows/` | GitHub Action(composite), CI, `v*` 태그 배포 |
 | `examples/` | 표현마다 하나인 예제 원본(`icons/`, `data/`는 예제가 읽는 자료). 결과는 `npm run catalog`가 `.local/examples/`에 생성 |
-| `scripts/` | 문법·검사 문서, 예제·그림 생성, 설치 검사, 크기·비용 참고 검사 |
+| `scripts/` | 문법·검사 문서, 예제·그림 생성, 배포물 묶기(`pack-bundle.mjs`), 설치 검사, 크기·비용 참고 검사 |
 | `test/` | 공개 진입점과 공통 부품의 계약 시험, 브라우저 시험(`browser/`, 시험 원본 `browser/fixtures/`) |
 | `docs/` | 설계 문서, 그림 종류별 레퍼런스(`reference/`), README 그림(`assets/showcase/`) |
 
@@ -57,10 +57,10 @@ npm run check:package -- /absolute/new-consumer-path
 
 - 런타임 `dependencies`는 `^` 범위로 적고, 이 저장소와 Action은 `package-lock.json`(`npm ci`)으로 정확한 버전을 고정한다. 배포한 패키지를 설치하는 쪽은 범위 안의 최신을 받는다.
 - 정확한 버전으로 적는 것은 범위 안의 새 판이 출력 바이트를 바꿀 수 있는 의존성뿐이다. 지금은 `postcss`(디자인 패키지와 같은 판을 써야 같은 CSS가 나온다)와 `typescript`(선언 검사 결과가 판마다 달라진다)다. 그 밖의 의존성에 정확한 버전을 더하지 않는다.
-- 디자인 `@woonyong-choi/design-tokens`는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. 저장소는 `devDependencies`에 그 tarball URL을 적고, `peerDependencies`의 `^0.2.0`은 호스트가 고르는 디자인 판의 범위 계약이다. Action과 `check:package`는 `package.json`의 tarball URL을 읽어 설치하며 주소를 다른 곳에 다시 적지 않는다.
+- 디자인 `@woonyong-choi/design-tokens`는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. `dependencies`에 그 tarball URL을 적고 `bundleDependencies`로 배포물에 묶는다. 주소는 `package.json`과 잠금 파일에만 있고 Action과 `check:package`는 잠금 파일과 배포물로 설치한다. 묶을 때 디자인의 빌드 전용 `esbuild`는 `prepack`·`postpack`(`scripts/pack-bundle.mjs`)이 빼고, 소비자가 다른 디자인 commit을 쓰는 방법은 [아키텍처의 배포](docs/architecture.md#배포)에 있다.
 - 워크플로의 Action은 공식 release의 commit SHA로 고정하고 판 이름을 주석으로 단다.
 
-`npm run check`는 design-tokens의 `design-tokens-check`로 소스의 하드코딩을 검사한다. 디자인은 peer 의존성이고 이 저장소는 `devDependencies`에 commit을 고정한다. 공통 정본 변경 후 새 commit의 `diagram` 배포 tarball URL로 개발 의존성과 잠금 파일을 갱신하고 `npm run figures`, `npm test`, `npm run check` 순서로 확인한다.
+`npm run check`는 design-tokens의 `design-tokens-check`로 소스의 하드코딩을 검사한다. 디자인은 `dependencies`에 commit을 고정해 배포물에 묶는다. 공통 정본 변경 후 새 commit의 `diagram` 배포 tarball URL로 `dependencies`와 잠금 파일을 갱신하고 `npm run figures`, `npm test`, `npm run check` 순서로 확인한다.
 
 `npm run check:advisory`는 유지보수 힌트를 알린다. 파일 300줄, 함수 40줄, 매개변수 3개(`check-size.mjs`)와 비용 주석 누락(`check-cost-comments.mjs`)을 찾고 항목이 있어도 0으로 끝난다. 두 검사는 줄 시작 모양을 정규식으로 읽어서 여러 줄 매개변수, 블록 주석 안의 중괄호, 메서드 호출 이름이 같은 재귀 판정 등을 틀리게 읽는다. 설계나 정확성의 증거가 아니므로 항목을 없애려고 일관된 코드를 쪼개거나 근거 없는 점근 표기를 적지 않는다. 실행 오류(없는 경로, 잘못된 옵션)는 이 명령도 2로 실패한다. 알고리즘의 실제 복잡도를 설명하는 비용 주석은 계속 쓴다.
 
@@ -85,7 +85,6 @@ npm run check:package -- /absolute/new-consumer-path
 - 뷰어는 사람이 보기만 하는 순수 시각화기다. 자동 스크롤, 화면 안 가시성 대기, 그림 위에 겹쳐 뜨는 고정 탭, 수동 복사 팝업 같은 뷰어 동작을 더하지 않는다. 사용자 조작은 장면 탭, 문법 복사, HTML 다운로드, 전체화면과 전체화면 안의 확대·축소·끌어 옮기기뿐이고 새 재생 설정을 만들지 않는다.
 - npm 배포는 사용자가 명시 요청한 경우에만 실행한다. 검증한 기본 브랜치의 `v*` 태그에서 `release.yml`을 실행하고 레지스트리 설치 결과까지 확인한다.
 - `package.json`의 `files`는 `src`, `LICENSE`, `NOTICE`만. 바꾸면 `npm pack --dry-run`으로 올라가는 파일을 직접 확인한다
-- 배포 전에는 README에 npm 설치를 사용 가능으로 쓰지 않는다
 - 원본의 첫 비주석 의미 줄은 숫자나 옵션 없는 `diagramplay`다. 시작 선언이 없거나 잘못되면 줄 위치와 함께 오류다. 옛 이름(`mutoscope`·`thinkflow` 명령, `.muto`·`.thinkflow`, ` ```muto `·` ```thinkflow `, 옛 소유 표시)을 읽거나 옮기거나 안내하는 어댑터, 별칭, 폐기 안내 경로를 두지 않는다. 읽는 확장자는 `.diagramplay`뿐이고 다른 확장자는 일반 오류다. `md`는 `diagramplay md v2` 표시와 `<!-- diagramplay -->` 이미지 줄만 이 도구의 것으로 보고, 그 밖의 표시가 붙은 파일과 줄은 사용자 것으로 두어 가져가지도 덮어쓰지도 지우지도 않는다. 호환을 위해 기존 출력과 옵션을 그대로 두는 제약은 없다
 - 렌더러나 그림 CSS를 바꾼 뒤에는 `npm run figures`가 끝난 다음 `npm test`를 실행한다. 생성 그림을 검사하는 테스트와 그림 재생성을 병렬로 돌리지 않는다.
 - 커밋 전 `npm test`와 `npm run check` 통과. `npm run check:advisory`는 항목을 읽어 보되 0건을 요구하지 않는다

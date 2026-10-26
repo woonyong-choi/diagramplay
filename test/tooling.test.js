@@ -30,11 +30,13 @@ test('G2 a CSS /* */ comment hides its values and the declaration after it is st
   assert.deepEqual(hits(checkTokens(dir)), ['a.css:2: hex color: #00ff00']);
 });
 
-test('G3 the design is the peer package the host installs, pinned to a commit for this repository, with no copy in src', () => {
+test('G3 the design is a dependency pinned to a commit and bundled in the package, with no copy in src', () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
-  assert.match(pkg.peerDependencies['@woonyong-choi/design-tokens'], /^\^\d+\.\d+\.\d+$/);
-  assert.match(pkg.devDependencies['@woonyong-choi/design-tokens'], /^https:\/\/raw\.githubusercontent\.com\/woonyong-choi\/design-tokens\/[0-9a-f]{40}\/artifacts\/diagram\.tgz$/);
-  assert.equal(pkg.dependencies['@woonyong-choi/design-tokens'], undefined);
+  assert.match(pkg.dependencies['@woonyong-choi/design-tokens'], /^https:\/\/raw\.githubusercontent\.com\/woonyong-choi\/design-tokens\/[0-9a-f]{40}\/artifacts\/diagram\.tgz$/);
+  assert.deepEqual(pkg.bundleDependencies, ['@woonyong-choi/design-tokens']);
+  assert.equal(pkg.peerDependencies, undefined);
+  assert.equal(pkg.devDependencies['@woonyong-choi/design-tokens'], undefined);
+  assert.deepEqual([pkg.scripts.prepack, pkg.scripts.postpack], ['node scripts/pack-bundle.mjs aside', 'node scripts/pack-bundle.mjs restore']);
   assert.equal(existsSync(join(ROOT, 'src/vendor/theme')), false);
   const resolved = createRequire(join(ROOT, 'src/draw/styles.js')).resolve('@woonyong-choi/design-tokens/tokens.css');
   assert.equal(resolved, join(DESIGN, 'tokens.css'));
@@ -63,12 +65,11 @@ test('G4 #398 release runs the same checks as ci before it publishes, and only t
   for (const text of [ci, release]) assert.ok(!/npm ci(?! --ignore-scripts)/.test(text), 'npm ci runs without install scripts');
 });
 
-test('G5 #398 the Action keeps a Node 20 or newer that the job has, and installs only what the command needs plus the pinned design', () => {
+test('G5 #398 the Action keeps a Node 20 or newer that the job has, and installs only what the command needs, the pinned design included', () => {
   const action = readFileSync(join(ROOT, 'action.yml'), 'utf8');
   assert.match(action, /if: steps\.node\.outputs\.install == 'true'\n\s+uses: actions\/setup-node@/);
-  assert.match(action, /npm ci --omit=dev --ignore-scripts/);
-  assert.match(action, /devDependencies\['@woonyong-choi\/design-tokens'\]/, 'the design version is read from package.json, not written twice');
-  assert.match(action, /npm install --no-save --save-prod --omit=dev --ignore-scripts .*"@woonyong-choi\/design-tokens@\$design"/);
+  assert.match(action, /npm ci --omit=dev --omit=optional --ignore-scripts/);
+  assert.doesNotMatch(action, /design-tokens@/, 'the design version is read from package.json and the lock file, not written twice');
   // 잠금 파일을 읽지 않으면 이미 설치한 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다
   assert.doesNotMatch(action, /--no-package-lock/);
 });

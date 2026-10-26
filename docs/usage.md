@@ -34,11 +34,18 @@ DiagramPlay는 텍스트로 문서용 그림을 만드는 도구이다. 구성 �
 | JavaScript·TypeScript 연동 | [JavaScript에서 조립하기](#javascript에서-조립하기) |
 | 오류 수정과 지원 범위 확인 | [문제가 있을 때](#문제가-있을-때) |
 
-문법을 바로 찾으려면 [문서 안내](README.md)의 문법·검사 항목을 사용한다. 이 문서는 저장소 기본 브랜치 기준이다. npm 공개 배포 전이므로 아래 저장소 실행 경로를 쓴다. 원본의 `diagramplay` 선언에는 패키지 버전을 붙이지 않는다.
+문법을 바로 찾으려면 [문서 안내](README.md)의 문법·검사 항목을 사용한다. 이 문서는 저장소 기본 브랜치 기준이다. 명령 예시는 저장소 안에서 실행하는 `node src/cli.js`로 적고, npm으로 설치한 곳에서는 `npx diagramplay`로 바꿔 실행한다. 원본의 `diagramplay` 선언에는 패키지 버전을 붙이지 않는다.
 
 ## 설치와 버전 확인
 
-Node.js 20 이상, npm과 Git이 필요하다.
+Node.js 20 이상과 npm이 필요하다. 문서 저장소에서 쓸 때는 패키지로 설치한다.
+
+```sh
+npm i diagramplay
+npx diagramplay check request.diagramplay --strict
+```
+
+이 저장소의 예제와 그림을 고치려면 저장소를 복제하고 `npm ci`로 잠금 파일의 의존성을 설치한다. 복제한 저장소 루트에서는 `node src/cli.js`로 실행한다.
 
 ```sh
 git clone https://github.com/woonyong-choi/diagramplay.git
@@ -46,15 +53,13 @@ cd diagramplay
 npm ci
 ```
 
-복제한 저장소 루트에서 `node src/cli.js`로 실행한다. 저장소의 `package-lock.json`과 같은 Git commit을 사용하면 의존성 버전을 맞출 수 있다.
-
 패키지 버전은 다음 명령으로 확인할 수 있다. 원본 첫 줄에는 버전 숫자 없이 `diagramplay`만 적는다.
 
 ```sh
 node --input-type=module -e "import {createRequire} from 'node:module'; console.log(createRequire(import.meta.url)('diagramplay/package.json').version)"
 ```
 
-DiagramPlay 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 peer 의존성인 `@woonyong-choi/design-tokens`(`^0.2.0`)에서 읽는다. 브랜드 크기 역할 `spacing.figure.icon.brand`가 없는 구버전은 가져오기 단계에서 호환 오류로 중단한다. 저장소 설치는 DiagramPlay용 `diagram` 배포물만 받으므로 공통 전체 아이콘 카탈로그를 내려받지 않는다. 별도 소비자 프로젝트도 이 저장소의 개발 의존성에 고정한 tarball URL을 디자인 패키지 설치에 사용한다. 전체 카탈로그가 필요한 호스트는 공통 전체 패키지를 직접 선택할 수 있다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
+DiagramPlay 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 패키지 안에 묶인 `@woonyong-choi/design-tokens`(DiagramPlay용 `diagram` 배포물, 고정 commit)에서 읽으므로 따로 설치하지 않는다. 브랜드 크기 역할 `spacing.figure.icon.brand`가 없는 구버전 디자인은 가져오기 단계에서 호환 오류로 중단한다. 다른 디자인 commit을 쓰는 방법은 [아키텍처의 배포](architecture.md#배포)에 있다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
 
 ## 첫 그림 만들기
 
@@ -134,7 +139,7 @@ node src/cli.js md guide.md --check --strict
 
 ### 홈페이지에서 읽는 본문
 
-홈페이지는 DiagramPlay와 design-tokens 버전을 따로 고정한다. 호스트는 DiagramPlay가 요구하는 디자인 peer 범위를 만족하는 공통 공급자를 하나만 설치한다. 의존성 갱신과 콘텐츠 발행은 해당 저장소에서 검증한다.
+홈페이지는 DiagramPlay와 design-tokens 버전을 따로 고정한다. 그림은 DiagramPlay에 묶인 디자인으로 그려지므로, 페이지와 그림이 같은 디자인이려면 홈페이지가 고정한 design-tokens commit을 DiagramPlay가 묶은 commit과 맞춘다([아키텍처의 배포](architecture.md#배포)). 의존성 갱신과 콘텐츠 발행은 해당 저장소에서 검증한다.
 
 홈페이지는 호스트가 지원하는 도표 블록을 빌드할 때 HTML 그림으로 컴파일하고 본문에 삽입한다. 원본의 `title`이 그림의 이름이 된다. 같은 원본은 빌드에서 재사용하고 읽는 브라우저에서 파서나 배치 엔진을 실행하지 않는다.
 
