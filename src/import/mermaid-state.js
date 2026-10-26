@@ -1,9 +1,14 @@
 // Mermaid 상태 그림(stateDiagram, stateDiagram-v2) 읽기: 상태, 전이와 사건, 처음·끝 상태, 묶은 상태, 갈림길(docs/design/import.md 상태 그림).
 import { change, ensureNode, groupOf, skip, textOf } from './model.js';
-import { unquote } from './mermaid.js';
+import { readCommonLine } from './mermaid-lines.js';
+import { unquote } from './names.js';
 
 const TRANSITION = /^(.+?)\s*-->\s*(.+?)\s*(?::(.*))?$/;
-const DIRECTIONS = { TB: 'down', TD: 'down', BT: 'down', LR: 'right', RL: 'right' };
+// 옮기지 않는 문장
+const LINE_RULES = {
+  ignored: /^(classDef|class|style|hide|accTitle|accDescr)\b/,
+  why: (word) => `"${word}" is not imported. Colors and sizes come from the design tokens`,
+};
 const START = '[*]';
 
 // cost: time O(n + t·g), heap O(n), stack O(d)
@@ -53,14 +58,12 @@ function readLine(text, line, context) {
     return skip(model, line, 'the note is not imported. A DiagramPlay state has no notes');
   }
   if (word === 'state') return readStateLine(text.slice(5).trim(), line, context);
-  if (word === 'direction') {
-    const value = DIRECTIONS[text.split(/\s+/)[1]];
+  if (text === '--') return skip(model, line, 'the concurrent region "--" is not imported. Its states stay in one composite state');
+  const direction = (value) => {
     if (value && stack.length) stack.at(-1).direction = value;
     else if (value) model.direction = value;
-    return undefined;
-  }
-  if (text === '--') return skip(model, line, 'the concurrent region "--" is not imported. Its states stay in one composite state');
-  if (/^(classDef|class|style|hide|accTitle|accDescr)\b/.test(word)) return skip(model, line, `"${word}" is not imported. Colors and sizes come from the design tokens`);
+  };
+  if (readCommonLine(text, line, model, { ...LINE_RULES, direction })) return undefined;
   const transition = TRANSITION.exec(text);
   if (transition) return readTransition(transition, line, context);
   const described = /^([^:\s]+)\s*:\s*(.+)$/.exec(text);

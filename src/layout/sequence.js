@@ -3,7 +3,8 @@ import { maxOf } from '../extremes.js';
 import { fragmentRows, finishFragments } from './sequence-fragments.js';
 import { placeSequenceLife } from './sequence-life.js';
 import { FIGURE_PAD } from '../canvas.js';
-import { sizePill, stretchHeight } from '../measure/sizes.js';
+import { stretchHeight } from '../measure/sizes.js';
+import { sizePill } from '../measure/pills.js';
 import { STYLE, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 

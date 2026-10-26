@@ -3,7 +3,7 @@ import { chartMotionCss } from '@woonyong-choi/design-tokens/ui/diagram.mjs';
 import { CANVAS, canvasOf } from './canvas.js';
 import { createGlyphSet, embedFonts } from './measure/fonts.js';
 import { paintCss } from './draw/paint.js';
-import { hasStatus } from './draw/status.js';
+import { hasStatus } from './layout/status.js';
 import { STYLES, tokensFor, figureDefs, patternDefs } from './styles.js';
 import { escapeXml, figureDesc, plainText, roundCoord as r } from './text.js';
 import { figureContent } from './html/content.js';

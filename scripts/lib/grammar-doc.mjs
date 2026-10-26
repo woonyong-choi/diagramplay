@@ -1,5 +1,5 @@
 // 문법 표(grammar.js)를 문서 표로 쓴다. docs/design/figure-syntax.md의 "문법 표" 구간이 이 출력과 같아야 하고, 어긋나면 테스트가 실패한다.
-import { OPTIONS, STATEMENTS, VALUES } from './grammar.js';
+import { OPTIONS, STATEMENTS, VALUES } from '../../src/source/grammar.js';
 
 export const DOC_START = '<!-- grammar-table:start -->';
 export const DOC_END = '<!-- grammar-table:end -->';

@@ -8,7 +8,8 @@ import { TIME_LIMIT_MS } from './source/values.js';
 import { msOfTicks, TICKS_PER_MS } from './time-grid.js';
 import { applyReserve } from './flow-reserve.js';
 import { noteRowChanges, resetWriters, runUpdate, spansOf, startValues } from './timeline-values.js';
-import { rootOf, valueTable } from './values.js';
+import { valueTable } from './values.js';
+import { rootOf } from './source/value-refs.js';
 
 // 이벤트 시각은 시간표 눈금(0.00001ms)의 정수 번호다. 같은 번호여야 같은 시각이고 반올림하지 않는다(src/time-grid.js).
 // 시간표에 담는 값(변화, 대기, 건너뜀, 교착의 시각)만 ms로 바꾼다.
@@ -42,8 +43,8 @@ class StepEngine {
     this.state = new Map(figure.values.filter((v) => v.ref === undefined).map((v) => [v.id, v.from]));
     this.followers = new Map();
     for (const v of figure.values.filter((value) => value.ref !== undefined)) this.followers.set(this.root(v.id), (this.followers.get(this.root(v.id)) ?? 0) + 1);
-    resetWriters(figure, { writers: run.writers, span: { t0 }, keep: start?.keep });
-    if (start) startValues(start, { state: this.state, textOf: this.textOf, byId: this.byId, onWrite: (e) => run.writers.set(this.root(e.id), { line: e.line, at: t0, isSet: true }) });
+    resetWriters(figure, { writers: run.writers, span: { t0 }, keep: start.keep });
+    startValues(start, { state: this.state, textOf: this.textOf, byId: this.byId, onWrite: (e) => run.writers.set(this.root(e.id), { line: e.line, at: t0, isSet: true }) });
     this.rows = figure.values.map((v) => ({ si, id: v.id, node: v.on, t0, t1: t0, initial: this.textOf(v.id), changes: [], ...(v.queue ? { slots: v.slots } : {}) }));
   }
 

@@ -14,6 +14,14 @@ export const ICON_NAMES = Object.freeze(Object.fromEntries([
 /** 사용자 세트 안의 아이콘 이름 형식. 폴더 밖으로 나가는 경로를 막는다. */
 export const USER_ICON_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
+// cost: time O(n), heap O(n), stack O(1)
+// vars: n = SVG 글자 수
+// basis: estimate
+/** 공통 카탈로그의 표시 기호(상태 알약의 확인, 경고, 닫기, 줄임). 그림 색 대신 감싼 요소의 글자색으로 그리는 흑백 기호다. */
+export function markIcon(name) {
+  return { svg: readIcon(name), role: 'mark' };
+}
+
 // 읽은 파일의 정리 결과. 같은 파일을 그림마다 다시 읽지 않는다.
 const cache = new Map();
 

@@ -1,7 +1,7 @@
 // 선 끝 표시: 관계의 다중성(0..*, 1)은 선 옆의 글이고, 외래 키의 삭제 정책(CASCADE)은 참조하는 열 쪽 끝의 선 위 알약이다.
 // 배치(elkjs 끝 라벨 자리), 읽기(read.js), 그리기(draw/connector.js), 그림 검사가 이 목록 하나를 같이 쓴다.
 // 삭제 정책을 선 옆 글로 두면 외래 키 열이 붙어 있을 때 글이 두 열 줄 사이에 서서 어느 선의 것인지 읽히지 않는다. 선 위 알약은 자기 선에 붙어 있다.
-import { sizePill } from '../measure/sizes.js';
+import { sizePill } from '../measure/pills.js';
 import { STYLE, textBlock } from '../measure/texts.js';
 import { deleteRule } from '../table.js';
 

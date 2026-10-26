@@ -3,6 +3,9 @@ import { MIN_VALUE } from './chart-limits.js';
 import { NUMBER_PATTERN, TIME_PATTERN } from './words.js';
 import { closest } from './problems.js';
 
+/** 1초의 밀리초. 원본의 `s` 단위를 읽고 화면 시각을 초로 적는 곳이 함께 쓴다. */
+export const MS_PER_SECOND = 1000;
+
 /** 시간 값 하나, 단계 하나의 길이, 그림 전체 시간의 상한(ms). 1시간이다. 1시간보다 긴 문서 그림 재생은 쓸모가 없어 정한 정책 상한이고, 부동소수점 정밀도를 보장하지 않는다(출발 시각의 정밀도는 따로 검사한다). */
 export const TIME_LIMIT_MS = 3_600_000;
 
@@ -11,7 +14,7 @@ export const TIME_LIMIT_MS = 3_600_000;
 // 시간 글의 밀리초. 형식이 틀리면 undefined, 너무 커서 무한대가 되면 Infinity다.
 function timeMs(text) {
   const m = TIME_PATTERN.exec(text ?? '');
-  return m ? Number(m[1]) * (m[2] === 's' ? 1000 : 1) : undefined;
+  return m ? Number(m[1]) * (m[2] === 's' ? MS_PER_SECOND : 1) : undefined;
 }
 
 /** `900ms`, `2s`를 밀리초로. 형식이 틀리거나 0 이하거나 상한(TIME_LIMIT_MS)을 넘으면 undefined. isZeroOk면 0도 받는다(출발 시각처럼 0이 뜻이 있는 자리). */

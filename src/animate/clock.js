@@ -1,8 +1,7 @@
 // 움직이는 SVG의 한 바퀴 시계. 점, 켜짐 keyframes, 차트가 모두 이 시계의 길이와 비율 계산 하나를 쓴다.
 // 시계는 장면의 논리 ms를 재생 속도(speed)로 나눈 화면 길이로 돌고, 반복 방식(mode)에 따라 SMIL과 CSS의 반복 표기를 한 곳에서 정한다.
 import { percentText, ratio } from '../format.js';
-
-const MS_PER_SECOND = 1000;
+import { MS_PER_SECOND } from '../source/values.js';
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate

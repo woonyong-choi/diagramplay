@@ -8,9 +8,6 @@ import { buildModel } from './model.js';
 import { isBodyShape, recordPortOrder } from './ports.js';
 import { readElk } from './read.js';
 import { compactOrderVariants, orderCompactGroups } from './order.js';
-import { checkFigure } from '../check.js';
-import { createProblems } from '../source/problems.js';
-import { composePanels } from './panels.js';
 
 // 알맞은 보이는 비율의 범위. 세로로 긴 쪽은 두 화면 모두 페이지 스크롤로 읽혀 한도(aspect-max)의 역수까지, 가로로 넓은 쪽은 데스크톱 가로 화면 비율(1400x900)까지다.
 const FIT_MIN = 1 / ASPECT_MAX;
@@ -33,10 +30,11 @@ export function checkLayoutWidth(figure, width, problems) {
 // cost: time O(elk), heap O(s + e), stack O(1)
 // vars: elk = 배치 시간, s = 도형 수, e = 선 수
 // basis: estimate
+// isSound(figure, scene)는 좁은 그룹 후보(compactCandidate)의 기하가 그림 검사에 걸리지 않는지 보는 판정이다. 검사 규칙은 check/ 한 곳에만 있다.
 // 구조 그림 배치. 배치가 끝내 실패하면 원인 선의 줄 번호가 있는 오류로 바꿔 알린다(내부 오류로 끝내지 않는다).
-export async function layoutOrFail(figure, sizes, { problems, width }) {
+export async function layoutOrFail(figure, sizes, { problems, width, isSound }) {
   try {
-    return await layoutGraph(figure, sizes, width);
+    return await layoutGraph({ ...figure, isSound }, sizes, width);
   } catch (error) {
     if (!(error instanceof LayoutError)) throw error;
     problems.error(error.line ?? figure.line, `${error.message}. Change a group direction, remove "aspect", or break the cycle into fewer back edges`, { code: 'layout' });
@@ -210,11 +208,8 @@ async function compactCandidate(figure, sizes, { grouped, canvas }) {
 
 function compactRank(candidate, figure, canvas) {
   const scene = readElk(candidate.laid, candidate.model);
-  const problems = createProblems();
-  // 선·라벨·상태 알약의 기하만 검사한다. 실제 사건 처리와 이동 글 검사는 선택 뒤 기존 build-scene 경로가 맡는다.
-  const timeline = { segs: figure.steps.map(step => ({ hops: [], status: step.status })) };
-  checkFigure({ figure: { ...figure, views: [{ strategy: 'graph' }] }, scene: composePanels([{ strategy: 'graph', scene }]), timeline }, problems);
-  if (problems.errors.length) return undefined;
+  // 후보의 기하가 그림 검사를 통과하는지는 부르는 쪽(build-scene.js)이 넘긴 판정(isSound)이 정한다. 배치는 검사 층을 가져오지 않는다.
+  if (!figure.isSound(figure, scene)) return undefined;
   const lengths = scene.edges.map(edge => edge.points.slice(1).reduce((sum, point, i) => sum + Math.abs(point.x - edge.points[i].x) + Math.abs(point.y - edge.points[i].y), 0));
   return [scene.width > canvas ? 1 : 0, scene.width > canvas ? scene.width : 0, Math.max(0, ...lengths), lengths.reduce((sum, length) => sum + length, 0), ratioMiss(scene, canvas, false), scene.height];
 }

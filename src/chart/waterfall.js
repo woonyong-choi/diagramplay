@@ -1,13 +1,15 @@
 // 증감 막대는 직전 누계에서 시작하고, 합계 막대는 0에서 현재 누계까지 그린다.
 import { maxOf, minOf } from '../extremes.js';
 import { STYLE } from '../measure/texts.js';
+import { drawTextBack } from '../draw/texts.js';
 import { categoryPaint } from '../chart-palette.js';
 import { measure, wrap } from '../measure/fonts.js';
 import { escapeXml, roundCoord as r } from '../text.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawRules, finishRowChart, rowValueScale } from './axis.js';
 import { COPY } from './copy.js';
-import { inkGroup, rowLabelLayout, rowName, valueText } from './labels.js';
+import { inkGroup, rowName, valueText } from './labels.js';
+import { rowLabelLayout } from './label-layout.js';
 import { markAttrs, markId } from './marks.js';
 import { BAR, PAD, ROW, SPACE, TEXT } from './metrics.js';
 import { valueFormat } from './scale.js';
@@ -89,7 +91,8 @@ function waterfallRow(source, row, { chart, names, top, pitch, scale, index, cy,
   const className = `chart-value${row.total ? ' ours' : ''} late`;
   const textMark = (n) => ({ chart, id: markId(chart, 0, index, n ? `.${n}` : ''), raw, paint });
   const summary = lines ? lines.map((line, i) => valueText({ x: PAD, cy: cy + BAR / 2 + SPACE["1-5"] + TEXT['11'] / 2 + i * lineHeight }, line, className, textMark(i))).join('') : valueText({ x: reach + SPACE["1-5"], cy }, text, className, textMark(0));
-  const masks = lines ? `<rect x="${PAD}" y="${r(top)}" width="${chart.layout.width - PAD * 2}" height="${r(names.space - SPACE["1-5"])}" class="chart-text-bg"/><rect x="${PAD}" y="${r(cy + BAR / 2 + SPACE["1-5"])}" width="${chart.layout.width - PAD * 2}" height="${r(lines.length * lineHeight)}" class="chart-text-bg"/>` : '';
+  // 좁은 배치는 이름 줄과 값 줄 뒤를 그림 폭 전체의 바탕 면으로 가려 격자가 글 사이를 지나지 않게 한다.
+  const masks = lines ? [{ y: top, h: names.space - SPACE["1-5"] }, { y: cy + BAR / 2 + SPACE["1-5"], h: lines.length * lineHeight }].map(({ y, h }) => drawTextBack({ x: PAD, y, w: chart.layout.width - PAD * 2, h })).join('') : '';
   const guides = chart.layout ? drawRules(chart.rules, scale, { axis: 'x', from: face.y, to: face.y + BAR, labels: false }) : '';
   return { connector, mark: masks + name + mark + guides, text: inkGroup(index, summary) };
 }

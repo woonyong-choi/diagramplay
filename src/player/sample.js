@@ -74,28 +74,6 @@ function mergeRuns(list) {
   return merged;
 }
 
-/**
- * 점 하나가 각 선에 올라 있는 박자 안 구간 { edge, from, to }(ms). 도형 안을 지나는 구간(gaps)은 어느 선에도 속하지 않는다.
- * 박자의 이동(hop.edge)은 선 하나에 이동 내내 있고, 흐름의 점(hop.track)은 시간표의 길 계획(hop.legEdges, 구간마다 선 번호)대로 구간마다 그 선에 있다.
- * 잘리는 점(hop.cut)은 거기까지만 선에 있다. 정본이 아닌 이동은 근사로 받지 않고 오류다.
- */
-function hopLegs(hop, move) {
-  const end = hop.cut ?? hop.ms;
-  const isTrack = hop.track !== undefined;
-  const edges = isTrack ? hop.legEdges : [hop.edge];
-  const gaps = hop.gaps ?? [];
-  const isGap = (gap) => Array.isArray(gap) && gap.length === 2 && gap.every(Number.isFinite);
-  if (!(hop.ms > 0 && Number.isFinite(hop.ms)) || !Array.isArray(edges) || !edges.length || !edges.every(Number.isInteger) || (isTrack && (gaps.length !== edges.length - 1 || !gaps.every(isGap)))) {
-    throw new Error(`이동이 정본이 아니다: ${isTrack ? `track ${hop.track}` : `edge ${hop.edge}`}, ms ${hop.ms}, legEdges ${JSON.stringify(hop.legEdges)}, gaps ${JSON.stringify(hop.gaps)}`);
-  }
-  const spanOf = (k) => (isTrack ? [k === 0 ? 0 : gaps[k - 1][1], k === edges.length - 1 ? 1 : gaps[k][0]] : [0, 1]);
-  const timeOf = (f) => (f <= 0 ? 0 : f >= 1 ? hop.ms : hop.ms * timeAtProgress(move, f, hop.pace));
-  return edges.flatMap((edge, k) => {
-    const [from, to] = spanOf(k).map(timeOf);
-    return from < end && from < to ? [{ edge, from, to: Math.min(to, end) }] : [];
-  });
-}
-
 // ---- 켜진 구간 ----
 
 /**

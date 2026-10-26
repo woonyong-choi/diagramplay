@@ -1,5 +1,5 @@
 // 검사 항목 목록(items.js)을 문서 표로 쓴다. docs/design/figure-check.md의 "검사 항목" 구간이 이 출력과 같아야 하고, 어긋나면 테스트가 실패한다.
-import { CHECKS } from './items.js';
+import { CHECKS } from '../../src/check/items.js';
 
 export const DOC_START = '<!-- check-table:start -->';
 export const DOC_END = '<!-- check-table:end -->';

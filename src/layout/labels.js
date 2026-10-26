@@ -1,8 +1,11 @@
 // 선 라벨 자리 고르기. elkjs가 선 꼬리 옆에 잡은 자리가 다른 라벨, 도형, 다른 선과 겹치거나 그룹 테두리에 걸치거나 자기 선 곁에 없으면 자기 선을 따라 출발점에서 가장 가까운 빈 자리로 옮긴다(docs/design/layout.md 선 라벨).
 // 경로 점은 건드리지 않고 라벨 가운데 자리만 정한다.
-import { sizePill } from '../measure/sizes.js';
+import { sizePill } from '../measure/pills.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { TOUCH } from './model.js';
+import { SAME_POINT } from './model.js';
+
+/** 선분 위에 글이나 알약을 놓아 볼 자리(선분 길이의 비율). 가운데부터 양쪽으로 옮긴다. 선 번호 알약과 타이밍 화살표 글이 같은 순서다. */
+export const ALONG_SPOTS = Object.freeze([0.5, 0.35, 0.65, 0.2, 0.8]);
 
 // 라벨과 자기 선 사이 간격. elkjs 라벨 간격(`elk.spacing.edgeLabel`)과 같다.
 const GAP = values.spacing["1"];
@@ -51,7 +54,7 @@ function spotsAlong(points, { w, h }) {
   const spots = [];
   for (let k = 1; k < points.length; k++) {
     const [a, b] = [points[k - 1], points[k]];
-    const isVertical = Math.abs(a.x - b.x) < TOUCH;
+    const isVertical = Math.abs(a.x - b.x) < SAME_POINT;
     const length = Math.hypot(b.x - a.x, b.y - a.y);
     const sign = isVertical ? Math.sign(b.y - a.y) : Math.sign(b.x - a.x);
     const along = isVertical ? h : w;

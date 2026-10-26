@@ -35,7 +35,7 @@ export function formatNumber(value) {
  * 눈금 글자 목록(눈금과 같은 순서). 기본은 formatNumber다. k, M의 소수 한 자리 반올림 때문에 서로 다른 눈금이 같은 글자가 되면(큰 값 위의 작은 간격)
  * 눈금마다 15자리 유효숫자의 십진 표기로 쓴다. 눈금이 15자리로도 가려지지 않는 범위는 값의 절댓값 1e15 미만 제한(source/chart-rules.js)이 막는다.
  */
-export function tickLabels(ticks) {
+function tickLabels(ticks) {
   const labels = ticks.map(formatNumber);
   if (new Set(labels).size === labels.length) return labels;
   return ticks.map((t) => String(Number(t.toPrecision(15))));

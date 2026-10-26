@@ -1,9 +1,8 @@
 // Mermaid 클래스 그림(classDiagram) 읽기: 클래스와 멤버, 주석(<<interface>> 등), 관계와 양쪽 다중성, namespace(docs/design/import.md 클래스 그림).
 import { change, ensureNode, skip, textOf } from './model.js';
-import { MISSING_TEXT } from './names.js';
-import { unquote } from './mermaid.js';
+import { readCommonLine } from './mermaid-lines.js';
+import { MISSING_TEXT, unquote } from './names.js';
 
-const DIRECTIONS = { TB: 'down', TD: 'down', BT: 'down', LR: 'right', RL: 'right' };
 const VISIBILITY = { '+': 'public', '-': 'private', '#': 'protected', '~': 'package' };
 const NAME = String.raw`[\p{L}\p{N}_]+(?:~[^~\s]*(?:~[^~\s]*)*~)?`;
 // 관계: `A ["다중성"] 왼쪽끝 선 오른쪽끝 ["다중성"] B [: 글]`. 끝은 `<|`, `*`, `o`, `<`(왼쪽)와 `|>`, `*`, `o`, `>`(오른쪽), 선은 `--`(실선)과 `..`(점선)이다.
@@ -11,7 +10,11 @@ const RELATION = new RegExp(String.raw`^(${NAME})\s*(?:"([^"]*)"\s*)?(<\||\*|o|<
 const DECLARE = new RegExp(String.raw`^class\s+(${NAME})(?:\s*\["([^"]*)"\])?(?::::[\w-]+)?\s*(\{)?\s*(\})?$`, 'u');
 const MEMBER_OF = new RegExp(String.raw`^(${NAME})\s*:\s*(.+)$`, 'u');
 const ANNOTATION = /^<<\s*([\w-]+)\s*>>\s*(.*)$/;
-const IGNORED = /^(classDef|cssClass|style|click|link|callback|accTitle|accDescr)\b/;
+// 옮기지 않는 문장
+const LINE_RULES = {
+  ignored: /^(classDef|cssClass|style|click|link|callback|accTitle|accDescr)\b/,
+  why: (word) => `"${word}" is not imported. Colors, links, and accessibility text are not part of a DiagramPlay class`,
+};
 
 // cost: time O(n·c), heap O(n), stack O(1)
 // vars: n = 줄 수, c = 클래스 수
@@ -37,15 +40,10 @@ function readLine(text, line, context) {
     return;
   }
   const word = text.split(/\s+/)[0];
-  if (word === 'direction') {
-    const value = DIRECTIONS[text.split(/\s+/)[1]];
-    if (value) model.direction = value;
-    else skip(model, line, `"${text}" is not imported. Directions are TB, TD, BT, LR, RL`);
-    return;
-  }
+  const direction = (value, raw) => (value ? (model.direction = value) : skip(model, line, `"${raw}" is not imported. Directions are TB, TD, BT, LR, RL`));
   if (word === 'namespace') return void openNamespace(text, line, context);
   if (/^note\b/.test(word)) return void skip(model, line, 'the note is not imported. A DiagramPlay class has no notes');
-  if (IGNORED.test(word)) return void skip(model, line, `"${word}" is not imported. Colors, links, and accessibility text are not part of a DiagramPlay class`);
+  if (readCommonLine(text, line, model, { ...LINE_RULES, direction })) return;
   const annotation = ANNOTATION.exec(text);
   if (annotation) {
     if (!annotation[2]) return void skip(model, line, `the annotation "<<${annotation[1]}>>" outside a class is not imported. Write it as <<${annotation[1]}>> ClassName`);

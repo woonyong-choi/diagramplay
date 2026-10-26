@@ -1,14 +1,14 @@
 // 보기마다 도형 크기와 배치를 정하고 판을 합쳐, 시간표와 이동 글상자를 함께 검사한 장면을 만든다.
 // 값 글자 자리는 값이 모든 장면에서 가질 글의 실제 폭이라 시간표에 기대고, 시간표는 배치에 기댄다. 그래서 자리가 더는 넓어지지 않을 때까지 되풀이한다(value-slots.js).
 import { maxOf } from './extremes.js';
-import { checkChartFigure, checkFigure } from './check.js';
+import { checkChartFigure, checkFigure, isSoundGraph } from './check.js';
 import { buildChartFrames, chartCards, drawChartBase, extentOf } from './chart-frames.js';
 import { mapSceneCharts, sceneCharts } from './chart-scene.js';
 import { planClashes } from './chip-clash.js';
 import { planHops } from './chip-plan.js';
 import { roomByView, sweepByView, widenForHiddenChips } from './chip-room.js';
 import { CHIP_GAP, sizeChip, wrapChip } from './chip.js';
-import { chipLines, chipObstacles } from './draw/boxes.js';
+import { chipLines, chipObstacles } from './layout/boxes.js';
 import { checkEventBudget } from './event-budget.js';
 import { layoutOrFail } from './layout/graph.js';
 import { composePanels } from './layout/panels.js';
@@ -165,7 +165,7 @@ async function layoutPanel(figure, view, { cards, charts, texts, names, layoutWi
   const sizes = new Map(graph.nodes.map((n) => [n.id, sizeNode(n, contentOf(n.id), countLines(graph, n.id), charts.get(n.id)?.drawn, texts)]));
   checkGridExtent(graph, sizes, local);
   local.throwIfAny();
-  return { ...base, scene: await layoutOrFail(graph, sizes, { problems: local, width: layoutWidth }) };
+  return { ...base, scene: await layoutOrFail(graph, sizes, { problems: local, width: layoutWidth, isSound: isSoundGraph }) };
 }
 
 // 카드 id → 장면들이 그 카드에 쓰는 상태 종류 집합. 타이밍 보기가 상태 알약 자리를 미리 잡는다.
