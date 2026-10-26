@@ -42,7 +42,7 @@ export function readMermaid(text, model) {
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 원본 글자 수
 // basis: estimate
-// 의미 있는 줄 { text, line }. `%%` 주석 줄은 버리고, `%%{...}%%` 설정과 머리말의 title 밖 설정은 경고한다.
+// 의미 있는 줄 { text, line }. 앞뒤 공백은 지우고 안의 공백 연속은 한 칸으로 줄인다. `%%` 주석 줄은 버리고, `%%{...}%%` 설정과 머리말의 title 밖 설정은 경고한다.
 function statements(text, model) {
   const raw = text.replace(/^﻿/, '').split(/\r?\n/);
   let start = 0;
@@ -55,7 +55,8 @@ function statements(text, model) {
   }
   const out = [];
   for (let i = start; i < raw.length; i++) {
-    const line = raw[i].trim();
+    // 문장 안의 공백 연속은 공백 하나와 같은 뜻이다(글은 cleanText가 어차피 한 칸으로 줄인다). 한 칸으로 줄여 두면 문장 정규식이 긴 공백 위에서 되돌아가며 다시 맞춰 보지 않는다.
+    const line = raw[i].trim().replace(/\s+/g, ' ');
     if (!line) continue;
     if (line.startsWith('%%{')) skip(model, i + 1, 'the Mermaid directive is not imported. Sizes and colors come from the design tokens');
     else if (!line.startsWith('%%')) out.push({ text: line, line: i + 1 });

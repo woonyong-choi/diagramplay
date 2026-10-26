@@ -25,7 +25,7 @@
 ### 실험 차트 변환
 
 1. `03-analyze`가 `results/summary.json`을 쓴다.
-2. `results/figures/accuracy.diagramplay`의 `data "../summary.json" at "/accuracy"`가 그 값을 읽는다.
+2. `results/accuracy.diagramplay`의 `data "summary.json" at "/accuracy"`가 그 값을 읽는다. 원본이 읽는 자료는 원본 폴더 안이어야 하므로 원본을 자료와 같은 폴더에 둔다.
 3. 원본에 숫자를 손으로 적지 않는다.
 
 ## 작동 방식

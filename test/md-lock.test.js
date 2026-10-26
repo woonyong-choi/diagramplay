@@ -46,16 +46,29 @@ test('M10 stale cleanup serializes a second contender before it can replace the 
   }
 });
 
-test('M10 a leftover acquisition guard requires manual recovery and leaves all files unchanged', (t) => {
+test('M10 #397 a guard left by a process that is gone is cleared like a stale lock; a live, unreadable or foreign guard still refuses', (t) => {
   const dir = workspace(t, { 'doc.md': document });
-  fs.mkdirSync(join(dir, '.diagramplay-md.lock.guard'));
-  const before = snapshot(dir);
-  const run = cli(['md', 'doc.md', '--json'], { cwd: dir });
-  assert.equal(run.status, 1);
-  const problem = JSON.parse(run.stdout.trim());
-  assert.equal(problem.code, 'md-locked');
-  assert.match(problem.message, /guard directory by hand/);
-  assert.deepEqual(snapshot(dir), before);
+  const guard = join(dir, '.diagramplay-md.lock.guard');
+  const owner = (pid, host = hostname()) => `${JSON.stringify({ pid, host, created: new Date().toISOString(), nonce: 'guard' })}\n`;
+  const dead = spawnSync(process.execPath, ['-e', '']);
+  fs.mkdirSync(guard);
+  fs.writeFileSync(join(guard, 'owner.json'), owner(dead.pid));
+  const cleared = cli(['md', 'doc.md'], { cwd: dir });
+  assert.equal(cleared.status, 0, cleared.stderr);
+  assert.ok(!fs.existsSync(guard), 'the dead guard is gone');
+  assert.deepEqual(fs.readdirSync(dir).filter((f) => f.startsWith('.')), []);
+  for (const [why, write] of [['alive', owner(process.pid)], ['another host', owner(dead.pid, 'some-other-host')], ['unreadable', 'not json'], ['empty', undefined]]) {
+    fs.rmSync(guard, { recursive: true, force: true });
+    fs.mkdirSync(guard);
+    if (write !== undefined) fs.writeFileSync(join(guard, 'owner.json'), write);
+    const before = snapshot(dir);
+    const run = cli(['md', 'doc.md', '--json'], { cwd: dir });
+    assert.equal(run.status, 1, why);
+    const problem = JSON.parse(run.stdout.trim());
+    assert.equal(problem.code, 'md-locked', why);
+    assert.match(problem.message, /guard directory by hand/, why);
+    assert.deepEqual(snapshot(dir), before, why);
+  }
 });
 
 test('M10 a held document folder also blocks writes to a different SVG output folder', (t) => {

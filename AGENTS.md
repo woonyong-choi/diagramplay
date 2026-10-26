@@ -15,7 +15,7 @@
 | `src/draw/` | 장면 조립(`figure.js`), 카드(`card.js`)와 카드 면(`surface.js`), 카드 안 글(`texts.js`), 장식과 아이콘(`decor.js`), 카드 내용(`content.js`), 연결선과 선 라벨(`connector.js`), 화살촉(`arrow.js`), 색 이름과 표현을 읽는 곳(`look.js`) |
 | `src/icons/` | 공통 카탈로그 읽기와 사용자 SVG 검증. 내장 도형과 조작 아이콘은 design-tokens 정본 |
 | `src/tone.js`, `src/chart-palette.js` | 정식 색 이름(팔레트 계열 일곱과 회색)과 범주 색 순서 |
-| `src/timeline.js`, `src/chip.js`, `src/build.js`, `src/build-scene.js` | 시간표, 글 상자 크기와 밀어 넣기, 장면 잇기와 장면 검사 |
+| `src/timeline.js`, `src/chip.js`, `src/build.js`, `src/build-scene.js`, `src/base-path.js` | 시간표, 글 상자 크기와 밀어 넣기, 장면 잇기와 장면 검사, 원본이 읽는 파일(`data`, `icons`)의 기준 폴더 경계 |
 | `src/track-geometry.js`, `src/reflow-timeline.js` | 흐름 경로 기하와 기존 사건 시각을 보존하는 재배치 |
 | `src/check.js`, `src/check/` | 그림 검사. 항목 목록(`items.js`)과 항목별 판정 파일 |
 | `src/styles.js`, `src/animate/` | 공통 CSS 가져오기와 시간표 기반 SVG 효과. 스타일은 `@woonyong-choi/design-tokens/styles/diagram/`에서 읽음 |

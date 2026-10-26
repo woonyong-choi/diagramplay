@@ -1,3 +1,6 @@
+import { minOf } from '../extremes.js';
+import { change } from './model.js';
+import { MISSING_TEXT } from './names.js';
 
 // cost: time O(e), heap O(1), stack O(1)
 // vars: e = 선 수
@@ -25,7 +28,8 @@ export function flowDirection(pairs) {
  * @param boxes 도형 사각형 목록
  */
 export function titleText(texts, boxes) {
-  const top = Math.min(...boxes.map((b) => b.y));
+  // 도형이 없으면 위 경계가 없다(Infinity). 그때는 모든 자유 글 중 가장 위의 것이 제목이다.
+  const top = boxes.length ? minOf(boxes.map((b) => b.y)) : Infinity;
   return texts.filter((t) => t.text && t.box.y + t.box.h <= top).sort((a, b) => a.box.y - b.box.y)[0];
 }
 

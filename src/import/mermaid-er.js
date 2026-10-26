@@ -61,10 +61,11 @@ function readLine(text, line, context) {
 // basis: estimate
 // 개체 이름(`CUSTOMER`, `"LINE ITEM"`, `p[Person]`). 대괄호 안은 보이는 이름이다.
 function entityOf(raw, line, model) {
-  const aliased = /^(.+?)\[(.*)\]$/.exec(raw);
-  const key = unquote(aliased ? aliased[1] : raw);
+  // `이름[보이는 이름]`: 첫 글자 뒤의 첫 `[`부터 끝의 `]`까지. 정규식 대신 위치로 찾아 긴 이름에서도 줄 길이에 비례한다.
+  const open = raw.endsWith(']') ? raw.indexOf('[', 1) : -1;
+  const key = unquote(open > 0 ? raw.slice(0, open) : raw);
   const node = ensureNode(model, key, { line, columns: [] });
-  if (aliased) node.label = textOf(model, unquote(aliased[2]), line) || key;
+  if (open > 0) node.label = textOf(model, unquote(raw.slice(open + 1, -1)), line) || key;
   return node;
 }
 

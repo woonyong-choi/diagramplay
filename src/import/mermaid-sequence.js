@@ -5,7 +5,6 @@ import { unquote } from './names.js';
 
 // 화살표 → 점선 여부와 바꿔 그린 끝. 긴 것을 먼저 본다.
 const ARROWS = ['<<-->>', '<<->>', '-->>', '->>', '--x', '-x', '--)', '-)', '-->', '->'];
-const MESSAGE = new RegExp(`^(.+?)\\s*(${ARROWS.map((a) => a.replace(/[()]/g, '\\$&')).join('|')})\\s*([+-]?)\\s*([^:]+?)\\s*(?::(.*))?$`);
 const FRAGMENTS = { alt: 'alt', loop: 'loop', opt: 'opt', par: 'par' };
 const BRANCHES = { else: 'alt', and: 'par' };
 // 구획 없이 안의 줄만 옮기는 블록
@@ -62,9 +61,43 @@ function readLine(text, line, context) {
   if (/^note$/i.test(word)) return readNote(tail, line, context);
   if (word === 'autonumber') return skip(model, line, 'autonumber is not imported. DiagramPlay numbers edges with no=, not messages');
   if (readCommonLine(text, line, model, LINE_RULES)) return undefined;
-  const message = MESSAGE.exec(text);
+  const message = splitMessage(text);
   if (message) return readMessage(message, line, context);
   return skip(model, line, `"${text}" is not imported. It is not a Mermaid sequence statement`);
+}
+
+// cost: time O(n·a), heap O(n), stack O(1)
+// vars: n = 줄 글자 수, a = 화살표 종류 수
+// basis: estimate
+/**
+ * 메시지 줄 `보내는쪽 화살표 [+|-] 받는쪽 [: 글]`을 [, 보내는쪽, 화살표, 표시, 받는쪽, 글]로 가른다. 메시지가 아니면 undefined다.
+ * 정규식 대신 앞에서부터 화살표 자리를 찾는다. 한 자리에서는 긴 화살표부터 보고, 뒤가 메시지 꼴이 아니면 다음 화살표, 다음 자리로 넘어간다.
+ */
+function splitMessage(text) {
+  for (let at = 1; at < text.length; at++) {
+    for (const arrow of ARROWS) {
+      if (!text.startsWith(arrow, at)) continue;
+      const rest = messageRest(text, at + arrow.length);
+      if (rest) return [text, text.slice(0, at), arrow, ...rest];
+    }
+  }
+  return undefined;
+}
+
+// cost: time O(n), heap O(n), stack O(1)
+// vars: n = 줄 글자 수
+// basis: estimate
+// 화살표 뒤: 받는 쪽 앞의 활성 표시(`+`, `-`), 받는 쪽, `:` 뒤의 글. 받는 쪽은 첫 `:` 앞까지이고 비어 있으면 메시지가 아니다(undefined). 표시만 있고 받는 쪽이 없으면 표시를 받는 쪽 이름으로 읽는다.
+function messageRest(text, from) {
+  const skipSpace = (at) => (text[at] === ' ' || text[at] === '\t' ? at + 1 : at);
+  const start = skipSpace(from);
+  const marked = text[start] === '+' || text[start] === '-';
+  for (const [mark, at] of marked ? [[text[start], skipSpace(start + 1)], ['', start]] : [['', start]]) {
+    const colon = text.indexOf(':', at);
+    const to = text.slice(at, colon < 0 ? text.length : colon).trimEnd();
+    if (to) return [mark, to, colon < 0 ? undefined : text.slice(colon + 1)];
+  }
+  return undefined;
 }
 
 // cost: time O(p), heap O(1), stack O(1)

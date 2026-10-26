@@ -2,14 +2,22 @@ import { scanDocument } from './md-tags.js';
 
 // 이미지 줄 끝의 표시. 이 표시가 붙은 줄만 이 도구가 만든 줄로 보고 갱신하거나 지운다.
 const IMAGE_MARK = '<!-- diagramplay -->';
-// 다른 표시가 붙은 이미지 줄은 사용자 줄이다. 이 도구가 갱신하거나 지우지 않는다.
-const MARKED_IMAGE = /^\s*!\[.*\]\(.*\)<!-- diagramplay -->\s*$/;
 const BLOCK_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-// cost: time O(1), heap O(1), stack O(1)
+// cost: time O(n), heap O(n), stack O(1)
+// vars: n = 줄 글자 수
 // basis: estimate
-/** 이 도구가 만든 이미지 줄이면 true. 인용 표시가 앞에 있어도 된다. */
-export const isMarkedImage = (line) => MARKED_IMAGE.test(line);
+/**
+ * 이 도구가 만든 이미지 줄(`![글](주소)<!-- diagramplay -->`, 앞뒤 공백 허용)이면 true. 인용 표시는 부르는 쪽이 떼고 넘긴다.
+ * 다른 표시가 붙은 이미지 줄은 사용자 줄이다. 이 도구가 갱신하거나 지우지 않는다. 표시를 먼저 끝에서 보고 나머지는 앞뒤 글자와 `](` 하나로 본다(정규식 되돌아가기 없음).
+ */
+export function isMarkedImage(line) {
+  const text = line.trim();
+  if (!text.endsWith(IMAGE_MARK)) return false;
+  const image = text.slice(0, -IMAGE_MARK.length);
+  const middle = image.indexOf('](', 2);
+  return image.startsWith('![') && image.endsWith(')') && middle >= 0 && middle + 2 < image.length;
+}
 
 // cost: time O(t), heap O(t), stack O(1)
 // vars: t = 설명 글자의 낱말 수

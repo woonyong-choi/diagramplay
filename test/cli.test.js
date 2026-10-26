@@ -1,6 +1,7 @@
 // 명령줄: render, check, gallery의 결과 파일, 종료 코드, 표준 출력과 오류, 이름 겹침과 쓰기 실패 때의 원자성.
 // 모두 새 프로세스로 돌려 파일과 출력으로만 본다. 시험 이름 첫 낱말(L1~L8)이 요구사항 번호이고, 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { lstatSync, mkdirSync, readdirSync, realpathSync, symlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
@@ -86,6 +87,15 @@ test('L2 #396 one failing source among several makes render write nothing for an
   assert.equal(run.stdout, '');
   assert.match(run.stderr, /^bad\.diagramplay:2: /m);
   assert.deepEqual(snapshot(dir), before, 'ok.svg is not written either');
+});
+
+test('L2 #397 importing the command module from a script whose path no longer exists does not throw and does not run the command', (t) => {
+  const dir = workspace(t, {});
+  const cliUrl = new URL('../src/cli.js', import.meta.url).href;
+  // 진입 판정은 process.argv[1]을 실제 경로로 푼다. 지워진 스크립트 경로를 흉내 내려고 argv[1]을 없는 경로로 둔다.
+  const run = spawnSync(process.execPath, ['--input-type=module', '-e', `process.argv[1] = ${JSON.stringify(join(dir, 'gone.mjs'))}; await import(${JSON.stringify(cliUrl)}); process.stdout.write('loaded');`], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  assert.equal(run.stdout, 'loaded');
 });
 
 test('L2 --json prints one JSON line per diagnostic with exactly six fields', (t) => {
