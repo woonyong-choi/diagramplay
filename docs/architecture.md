@@ -85,11 +85,11 @@
 
 ### 공통 디자인 가져오기
 
-1. 디자인은 `@woonyong-choi/design-tokens` 패키지다. `peerDependencies`(`^0.2.0`)로 선언하므로 DiagramPlay를 설치한 앱이 고른 commit 하나를 그림도 읽는다. 홈페이지 같은 호스트의 그림은 호스트의 토큰·CSS·아이콘으로 그려진다.
-2. 이 저장소는 자체 시험·그림 생성을 위해 공통 정본이 생성한 `diagram` 배포 tarball을 `devDependencies`에 Git commit URL로 고정한다. 설치용 커밋은 공통 저장소의 기본 브랜치 이력에서 도달 가능한 것을 사용한다. 작업 브랜치를 정리한 뒤에도 같은 원본을 받을 수 있도록 URL과 잠금 파일을 함께 갱신한다. 공통 패키지의 이름과 peer 계약은 같다. 코드는 패키지 이름으로 가져오고(`@woonyong-choi/design-tokens/ui/index.mjs`) 파일은 `createRequire(import.meta.url).resolve`로 찾는다. 저장소에 디자인 사본을 두지 않는다. `measure/decor.js`는 모듈을 읽을 때 `spacing.figure.icon.brand`가 유한한 양수인지 검사한다. 필드가 없는 구버전은 최소 버전과 필드 이름을 안내하는 오류로 중단하며 숫자로 대체하지 않는다.
-3. 디자인을 올릴 때는 정본의 새 `diagram` tarball URL로 개발 의존성과 잠금 파일을 갱신한 뒤 `npm run figures`, `npm test`, `npm run check`를 실행해 PR로 반영한다. DiagramPlay에서 토큰을 합치거나 다시 생성하지 않는다. 전체 카탈로그를 쓰는 호스트는 공통 전체 패키지를 직접 선택할 수 있다.
-4. 디자인 패키지는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. composite Action은 실행 의존성만(`--omit=dev`) 설치한 뒤 `package.json`의 `devDependencies`에 적힌 그 tarball을 따로 설치한다. 의존성 버전 고정 정책은 [AGENTS.md 명령](../AGENTS.md#명령) 절에 있다.
-5. 다른 저장소로 파일을 밀어 넣는 자동 전달은 없다. 소비자 저장소는 자기 `package.json`에서 렌더러와 디자인의 commit을 고른다.
+1. 디자인은 `@woonyong-choi/design-tokens` 패키지다. 공통 정본이 생성한 `diagram` 배포 tarball을 `dependencies`에 Git commit URL로 고정하고 `bundleDependencies`로 DiagramPlay 배포물 안에 그대로 묶는다. 그림은 이 묶은 사본의 토큰·CSS·아이콘으로 그려진다. 디자인 패키지가 npm 레지스트리에 없어서, 레지스트리에서 디자인을 찾는 설치 실패를 막기 위해서다.
+2. 설치용 commit은 공통 저장소의 기본 브랜치 이력에서 도달 가능한 것을 사용한다. 작업 브랜치를 정리한 뒤에도 같은 원본을 받을 수 있도록 URL과 잠금 파일을 함께 갱신한다. 코드는 패키지 이름으로 가져오고(`@woonyong-choi/design-tokens/ui/index.mjs`) 파일은 `createRequire(import.meta.url).resolve`로 찾는다. 저장소에 디자인 사본을 두지 않는다. `measure/decor.js`는 모듈을 읽을 때 `spacing.figure.icon.brand`가 유한한 양수인지 검사한다. 필드가 없는 구버전은 최소 버전과 필드 이름을 안내하는 오류로 중단하며 숫자로 대체하지 않는다.
+3. 디자인을 올릴 때는 정본의 새 `diagram` tarball URL로 `dependencies`와 잠금 파일을 갱신한 뒤 `npm run figures`, `npm test`, `npm run check`를 실행해 PR로 반영한다. DiagramPlay에서 토큰을 합치거나 다시 생성하지 않는다. 전체 카탈로그를 쓰는 호스트는 공통 전체 패키지를 직접 선택할 수 있다.
+4. 디자인 패키지는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. composite Action은 실행 의존성만(`--omit=dev --omit=optional`) 잠금 파일대로 설치하고, 디자인도 그 설치에 든다. 의존성 버전 고정 정책은 [AGENTS.md 명령](../AGENTS.md#명령) 절에 있다.
+5. 다른 저장소로 파일을 밀어 넣는 자동 전달은 없다. 소비자 저장소는 DiagramPlay 판을 고르고, 그 판에 묶인 디자인이 그림의 디자인이다. 다른 디자인 commit을 쓰는 방법은 [배포](#배포) 절에 있다.
 
 ### 재생하기
 
@@ -112,6 +112,17 @@
 - 그림은 정의된 부품을 가져다 조립한다(React처럼 합성하되 React에 기대지 않는다). 흐름은 원본 문법 → 공통 모형 → 필요한 배치 → 공통 부품 → 조작부 하나다. 카드(머리와 필드 줄), 연결선과 라벨, 화살촉, 아이콘, 장면 탭, 도구 막대는 모양과 상태를 부품 하나가 소유하고, 종류별 렌더러는 데이터와 필요한 배치 결과만 넘긴다. 같은 토큰을 읽는 것만으로 같은 부품이라 하지 않고, 측정과 그리기는 같은 부품의 역할 규약을 쓴다. 같은 모양이 종류마다 복제되는 일과 같은 시험이 종류마다 되풀이되는 일을 막기 위해서다. 부품이 코드의 어느 파일에 있는지는 [부품 호출 지도](#부품-호출-지도)에 있다.
 - 변환 중 네트워크에 접근하지 않는다. 글꼴과 배치 엔진을 모두 함께 배포한다.
 
+## 배포
+
+| 경로 | 내용 | 쓰는 구성 요소 |
+|---|---|---|
+| npm 패키지 `diagramplay` | `src`, `LICENSE`, `NOTICE`와 묶은 디자인 패키지(`node_modules/@woonyong-choi/design-tokens`)와 그 실행 의존성 | `cli`, `player`, `svg` |
+
+- 묶음은 `npm pack`과 `npm publish`가 만든다. `prepack`이 디자인의 빌드 전용 의존성 `esbuild`를 저장소 `node_modules`에서 잠시 치우고 `postpack`이 되돌린다(`scripts/pack-bundle.mjs`). DiagramPlay는 디자인의 스타일 빌드를 부르지 않아서, 플랫폼별 바이너리와 설치 스크립트가 배포물에 드는 일을 막기 위해서다.
+- 설치하는 쪽은 `npm i diagramplay` 한 번으로 디자인까지 받고 GitHub 주소에 접속하지 않는다. 묶은 패키지는 레지스트리나 tarball URL에서 다시 받지 않는다.
+- 묶은 사본은 DiagramPlay 판마다 하나로 정해진다. npm `overrides`는 묶은 패키지를 바꾸지 않는다(npm 10.9.9, 2026-10-27 확인. 상위 패키지 이름 지정, 중첩 지정, `nested` 설치 방식 모두 묶은 사본이 남았다). 다른 디자인 commit으로 그림을 만들려면 그 commit을 `dependencies`에 적은 DiagramPlay Git commit을 설치한다: `npm i "github:woonyong-choi/diagramplay#{commit}"`. 디자인 갱신은 이 저장소에서 고정 commit을 올린 PR과 새 판 배포로 반영한다.
+- 호스트 페이지가 자기 디자인 패키지를 따로 설치해도 그림의 CSS는 DiagramPlay에 묶인 사본에서 온다. 같은 디자인으로 보이려면 호스트가 설치한 디자인 commit과 DiagramPlay가 묶은 commit을 맞춘다. 묶은 commit은 설치된 `node_modules/diagramplay/package.json`의 `dependencies`에서 읽는다.
+
 ## 기술 선택
 
 | 영역 | 선택 | 고른 이유 |
@@ -119,12 +130,12 @@
 | 층 배치와 직교 경로 | elkjs(ELK layered) | 도형 크기, 연결점, 선 라벨 크기를 받아 겹치지 않게 배치한다. [결정 기록](decisions/2026-10-01-own-syntax-and-layout.md) |
 | 글꼴 | Pretendard, JetBrains Mono | 본문은 한글, 라틴, 기호, 숫자 모두 Pretendard 하나다. 참고 문서 페이지와 같은 글꼴이라 그림이 따로 놀지 않는다. 차트 숫자는 Pretendard의 자리 폭 같은 숫자(`tnum`)다. 고정폭 JetBrains Mono는 코드(백틱 구간, 테이블 열 타입)에만 쓰고 그 안 한글은 Pretendard로 이어 그린다. 굵기마다 정적 파일이 있는 `pretendard` 패키지로 받는다. 가변 글꼴이나 조각 나뉜 패키지보다 fontkit 측정과 subset-font 자르기가 한 파일에서 끝나서 고른다. 모두 SIL Open Font License라 그림에 넣을 수 있다. 글자 간격은 -0.3px다. |
 | 결과 형식 | SVG, HTML | SVG는 README와 설계 문서에 이미지로 들어가고, HTML은 미리보기와 목록 쪽에서 열린다. 둘 다 추가 프로그램이 필요 없다. |
-| 공통 디자인 | `@woonyong-choi/design-tokens`(peer 의존성) | 웹과 도표가 같은 토큰·아이콘·탭을 조립한다. 호스트 앱이 고른 한 벌을 읽고 정본에서만 수정한다. |
+| 공통 디자인 | `@woonyong-choi/design-tokens`(commit 고정, 배포물에 묶음) | 웹과 도표가 같은 토큰·아이콘·탭을 조립한다. 정본에서만 수정하고 배포물에는 고정 commit을 그대로 묶는다. |
 | 실행 환경 | Node.js 20 이상 | elkjs와 글꼴 처리를 브라우저 없이 돌린다. |
 
 ## 소비자 API와 좁은 화면
 
-공개 API는 `src/index.js`가 내보내는 `buildFigure`, `toSvg`, `toHtml`, `importDiagram`, `IMPORT_FORMATS`, `FigureError`이고 타입은 `src/index.d.ts`다. `buildFigure`가 돌려주는 `BuiltFigure`는 불투명한 값이라 `warnings`만 읽고 나머지는 같은 패키지의 `toSvg`, `toHtml`에 그대로 넘긴다. 내부 모양(`figure`, `scene`, `timeline`)은 공개 계약이 아니다. 소비자 호스트는 빌드 때 `buildFigure(source, { allowFileAccess: false })`로 문서에 포함된 도표를 만들고 `toHtml`의 결과를 저장한다. 이 옵션은 차트 data와 사용자 아이콘 폴더를 읽기 전에 거절한다. 브라우저는 완성된 HTML의 시간표만 재생한다. 그림은 호스트 앱이 설치한 `@woonyong-choi/design-tokens`를 읽으므로 디자인 해시를 따로 맞추지 않는다.
+공개 API는 `src/index.js`가 내보내는 `buildFigure`, `toSvg`, `toHtml`, `importDiagram`, `IMPORT_FORMATS`, `FigureError`이고 타입은 `src/index.d.ts`다. `buildFigure`가 돌려주는 `BuiltFigure`는 불투명한 값이라 `warnings`만 읽고 나머지는 같은 패키지의 `toSvg`, `toHtml`에 그대로 넘긴다. 내부 모양(`figure`, `scene`, `timeline`)은 공개 계약이 아니다. 소비자 호스트는 빌드 때 `buildFigure(source, { allowFileAccess: false })`로 문서에 포함된 도표를 만들고 `toHtml`의 결과를 저장한다. 이 옵션은 차트 data와 사용자 아이콘 폴더를 읽기 전에 거절한다. 브라우저는 완성된 HTML의 시간표만 재생한다. 그림은 DiagramPlay에 묶인 `@woonyong-choi/design-tokens`를 읽는다([배포](#배포)).
 
 `buildFigure`는 원본의 의미와 배치에서 시간표를 만들며, 내부 함수 `reflowFigure`(`compile/figure.js`. `html/responsive.js`가 부르고 `index.js`는 내보내지 않음)는 기존 시간표의 사건을 보존하고 그래프 보기의 새 배치에 경로만 대응하며, `chartWidth`가 있으면 차트를 그 폭 이하로 다시 그린다. `flow/track-geometry.js`는 경로 기하만 계산하고 `timeline/reflow.js`는 중간 도착 시각을 유지하는 거리 비율을 만든다. 브라우저가 새 사건이나 값을 계산하지 않는 규칙은 같다. 자세한 계약은 [좁은 화면 배치](design/layout.md#좁은-화면을-위한-배치-목표-폭)에 있다.
 

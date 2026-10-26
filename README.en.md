@@ -18,12 +18,10 @@ DiagramPlay lays out elements and connections from a text source and turns timed
 
 ## Quick start
 
-Node.js 20 or later and Git are required. Run from source before the npm release.
+Node.js 20 or later is required. Install the package in an empty folder and create a first figure.
 
 ```sh
-git clone https://github.com/woonyong-choi/diagramplay.git
-cd diagramplay
-npm ci
+npm i diagramplay
 cat > request.diagramplay <<'EOF'
 diagramplay
 box client "Client"
@@ -32,7 +30,7 @@ client -> server "GET /orders"
 scene "Request"
   client -> server
 EOF
-node src/cli.js render request.diagramplay --html
+npx diagramplay render request.diagramplay --html
 ```
 
 The command reads the request flow in `request.diagramplay` and creates two files in the current directory.
@@ -84,9 +82,12 @@ The design documents are written in Korean.
 
 ## Development
 
-Run these commands after the Quick start installation.
+Clone the repository, install the dependencies, and run these commands.
 
 ```sh
+git clone https://github.com/woonyong-choi/diagramplay.git
+cd diagramplay
+npm ci
 npm test
 npm run check
 npm run check:docs

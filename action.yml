@@ -44,15 +44,12 @@ runs:
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: ${{ inputs.node-version || '20' }}
-    # 실행에 필요한 의존성만 설치한다(--omit=dev). 디자인은 peer 의존성이라 package.json의 devDependencies에 고정한 commit tarball을 그대로 읽어 따로 설치한다.
-    # --no-save로 Action 폴더의 package.json과 잠금 파일은 바꾸지 않고, 잠금 파일은 읽어 이미 설치한 의존성의 버전을 그대로 둔다(잠금 파일을 읽지 않고 설치하면 글 폭을 재는 harfbuzzjs 같은 의존성이 새 판으로 바뀐다). --save-prod는 개발 의존성 목록을 다시 풀지 않게 한다.
+    # 실행에 필요한 의존성만 잠금 파일대로 설치한다. 디자인은 package.json의 dependencies에 고정한 commit tarball이라 같은 설치에 든다(잠금 파일을 읽지 않고 설치하면 글 폭을 재는 harfbuzzjs 같은 의존성이 새 판으로 바뀐다). 선택 의존성은 디자인의 빌드 전용 esbuild 바이너리뿐이라 받지 않는다.
     - name: Install diagramplay
       shell: bash
       run: |
         set -euo pipefail
-        npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
-        design="$(node -p "require(process.argv[1]).devDependencies['@woonyong-choi/design-tokens']" "$GITHUB_ACTION_PATH/package.json")"
-        npm install --no-save --save-prod --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH" "@woonyong-choi/design-tokens@$design"
+        npm ci --omit=dev --omit=optional --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
     - name: Run diagramplay
       shell: bash
       env:

@@ -18,12 +18,10 @@ DiagramPlay는 텍스트에 적은 구성 요소와 연결을 배치하고, 이�
 
 ## 빠른 시작
 
-Node.js 20 이상과 Git이 필요합니다. npm 공개 배포 전이므로 소스에서 실행합니다.
+Node.js 20 이상이 필요합니다. 빈 폴더에서 패키지를 설치하고 첫 그림을 만드세요.
 
 ```sh
-git clone https://github.com/woonyong-choi/diagramplay.git
-cd diagramplay
-npm ci
+npm i diagramplay
 cat > request.diagramplay <<'EOF'
 diagramplay
 box client "Client"
@@ -32,7 +30,7 @@ client -> server "GET /orders"
 scene "Request"
   client -> server
 EOF
-node src/cli.js render request.diagramplay --html
+npx diagramplay render request.diagramplay --html
 ```
 
 `request.diagramplay`에 적은 요청 흐름을 읽어 현재 폴더에 두 파일을 만듭니다.
@@ -82,9 +80,12 @@ SVG와 HTML 생성, Markdown 그림 갱신, GitHub Action 검사, JavaScript API
 
 ## 개발
 
-빠른 시작의 설치를 마친 저장소에서 실행하세요.
+저장소를 복제하고 의존성을 설치한 뒤 실행하세요.
 
 ```sh
+git clone https://github.com/woonyong-choi/diagramplay.git
+cd diagramplay
+npm ci
 npm test
 npm run check
 npm run check:docs
