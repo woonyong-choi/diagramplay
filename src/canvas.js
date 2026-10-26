@@ -1,4 +1,4 @@
-// 그림 폭 규칙. viewBox는 내용 폭이고 SVG와 HTML은 넣는 칸의 폭을 채운다. 캔버스는 배치 후보를 고르는 표시 상한이다. 배치는 본문 단 폭에 맞춘다(docs/design/layout.md 그림 비율).
+// 그림 폭 규칙. viewBox는 내용 폭이고 SVG와 HTML은 자연 크기(viewBox 한 단위가 1px)보다 커지지 않는다. 캔버스는 배치 후보를 고르는 표시 상한이자 HTML 틀의 최대 폭이다. 배치는 본문 단 폭에 맞춘다(docs/design/layout.md 그림 비율).
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 /** 구조, 순서, 상태, 데이터 그림의 표시 상한. 배치 후보를 고를 때와 그림 검사 9·10번이 이 폭으로 잰다. */
@@ -33,20 +33,8 @@ export function tightView(width, height) {
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-/** 차트 보기 하나만 있는 그림의 캔버스 폭. 차트 그림 폭과 같아 문서 단 폭에서 줄지 않고 그대로 보인다. */
-const CANVAS_CHART = values.spacing.figure.chart.width;
-
-// cost: time O(v), heap O(1), stack O(1)
-// vars: v = 보기 수
-// basis: estimate
-/** 보기가 모두 차트 보기(plot)나 시간 보기(time)인 그림인가. 이런 그림은 내용이 차트 폭이라 표준 캔버스로 넓히면 양옆이 비고 글자가 줄어든다. */
-const isChartOnly = (figure) => Boolean(figure?.views?.length) && figure.views.every((v) => v.strategy === 'plot' || v.strategy === 'time');
-
-// cost: time O(v), heap O(1), stack O(1)
-// vars: v = 보기 수
-// basis: estimate
-/** 그림의 캔버스 폭. `width wide`면 넓은 폭, 차트 보기만 있으면 차트 폭, 그 밖에는 표준 폭이다. */
-export const canvasOf = (figure) => (figure?.width === 'wide' ? CANVAS_WIDE : isChartOnly(figure) ? CANVAS_CHART : CANVAS);
+/** 그림의 캔버스 폭. `width wide`면 넓은 폭, 그 밖에는 그림 종류와 관계없이 표준 폭이다. 판은 자연 크기보다 커지지 않으므로 차트처럼 좁은 그림도 같은 틀 가운데에 제 크기로 놓인다. */
+export const canvasOf = (figure) => (figure?.width === 'wide' ? CANVAS_WIDE : CANVAS);
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
