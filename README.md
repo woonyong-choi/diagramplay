@@ -67,8 +67,6 @@ request.html
 
 ## 상태
 
-기존 [GitHub Releases](https://github.com/woonyong-choi/diagramplay/releases)는 이름 변경 전 버전이며, 현재 사용법은 이 저장소의 소스를 기준으로 합니다.
-
 SVG와 HTML 생성, Markdown 그림 갱신, GitHub Action 검사, JavaScript API와 외부 그림 가져오기를 지원합니다. 종류별 기능과 예제는 [지원하는 표현](docs/design/expression-coverage.md#지원하는-표현)에 있습니다.
 
 남은 작업은 [배포 전 시각 결함 수정 #364](https://github.com/woonyong-choi/diagramplay/issues/364), [재생기 그림 내려받기 #150](https://github.com/woonyong-choi/diagramplay/issues/150), [전수 검수와 소스 정리 #251](https://github.com/woonyong-choi/diagramplay/issues/251)에서 추적합니다. 현재 데모는 합성 데이터로 기능을 설명하며 실제 서비스의 성능 측정값이 아닙니다. [검증 범위](docs/design/expression-coverage.md#예제와-검증-범위)와 [지원하지 않는 표현](docs/design/expression-coverage.md#전용-표현이-없는-범위)을 확인하세요.
@@ -77,11 +75,10 @@ SVG와 HTML 생성, Markdown 그림 갱신, GitHub Action 검사, JavaScript API
 
 ## 문서
 
-- [DiagramPlay 사용법](docs/usage.md)
-  - [아키텍처](docs/architecture.md)
-  - [용어](docs/glossary.md)
-
-[전체 문서](docs/README.md)
+- [DiagramPlay 사용법](docs/usage.md): 설치, 첫 그림, 문서 삽입, 명령과 API
+- [아키텍처](docs/architecture.md): 구성 요소, 처리 흐름, 지켜야 할 규칙
+- [용어](docs/glossary.md): 이 프로젝트만의 말
+- [전체 문서](docs/README.md)
 
 ## 개발
 
@@ -93,9 +90,10 @@ npm run check
 npm run check:docs
 npm run check:sources
 npm run check:figures
+npm run test:browser
 ```
 
-자동 검사는 실제 브라우저의 화면 검수를 대신하지 않습니다. 기여 절차는 [CONTRIBUTING](.github/CONTRIBUTING.md)에, 디자인 의존성 갱신은 [공통 디자인 가져오기](docs/architecture.md#공통-디자인-가져오기)에 있습니다.
+`npm run test:browser`는 시스템에 설치된 Chrome을 엽니다. 자동 검사는 실제 브라우저의 화면 검수를 대신하지 않습니다. 기여 절차는 [CONTRIBUTING](.github/CONTRIBUTING.md)에, 디자인 의존성 갱신은 [공통 디자인 가져오기](docs/architecture.md#공통-디자인-가져오기)에 있습니다.
 
 ## 라이선스
 
