@@ -60,13 +60,13 @@ jobs:
             echo "::error::secrets.NPM_TOKEN is not set. Add a granular access token with package write permission and bypass 2FA under Settings > Secrets and variables > Actions, then run this workflow again."
             exit 1
           fi
-      # 디자인 패키지를 배포물에 묶으므로(bundleDependencies) 실행 의존성만 잠금 파일대로 설치한다. 설치 스크립트와 선택 의존성(esbuild 바이너리)은 쓰지 않는다.
-      - run: npm ci --ignore-scripts --omit=dev --omit=optional
-      # 묶은 디자인이 빠진 배포물을 올리지 않는다. prepack이 디자인의 빌드 전용 esbuild를 치운 목록을 본다.
+      # 디자인 패키지를 배포물에 묶으므로(bundleDependencies) 실행 의존성만 잠금 파일대로 설치한다. 설치 스크립트는 실행하지 않는다.
+      - run: npm ci --ignore-scripts --omit=dev
+      # 묶은 디자인이 빠진 배포물을 올리지 않는다.
       - name: Check the bundled design
         run: |
           npm pack --dry-run --json > "$RUNNER_TEMP/pack.json"
-          node -e "const [p] = require(process.argv[1]); if (!p.bundled.includes('@woonyong-choi/design-tokens') || p.bundled.some((n) => n.includes('esbuild'))) { console.error('::error::bundled: ' + p.bundled.join(', ')); process.exit(1); }" "$RUNNER_TEMP/pack.json"
+          node -e "const [p] = require(process.argv[1]); if (!p.bundled.includes('@woonyong-choi/design-tokens')) { console.error('::error::bundled: ' + p.bundled.join(', ')); process.exit(1); }" "$RUNNER_TEMP/pack.json"
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

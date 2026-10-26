@@ -36,7 +36,13 @@ test('G3 the design is a dependency pinned to a commit and bundled in the packag
   assert.deepEqual(pkg.bundleDependencies, ['@woonyong-choi/design-tokens']);
   assert.equal(pkg.peerDependencies, undefined);
   assert.equal(pkg.devDependencies['@woonyong-choi/design-tokens'], undefined);
-  assert.deepEqual([pkg.scripts.prepack, pkg.scripts.postpack], ['node scripts/pack-bundle.mjs aside', 'node scripts/pack-bundle.mjs restore']);
+  assert.equal(pkg.scripts.prepack, undefined, 'the design tarball needs no pack-time workaround');
+  assert.equal(pkg.scripts.postpack, undefined);
+  assert.equal(existsSync(join(ROOT, 'scripts/pack-bundle.mjs')), false);
+  const design = JSON.parse(readFileSync(join(DESIGN, '..', 'package.json'), 'utf8'));
+  assert.equal(design.dependencies?.esbuild, undefined, 'the bundled design declares no build-only esbuild');
+  // npm은 묶은 사본의 출처 URL을 기록하지 않아 URL 지정만으로는 `npm ls`가 invalid로 본다. 묶은 판을 받아들이는 범위를 함께 적는다.
+  assert.deepEqual(pkg.acceptDependencies, { '@woonyong-choi/design-tokens': design.version });
   assert.equal(existsSync(join(ROOT, 'src/vendor/theme')), false);
   const resolved = createRequire(join(ROOT, 'src/draw/styles.js')).resolve('@woonyong-choi/design-tokens/tokens.css');
   assert.equal(resolved, join(DESIGN, 'tokens.css'));
@@ -68,7 +74,7 @@ test('G4 #398 release runs the same checks as ci before it publishes, and only t
 test('G5 #398 the Action keeps a Node 20 or newer that the job has, and installs only what the command needs, the pinned design included', () => {
   const action = readFileSync(join(ROOT, 'action.yml'), 'utf8');
   assert.match(action, /if: steps\.node\.outputs\.install == 'true'\n\s+uses: actions\/setup-node@/);
-  assert.match(action, /npm ci --omit=dev --omit=optional --ignore-scripts/);
+  assert.match(action, /npm ci --omit=dev --ignore-scripts/);
   assert.doesNotMatch(action, /design-tokens@/, 'the design version is read from package.json and the lock file, not written twice');
   // 잠금 파일을 읽지 않으면 이미 설치한 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다
   assert.doesNotMatch(action, /--no-package-lock/);

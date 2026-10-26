@@ -274,7 +274,7 @@ GitHub 마크다운은 ` ```diagramplay ` 블록을 코드로 보이고 아래 �
 저장소 루트 `action.yml`은 composite Action이다. 의존 패키지를 Action 폴더에 설치한 뒤 입력에 맞춰 명령을 돌린다.
 
 - Node: 호출한 작업의 PATH에 Node 20 이상이 있으면 그 Node를 그대로 쓰고 설치하지 않는다. 없거나 20보다 낮을 때만 `actions/setup-node`로 `node-version` 입력(빈 값이면 20)을 설치한다. 호출한 작업이 고른 Node를 Action이 바꾸지 않게 하기 위해서다.
-- 의존성: `npm ci --omit=dev --omit=optional --ignore-scripts`로 실행에 필요한 의존성만 잠금 파일대로 설치한다. 디자인(`@woonyong-choi/design-tokens`)은 `dependencies`의 고정 commit tarball이라 같은 설치에 든다. 잠금 파일을 읽지 않으면 글 폭을 재는 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다. 선택 의존성은 디자인의 빌드 전용 `esbuild` 바이너리뿐이라 받지 않는다. 시험 도구(TypeScript, playwright-core)는 설치하지 않는다.
+- 의존성: `npm ci --omit=dev --ignore-scripts`로 실행에 필요한 의존성만 잠금 파일대로 설치한다. 디자인(`@woonyong-choi/design-tokens`)은 `dependencies`의 고정 commit tarball이라 같은 설치에 든다. 잠금 파일을 읽지 않으면 글 폭을 재는 의존성이 새 판으로 바뀌어 그림이 저장소 결과와 달라진다. 시험 도구(TypeScript, playwright-core)는 설치하지 않는다.
 
 | 입력 | 기본값 | 뜻 |
 |---|---|---|
@@ -296,10 +296,10 @@ GitHub 마크다운은 ` ```diagramplay ` 블록을 코드로 보이고 아래 �
 1. 태그가 `v{package.json version}`과 다르면 실패한다.
 2. `secrets.NPM_TOKEN`이 없으면 해당 메시지로 실패한다. 현재 인증 방식은 대상 패키지에 쓰기 권한과 bypass 2FA를 가진 granular access token이다. 토큰을 금지한 패키지 설정에서는 이 방식으로 배포할 수 없다. 인증 조건은 [npm 공식 안내](https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/)를 따른다.
 3. 배포 전에 `check` 작업이 CI의 `test` 작업과 같은 검사 목록을 Node 20·22에서 돈다. `npm ci --ignore-scripts`로 설치하고 `npm test`, `npm run check`, `npm run check:docs`, `npm run check:sources`(예제와 문서 그림, showcase 원본 `--strict`), `npm run check:figures`(모든 마크다운 문서의 `md --check --strict`와 showcase SVG 낡음 검사)를 돌고, Node 22 작업은 `npm run test:browser`로 설치된 Chrome에서 좁은 화면 HTML 회귀 검사를 돈다. 이어서 `npm run check:package`로 실제 배포물의 독립 설치를 확인한다. 배포 작업(`release`)은 `needs: check`라 검사가 모두 통과해야 돈다. 두 목록이 같은지는 `test/tooling.test.js`(G4)가 본다. `npm test`는 브라우저를 열지 않는 공개 계약 시험이라 브라우저 설치가 필요 없다. 워크플로의 실행 여부와 날짜는 GitHub Actions 기록과 이슈가 맡고 이 문서는 설정과 요구만 적는다.
-4. `npm ci --ignore-scripts --omit=dev --omit=optional`로 실행 의존성만 설치하고, `npm pack --dry-run`의 묶음 목록에 디자인이 있고 `esbuild`가 없는지 확인한 뒤 `npm publish --provenance --access public`을 한다. 버전에 `-`가 있으면 `--tag next`를 붙인다.
+4. `npm ci --ignore-scripts --omit=dev`로 실행 의존성만 설치하고, `npm pack --dry-run`의 묶음 목록에 디자인이 있는지 확인한 뒤 `npm publish --provenance --access public`을 한다. 버전에 `-`가 있으면 `--tag next`를 붙인다.
 5. `gh release create`로 GitHub Release를 만든다. 버전에 `-`가 있으면 사전 배포 표시를 한다.
 
-권한: 두 워크플로의 기본 권한은 `contents: read`다. 쓰기 권한(`contents: write`는 Release 생성, `id-token: write`는 npm provenance)은 `release` 작업에만 준다. 설치 스크립트가 있는 의존성은 디자인의 개발용 스타일 빌드가 쓰는 `esbuild` 하나이고 이 저장소의 검사는 그것을 부르지 않으므로 CI와 배포 검사는 `npm ci --ignore-scripts`로 설치한다.
+권한: 두 워크플로의 기본 권한은 `contents: read`다. 쓰기 권한(`contents: write`는 Release 생성, `id-token: write`는 npm provenance)은 `release` 작업에만 준다. 잠금 파일에 설치 스크립트가 있는 의존성은 없고, 새로 생겨도 검사 중에 실행하지 않도록 CI와 배포 검사는 `npm ci --ignore-scripts`로 설치한다.
 
 디자인 패키지는 npm 레지스트리에 배포하지 않는다. `diagramplay` 배포물이 고정 commit의 디자인을 `bundleDependencies`로 묶어 싣는다. 묶는 방식과 다른 디자인 commit을 쓰는 방법은 [아키텍처의 배포](../architecture.md#배포)에 있다.
 
@@ -309,7 +309,7 @@ GitHub 마크다운은 ` ```diagramplay ` 블록을 코드로 보이고 아래 �
 
 `package.json`의 `files`는 `src`, `LICENSE`, `NOTICE`다. README와 `package.json`은 npm이 늘 넣고, 묶은 디자인과 그 실행 의존성(`postcss`와 하위 의존성)은 `node_modules/` 아래에 든다. 글꼴은 의존 패키지(`pretendard`, `@expo-google-fonts/*`, `jetbrains-mono`)로 설치된다. 내장 아이콘·공통 스타일·그 라이선스는 묶은 `@woonyong-choi/design-tokens` 패키지에 있고 `src/icons`는 공통 카탈로그 읽기와 사용자 SVG 검증을 맡는다. 시험, 문서, 예제, 스크립트는 올라가지 않는다. 실행 파일은 `bin`의 `diagramplay` 하나다. 라이브러리는 `buildFigure`, `toSvg`, `toHtml`, `importDiagram`, `IMPORT_FORMATS`, `FigureError`를 내보낸다. Node.js ESM API의 입력 옵션과 진단 형식은 [공개 선언](../../src/index.d.ts)이 정본이고 [사용법](../usage.md#javascript에서-조립하기)에 호출 예시가 있다. 빌드 결과는 경고 목록만 공개하며 내부 모형을 변경하거나 직렬화하는 API는 제공하지 않는다.
 
-`npm run check:package -- /absolute/new-consumer-path`는 저장소 밖의 새 소비 환경을 만들고 실제 `npm pack` 산출물을 설치한다. 경로가 이미 있으면 거절하며 자신이 만든 경로는 성공·실패 뒤 모두 지운다. npm 공개 레지스트리에 접근해야 한다. 사용자 npm 설정과 인증 환경을 제외하고 tarball 하나만 설치한다. 배포물의 묶음 목록에 디자인이 있고 `esbuild`가 없는지, 설치한 디자인이 배포물에 묶인 사본인지, 소비 환경에 개발 의존성과 `esbuild`가 없는지 확인한다. 설치된 모든 SVG가 선정 카탈로그와 일치하고 미사용 아이콘이 없는지도 확인한다. 검사 입력은 기존 flow 예제이고 CLI와 공개 API가 같은 SVG·HTML을 만드는지, Markdown 반영과 내장 디자인·글꼴을 확인한다. TypeScript 소비자는 설치된 선언을 `NodeNext`로 컴파일한 뒤 실행하고, 잘못된 옵션과 임의 객체를 빌드 결과로 전달하는 호출은 컴파일에서 거부하는지 확인한다. 컴파일러는 개발 의존성으로만 두고 소비 환경에는 설치하지 않는다. 실제 npm 발행과 사용자 인증 권한은 이 검사에 포함하지 않는다.
+`npm run check:package -- /absolute/new-consumer-path`는 저장소 밖의 새 소비 환경을 만들고 실제 `npm pack` 산출물을 설치한다. 경로가 이미 있으면 거절하며 자신이 만든 경로는 성공·실패 뒤 모두 지운다. npm 공개 레지스트리에 접근해야 한다. 사용자 npm 설정과 인증 환경을 제외하고 tarball 하나만 설치한다. 배포물의 묶음 목록에 디자인이 있고 `esbuild`가 없는지, 설치한 디자인이 배포물에 묶인 사본인지, `npm ls --all`에 문제가 없는지, 소비 환경에 개발 의존성과 `esbuild`가 없는지 확인한다. 설치된 모든 SVG가 선정 카탈로그와 일치하고 미사용 아이콘이 없는지도 확인한다. 검사 입력은 기존 flow 예제이고 CLI와 공개 API가 같은 SVG·HTML을 만드는지, Markdown 반영과 내장 디자인·글꼴을 확인한다. TypeScript 소비자는 설치된 선언을 `NodeNext`로 컴파일한 뒤 실행하고, 잘못된 옵션과 임의 객체를 빌드 결과로 전달하는 호출은 컴파일에서 거부하는지 확인한다. 컴파일러는 개발 의존성으로만 두고 소비 환경에는 설치하지 않는다. 실제 npm 발행과 사용자 인증 권한은 이 검사에 포함하지 않는다.
 
 ### 요구사항
 

@@ -88,7 +88,7 @@
 1. 디자인은 `@woonyong-choi/design-tokens` 패키지다. 공통 정본이 생성한 `diagram` 배포 tarball을 `dependencies`에 Git commit URL로 고정하고 `bundleDependencies`로 DiagramPlay 배포물 안에 그대로 묶는다. 그림은 이 묶은 사본의 토큰·CSS·아이콘으로 그려진다. 디자인 패키지가 npm 레지스트리에 없어서, 레지스트리에서 디자인을 찾는 설치 실패를 막기 위해서다.
 2. 설치용 commit은 공통 저장소의 기본 브랜치 이력에서 도달 가능한 것을 사용한다. 작업 브랜치를 정리한 뒤에도 같은 원본을 받을 수 있도록 URL과 잠금 파일을 함께 갱신한다. 코드는 패키지 이름으로 가져오고(`@woonyong-choi/design-tokens/ui/index.mjs`) 파일은 `createRequire(import.meta.url).resolve`로 찾는다. 저장소에 디자인 사본을 두지 않는다. `measure/decor.js`는 모듈을 읽을 때 `spacing.figure.icon.brand`가 유한한 양수인지 검사한다. 필드가 없는 구버전은 최소 버전과 필드 이름을 안내하는 오류로 중단하며 숫자로 대체하지 않는다.
 3. 디자인을 올릴 때는 정본의 새 `diagram` tarball URL로 `dependencies`와 잠금 파일을 갱신한 뒤 `npm run figures`, `npm test`, `npm run check`를 실행해 PR로 반영한다. DiagramPlay에서 토큰을 합치거나 다시 생성하지 않는다. 전체 카탈로그를 쓰는 호스트는 공통 전체 패키지를 직접 선택할 수 있다.
-4. 디자인 패키지는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. composite Action은 실행 의존성만(`--omit=dev --omit=optional`) 잠금 파일대로 설치하고, 디자인도 그 설치에 든다. 의존성 버전 고정 정책은 [AGENTS.md 명령](../AGENTS.md#명령) 절에 있다.
+4. 디자인 패키지는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. composite Action은 실행 의존성만(`--omit=dev`) 잠금 파일대로 설치하고, 디자인도 그 설치에 든다. 의존성 버전 고정 정책은 [AGENTS.md 명령](../AGENTS.md#명령) 절에 있다.
 5. 다른 저장소로 파일을 밀어 넣는 자동 전달은 없다. 소비자 저장소는 DiagramPlay 판을 고르고, 그 판에 묶인 디자인이 그림의 디자인이다. 다른 디자인 commit을 쓰는 방법은 [배포](#배포) 절에 있다.
 
 ### 재생하기
@@ -118,7 +118,8 @@
 |---|---|---|
 | npm 패키지 `diagramplay` | `src`, `LICENSE`, `NOTICE`와 묶은 디자인 패키지(`node_modules/@woonyong-choi/design-tokens`)와 그 실행 의존성 | `cli`, `player`, `svg` |
 
-- 묶음은 `npm pack`과 `npm publish`가 만든다. `prepack`이 디자인의 빌드 전용 의존성 `esbuild`를 저장소 `node_modules`에서 잠시 치우고 `postpack`이 되돌린다(`scripts/pack-bundle.mjs`). DiagramPlay는 디자인의 스타일 빌드를 부르지 않아서, 플랫폼별 바이너리와 설치 스크립트가 배포물에 드는 일을 막기 위해서다.
+- 묶음은 `npm pack`과 `npm publish`가 만든다. 디자인의 `diagram` tarball은 CSS 축소 도우미와 `esbuild`를 담지 않고 실행 의존성이 `postcss` 하나라, 저장소 `node_modules`를 그대로 묶는다. 묶는 단계에서 따로 빼는 파일은 없다.
+- `acceptDependencies`는 묶은 디자인의 `version`(`0.2.0`)을 받아들인다. npm은 묶은 사본의 출처 URL을 기록하지 않아서, URL 지정만 있으면 설치한 쪽의 `npm ls`가 묶은 디자인을 invalid로 판정한다. 디자인 `version`이 바뀌면 이 값도 함께 갱신한다(`test/tooling.test.js` G3).
 - 설치하는 쪽은 `npm i diagramplay` 한 번으로 디자인까지 받고 GitHub 주소에 접속하지 않는다. 묶은 패키지는 레지스트리나 tarball URL에서 다시 받지 않는다.
 - 묶은 사본은 DiagramPlay 판마다 하나로 정해진다. npm `overrides`는 묶은 패키지를 바꾸지 않는다(npm 10.9.9, 2026-10-27 확인. 상위 패키지 이름 지정, 중첩 지정, `nested` 설치 방식 모두 묶은 사본이 남았다). 다른 디자인 commit으로 그림을 만들려면 그 commit을 `dependencies`에 적은 DiagramPlay Git commit을 설치한다: `npm i "github:woonyong-choi/diagramplay#{commit}"`. 디자인 갱신은 이 저장소에서 고정 commit을 올린 PR과 새 판 배포로 반영한다.
 - 호스트 페이지가 자기 디자인 패키지를 따로 설치해도 그림의 CSS는 DiagramPlay에 묶인 사본에서 온다. 같은 디자인으로 보이려면 호스트가 설치한 디자인 commit과 DiagramPlay가 묶은 commit을 맞춘다. 묶은 commit은 설치된 `node_modules/diagramplay/package.json`의 `dependencies`에서 읽는다.

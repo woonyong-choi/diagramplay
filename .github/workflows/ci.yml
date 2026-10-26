@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      # 설치 스크립트가 있는 의존성은 esbuild(디자인의 개발용 스타일 빌드) 하나이고 이 저장소의 검사는 쓰지 않는다.
+      # 잠금 파일에 설치 스크립트가 있는 의존성은 없다. 새로 생겨도 검사 중에 실행하지 않는다.
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run check
