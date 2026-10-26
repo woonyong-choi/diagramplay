@@ -116,7 +116,7 @@ DiagramPlay는 `diagramplay` 원본 하나로 구조, 순서, 상태, 스키마,
 
 ### Things와의 연결 기준
 
-기준은 [Things 공식 페이지](https://culturedcode.com/things/)와 [기능 페이지](https://culturedcode.com/things/features/)의 실제 렌더링이다. 예전 Refero 화면은 정규화한 측정값과 재구성 예제라 보조 참고일 뿐 기준이 아니다. 중립 면, 흰 카드, 절제된 파랑, 글자 위계를 역할이 같은 요소끼리 비교한다. 재생 조작은 시간 흐름을 장면 탭으로 고르는 구조라 Things의 대응 요소가 없고, 도구 막대 아이콘은 DiagramPlay의 확장이다([재생](playback.md#도구-막대와-전체-화면)). DiagramPlay의 데이터 의미색과 글꼴 측정 규칙을 Things의 원본 구현이라고 부르지 않는다.
+기준은 [Things 공식 페이지](https://culturedcode.com/things/)와 [기능 페이지](https://culturedcode.com/things/features/)의 실제 렌더링이다. Refero 화면은 정규화한 측정값과 재구성 예제라 보조 참고일 뿐 기준이 아니다. 중립 면, 흰 카드, 절제된 파랑, 글자 위계를 역할이 같은 요소끼리 비교한다. 재생 조작은 시간 흐름을 장면 탭으로 고르는 구조라 Things의 대응 요소가 없고, 도구 막대 아이콘은 DiagramPlay의 확장이다([재생](playback.md#도구-막대와-전체-화면)). DiagramPlay의 데이터 의미색과 글꼴 측정 규칙을 Things의 원본 구현이라고 부르지 않는다.
 
 화면 값은 design-tokens의 `tokens`가 소유한다. DiagramPlay에서 가져온 JSON이나 생성 CSS·JS를 손으로 고치지 않는다. 그림 글꼴은 측정과 SVG 배포를 위해 포함한 글꼴을 쓰므로, 운영체제 글꼴을 쓰는 Things와 글꼴 파일이 같지는 않다. 다크 테마는 DiagramPlay의 확장이며 공식 밝은 페이지와 같은 화면이라고 판정하지 않는다. 다크의 보조 참고는 라이트·다크가 함께 있는 2018년 Things 3.7 화면 쌍이고, 현재 네이티브 버전의 다크라는 근거는 아니다. 2017년 사이트 영상 스틸도 같은 이유로 역할 비교용 보조 참고일 뿐 현재 네이티브 버전과 같다는 근거가 아니며, 두 이미지의 색을 현재 네이티브 색으로 읽지 않는다.
 

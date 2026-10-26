@@ -510,7 +510,7 @@ cat schema.dbml | node src/cli.js import dbml - > schema.diagramplay
 
 ## JavaScript에서 조립하기
 
-공개 함수는 `buildFigure`, `toSvg`, `toHtml`이고, 다른 도구의 원본을 옮기는 `importDiagram`이 있다. 원본을 한 번 빌드하고 그 결과로 두 출력을 만든다. 오류 클래스 `FigureError`도 같은 진입점에서 가져온다. 아래 코드는 `.mjs` 파일이나 `package.json`에 `"type": "module"`이 있는 프로젝트에서 실행한다.
+공개 함수는 `buildFigure`, `toSvg`, `toHtml`이고, 다른 도구의 원본을 옮기는 `importDiagram`과 형식 이름 목록 `IMPORT_FORMATS`가 있다. 원본을 한 번 빌드하고 그 결과로 두 출력을 만든다. 오류 클래스 `FigureError`도 같은 진입점에서 가져온다. 아래 코드는 `.mjs` 파일이나 `package.json`에 `"type": "module"`이 있는 프로젝트에서 실행한다.
 
 ```js
 import { readFile, writeFile } from 'node:fs/promises';

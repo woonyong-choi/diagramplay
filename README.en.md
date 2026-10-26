@@ -67,8 +67,6 @@ This question delivery example uses synthetic data. Read the [source](docs/asset
 
 ## Status
 
-The existing [GitHub Releases](https://github.com/woonyong-choi/diagramplay/releases) predate the project rename. The current instructions use the source in this repository.
-
 DiagramPlay supports SVG and HTML generation, Markdown figure updates, GitHub Action checks, a JavaScript API, and external diagram imports. [Supported expressions](docs/design/expression-coverage.md#지원하는-표현) lists features and examples by diagram type.
 
 Remaining work is tracked in [visual defects before release #364](https://github.com/woonyong-choi/diagramplay/issues/364), [player figure downloads #150](https://github.com/woonyong-choi/diagramplay/issues/150), and [full inspection and source cleanup #251](https://github.com/woonyong-choi/diagramplay/issues/251). The demos explain features with synthetic data and do not report performance measurements from a real service. Check the [verification scope](docs/design/expression-coverage.md#예제와-검증-범위) and [unsupported expressions](docs/design/expression-coverage.md#전용-표현이-없는-범위).
@@ -79,11 +77,10 @@ Before 1.0, the source format and commands may change without notice.
 
 The design documents are written in Korean.
 
-- [DiagramPlay usage](docs/usage.md)
-  - [Architecture](docs/architecture.md)
-  - [Glossary](docs/glossary.md)
-
-[All documentation](docs/README.md)
+- [DiagramPlay usage](docs/usage.md): installation, first figure, document embedding, commands and API
+- [Architecture](docs/architecture.md): components, processing flow, invariants
+- [Glossary](docs/glossary.md): terms specific to this project
+- [All documentation](docs/README.md)
 
 ## Development
 
@@ -95,9 +92,10 @@ npm run check
 npm run check:docs
 npm run check:sources
 npm run check:figures
+npm run test:browser
 ```
 
-Automated checks do not replace visual inspection in a browser. Read [CONTRIBUTING](.github/CONTRIBUTING.md) for contribution steps and [Shared design dependencies](docs/architecture.md#공통-디자인-가져오기) for dependency updates.
+`npm run test:browser` opens the Chrome installed on the system. Automated checks do not replace visual inspection in a browser. Read [CONTRIBUTING](.github/CONTRIBUTING.md) for contribution steps and [Shared design dependencies](docs/architecture.md#공통-디자인-가져오기) for dependency updates.
 
 ## License
 
