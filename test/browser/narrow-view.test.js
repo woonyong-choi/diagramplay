@@ -8,6 +8,11 @@ import { chromium } from 'playwright-core';
 
 import { buildFigure, toHtml } from '../../src/index.js';
 import { bindDiagramHost } from '@woonyong-choi/design-tokens/ui/runtime/diagram-host.js';
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
+
+// 가장 작은 글 토큰과, 그림의 가장 작은 글 역할이 그 크기가 되는 배율(design-tokens player.css의 하한)
+const SMALLEST = Math.min(...Object.values(values.text.figure));
+const MINIMUM_SCALE = SMALLEST / values.text['figure-meta'];
 
 // 설치된 Chrome을 먼저 쓰고, 없으면 Playwright가 내려받은 Chromium으로 같은 검사를 돈다. 둘 다 없으면 첫 오류를 알린다.
 async function launchBrowser() {
@@ -22,8 +27,8 @@ async function launchBrowser() {
   }
 }
 
-// #272: 실제 CSS·SVG와 홈페이지가 쓰는 iframe 호스트 계약을 함께 확인한다. 그림은 틀 폭을 꽉 채우고 문서 안에서 가로로 스크롤하지 않는다.
-test('HTML figures fill the frame width without horizontal scroll in standalone and embedded views', async () => {
+// #272, #394: 실제 CSS·SVG와 홈페이지가 쓰는 iframe 호스트 계약을 함께 확인한다. 판은 자연 크기보다 커지지 않고 읽힘 하한 밑으로 줄지 않으며, 하한이 틀보다 넓을 때만 그림 영역 안에서 가로로 옮긴다.
+test('HTML figures stay between natural size and the readable minimum in standalone and embedded views', async () => {
   const documents = new Map();
   for (const id of ['architecture', 'sequence']) {
     const source = new URL(`../../examples/${id}.diagramplay`, import.meta.url);
@@ -63,8 +68,9 @@ test('HTML figures fill the frame width without horizontal scroll in standalone 
           for (let scene = 0; scene < await tabs.count(); scene++) {
             await tabs.nth(scene).click();
             const current = await frame.evaluate(measure);
-            assert(!current.overflow, `${id}: figure scrolls horizontally inside its frame`);
-            assert(Math.abs(current.panelWidth - current.canvasWidth) <= 1, `${id}: figure does not fill the frame width`);
+            assert(current.scale <= 1 + 1e-3, `${id}: figure grows beyond its natural size`);
+            assert(current.minTextSize >= SMALLEST - 0.05, `${id}: text shrinks below the smallest text token`);
+            assert.equal(current.overflow, current.scale <= MINIMUM_SCALE + 1e-3 && current.naturalWidth * MINIMUM_SCALE > current.canvasWidth + 1, `${id}: scrolls inside the frame only below the readable minimum`);
             assert.equal(current.canvasHeight, current.contentHeight, `${id}: canvas clips vertically`);
             assert(current.pageWidth <= width, `${id}: document overflows horizontally`);
           }
@@ -130,8 +136,12 @@ function measure() {
     const matrix = text.getScreenCTM();
     return parseFloat(getComputedStyle(text).fontSize) * Math.hypot(matrix.a, matrix.b);
   });
+  const svgs = [...panels.querySelectorAll('svg.fl')];
+  const widest = svgs.reduce((a, b) => (b.viewBox.baseVal.width > a.viewBox.baseVal.width ? b : a));
   return {
     minTextSize: Math.min(...sizes),
+    naturalWidth: widest.viewBox.baseVal.width,
+    scale: widest.getBoundingClientRect().width / widest.viewBox.baseVal.width,
     panelWidth: panels.getBoundingClientRect().width,
     canvasWidth: canvas.clientWidth,
     canvasHeight: canvas.clientHeight,
@@ -152,7 +162,8 @@ async function checkEmbedHeight(page, frame) {
   await frame.waitForFunction(() => document.querySelector('.fl-figure').clientWidth === 260);
   const after = await frame.evaluate(measure);
   assert.equal(after.scene, before.scene);
-  assert(!after.overflow, 'a narrowed embed shrinks the figure instead of scrolling');
+  assert(after.minTextSize >= SMALLEST - 0.05, 'a narrowed embed keeps the readable minimum');
+  assert(after.pageWidth <= 260, 'a narrowed embed scrolls inside the figure, not the page');
   await page.locator('iframe').evaluate(node => { node.style.width = ''; });
 }
 

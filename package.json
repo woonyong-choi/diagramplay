@@ -69,7 +69,7 @@
     "@woonyong-choi/design-tokens": "^0.2.0"
   },
   "devDependencies": {
-    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/5fc5fec166898e17eea52434891bf585ed980257/artifacts/diagram.tgz",
+    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/9341b1fc0b6006204b825a697f0717513a25f5a0/artifacts/diagram.tgz",
     "playwright-core": "^1.63.0",
     "typescript": "7.0.2"
   },

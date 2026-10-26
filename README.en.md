@@ -10,7 +10,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/showcase/async-orders-en-dark.svg">
-    <img src="docs/assets/showcase/async-orders-en-light.svg" alt="Synthetic data: orders from four sources enter an event queue and reach inventory, payment, and notification consumers as the queue fills and one email is lost" width="100%">
+    <img src="docs/assets/showcase/async-orders-en-light.svg" alt="Synthetic data: orders from four sources enter an event queue and reach inventory, payment, and notification consumers as the queue fills and one email is lost">
   </picture>
 </p>
 
