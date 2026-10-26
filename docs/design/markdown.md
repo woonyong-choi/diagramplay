@@ -101,7 +101,7 @@ scene "쓰기"
 ### 명령
 
 ```text
-diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|이름] [--strict] [--budget 이름=값 ...] [--json]
+diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|이름] [--strict] [--docs] [--budget 이름=값 ...] [--json]
 ```
 
 | 옵션 | 뜻 |
@@ -114,7 +114,7 @@ diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "te
 | `--static` | 낸 SVG마다 마지막 상태 하나인 멈춘 SVG를 쓴다. 모든 장면을 내는 블록이면 장면마다 멈춘다 |
 | `--` | 이 뒤의 인자는 모두 문서 이름이다. `-`로 시작하는 이름의 문서에 쓴다(Action이 문서 목록을 넘길 때 쓴다). 값을 받는 옵션(`--out-dir`, `--fold-title`, `--scene`, `--budget`)의 값이 비어 있거나, `--budget` 이외의 값을 받는 옵션을 두 번 쓰거나, 문서 이름이 빈 글이면 인자 오류다 |
 | `--scene n\|이름` | SVG로 만들 장면을 고른다(번호는 1부터, `render`와 같다). 생략하면 장면이 없는 블록은 정지 그림 하나, 장면이 하나인 블록은 그 장면 하나, 장면이 둘 이상인 블록은 모든 장면이다([여러 장면](#여러-장면)). 값을 주면 그 장면 하나만 내고 장면 구간은 두지 않는다. 장면 없는 블록에 주면 그 블록 줄에 오류를 내고(종료 1) 아무것도 쓰지 않는다 |
-| `--strict`, `--budget`, `--json` | `render`와 같은 뜻. 블록마다 적용한다. 예산은 블록 하나의 그림마다 검사한다 |
+| `--strict`, `--docs`, `--budget`, `--json` | `render`와 같은 뜻. 블록마다 적용한다. 예산은 블록 하나의 그림마다 검사한다 |
 
 `render`의 `--out`, `--html`과 `gallery`의 `--title`은 이 명령이 받지 않고, `--check`, `--out-dir`, `--fold`, `--fold-title`, `--unfold`는 다른 명령이 받지 않는다. 기존 명령의 동작은 바뀌지 않는다(명령 추가만).
 
@@ -284,6 +284,7 @@ GitHub 마크다운은 ` ```diagramplay ` 블록을 코드로 보이고 아래 �
 | `fold` | `keep` | `.md`에만 적용하고 두 모드 모두에 쓴다. `keep`은 옵션 없이 돌리고, `fold`는 `--fold`, `unfold`는 `--unfold`를 넘긴다. 그 밖의 값은 실패다 |
 | `fold-title` | 빈 값 | `fold: fold`일 때 `--fold-title`로 넘기는 `<summary>` 글. 다른 `fold` 값과 쓰면 실패다 |
 | `node-version` | 빈 값 | 작업에 Node 20 이상이 없을 때만 설치할 Node 버전. 빈 값이면 20 |
+| `docs` | `false` | `true`면 `--docs`로 [문서 품질 검사](figure-quality.md)를 더한다. `strict`와 함께면 그 경고도 실패다 |
 | `budget` | 빈 값 | 생성 예산을 올리는 `이름=값` 목록(공백이나 쉼표로 나눈다). 예: `grid-elements=2000000`. `--budget`과 같은 해석이라 이름이 없거나 값이 양의 안전한 정수가 아니면 그림을 만들기 전에 실패한다. 이름과 기본 한도는 [칸 격자](grid.md#예산) |
 
 경로는 `git ls-files -z`의 NUL 구분 출력으로 모으고 명령에는 `--` 뒤에 넘기므로 `-`로 시작하는 이름도 옵션으로 읽히지 않는다. 추적 중인 심볼릭 링크는 가리키는 문서와 같은 출력이라 함께 넘기면 거절되므로 모으지 않는다(가리키는 문서가 추적 중이면 그 문서가 처리된다). 줄 단위 출력은 Git이 한글 이름을 따옴표와 escape로 감싸(`core.quotepath` 기본값) 확장자 분류에서 빠지기 때문이다. 한글, 공백, 줄바꿈이 든 이름도 같게 검사하고, 여러 글롭이 고른 같은 파일은 한 번만 검사한다. Action이 모으는 것은 글롭이 고른 `.diagramplay`와 `.md` 파일뿐이다. 글롭이 다른 확장자 파일을 골라도 그 파일은 읽지 않고 모으지도 않으며, 이름이나 확장자가 특이한 `.diagramplay`와 `.md`는 빠지지 않고 모은다. 대상 파일이 하나도 없으면 실패한다. 빈 글롭이 조용히 통과하는 일을 막기 위해서다. `render` 모드는 파일을 쓸 뿐 커밋하지 않는다.

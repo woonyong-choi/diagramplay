@@ -1,6 +1,7 @@
 // 원본 글 하나를 읽고 만들고 진단을 알리고, 쓸 파일의 겹침을 가리고, 결과 파일을 쓴다. cli의 파일 명령과 md 명령이 같이 쓴다. 진단 출력은 docs/design/figure-check.md 명령 절이다.
 import { readFileSync } from 'node:fs';
 import { buildFigure } from './figure.js';
+import { checkDocs, withAspect } from './docs-check.js';
 import { toJson } from './diagnostics.js';
 import { commitWrites, FILE_IO, isLink, outputKey } from '../markdown/write.js';
 import { FigureError, makeDiagnostic } from '../source/problems.js';
@@ -77,21 +78,36 @@ function shifted(diagnostics, lineOffset) {
 // basis: estimate
 /**
  * 원본 글을 만들고 진단을 알린다. 파일은 쓰지 않는다. 오류가 있으면 undefined다.
- * @param options { flags, baseDir, lineOffset?, budget? }. budget은 올린 예산 { 이름: 값 }(src/compile/budget.js)이고, flags는 명령 옵션 집합(`strict`, `json`),
+ * @param options { flags, baseDir, lineOffset?, budget? }. budget은 올린 예산 { 이름: 값 }(src/compile/budget.js)이고, flags는 명령 옵션 집합(`strict`, `json`, `docs`),
  *   lineOffset은 이 글이 파일 안에서 시작하기 전 줄 수다(md 코드 블록)
  */
 export async function buildReported(source, file, { flags, baseDir, lineOffset = 0, budget }) {
   const json = flags.has('json');
   try {
     const result = await buildFigure(source, { baseDir, strict: flags.has('strict'), budget });
-    report(file, shifted([...result.warnings].sort((a, b) => a.line - b.line), lineOffset), json);
-    return result;
+    const { warnings, errors } = flags.has('docs') ? await withDocs(result, { flags, baseDir, budget }) : { warnings: result.warnings, errors: [] };
+    report(file, shifted([...errors, ...warnings].sort((a, b) => a.line - b.line), lineOffset), json);
+    return errors.length ? undefined : result;
   } catch (error) {
     // 원본 오류가 아닌 실패는 이 도구의 버그다. 스택 대신 한 줄로 알리고 다음 파일로 넘어간다.
     const problems = error instanceof FigureError ? error.problems : [problem(`internal error: ${error.message}. Please report this`, 'internal')];
     report(file, shifted(problems, lineOffset), json);
     return undefined;
   }
+}
+
+// cost: time O(docs), heap O(svg), stack O(1)
+// vars: docs = 문서 품질 검사 비용(다시 배치 최대 5번 포함), svg = SVG 글자 수
+// basis: estimate
+// 문서 품질 검사(`--docs`)를 더한 진단. strict면 그 경고도 오류다. 그림 검사 경고는 strict면 buildFigure가 이미 오류로 던졌다.
+async function withDocs(result, { flags, baseDir, budget }) {
+  const rebuild = (aspect) => buildFigure(withAspect(result.figure, aspect), { baseDir, budget }).catch(() => undefined);
+  const found = await checkDocs(result, { rebuild });
+  const isError = (d) => d.severity === 'error' || flags.has('strict');
+  return {
+    warnings: [...result.warnings, ...found.filter((d) => !isError(d))],
+    errors: found.filter(isError).map((d) => ({ ...d, severity: 'error' })),
+  };
 }
 
 // cost: time O(f·d), heap O(f), stack O(1), io f·d

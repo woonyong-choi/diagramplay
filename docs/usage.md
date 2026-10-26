@@ -494,11 +494,12 @@ scene "접수가 더 빠를 때" mode=loop for=8s
 | 별도 폴더에 결과 쓰기 | `node src/cli.js render request.diagramplay --html --out figures` |
 | 폴더의 원본을 갤러리로 만들기 | `node src/cli.js gallery . --out preview --title "설계 그림"` |
 | 진단을 JSON으로 받기 | `node src/cli.js check request.diagramplay --json` |
+| 문서에 넣을 그림의 품질 검사 | `node src/cli.js check request.diagramplay --docs --strict` |
 | Mermaid·DBML·D2·draw.io·Excalidraw를 원본으로 옮기기 | `node src/cli.js import flow.mmd --out flow.diagramplay` |
 
 SVG의 `--scene` 번호는 1부터이다. 생략하면 첫 장면이고 장면이 없는 그림에는 지정하지 않는다(`diagramplay md`는 장면이 둘 이상인 블록에 생략하면 모든 장면을 `.scene-2.svg`처럼 이름 붙여 쓰고 둘째 장면부터 `<details>`로 둔다). HTML은 모든 장면을 포함하므로 `--static`이나 SVG의 선택 장면이 HTML의 장면 목록을 줄이지 않는다. `gallery`는 지정한 폴더의 `.diagramplay`를 읽고 목록·문서 미리보기·각 그림의 HTML과 SVG를 만든다. 하위 폴더를 재귀적으로 찾는 명령은 아니다. `--out`을 생략하면 입력 폴더 아래 `out`에 쓰고, `--title`을 생략하면 입력 폴더명을 목록 제목으로 사용한다.
 
-`--strict`는 경고도 실패로 취급한다. `--json`은 진단마다 JSON 한 줄을 출력하며, 일반 진단은 파일·줄·메시지로 나온다. CLI의 종료 코드는 성공 0, 원본·검사·입출력 실패 또는 낡은 결과 1, 사용법 오류 2이다. 여러 원본의 `render`는 모든 원본의 진단을 알린 뒤 하나라도 실패하면 어떤 원본의 결과도 쓰지 않는다(`gallery`, `md`와 같은 규칙). 출력 경로 충돌은 쓰기 전에 전체를 거절한다.
+`--strict`는 경고도 실패로 취급한다. `--docs`는 화면 오류 검사 뒤에 문서 독자가 읽기 좋은지(종류 꼬리표, 강조, 원본 머리 `require` 줄의 요구 항목, 긴 이름, 접힌 사슬, 680px 본문 단의 글 크기)를 더 본다([문서 품질 검사](design/figure-quality.md)). `--json`은 진단마다 JSON 한 줄을 출력하며, 일반 진단은 파일·줄·메시지로 나온다. CLI의 종료 코드는 성공 0, 원본·검사·입출력 실패 또는 낡은 결과 1, 사용법 오류 2이다. 여러 원본의 `render`는 모든 원본의 진단을 알린 뒤 하나라도 실패하면 어떤 원본의 결과도 쓰지 않는다(`gallery`, `md`와 같은 규칙). 출력 경로 충돌은 쓰기 전에 전체를 거절한다.
 
 대규모 원본의 안전 한도는 `--budget 이름=값`으로 조정한다. 여러 한도는 `--budget events=20000 --budget chain=200`처럼 옵션을 반복하며, 같은 이름은 마지막 값이 적용된다. 무조건 한도를 높이기 전에 그림을 설명 단위로 나눈다. 시간 값에는 `ms` 또는 `s`를 붙이고 시작 시각 `at=0s`는 허용한다. 이동 시간·반복 간격·대기 길이는 양수여야 한다. 한 시간의 상한과 조건부 사건의 정밀도는 [재생 계약](design/playback.md#시간-상한)을 따른다.
 
