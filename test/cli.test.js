@@ -78,6 +78,16 @@ test('L2 an error exits 1, reports "file:line: message" on stderr, writes nothin
   assert.deepEqual(files(dir), ['bad.diagramplay']);
 });
 
+test('L2 #396 one failing source among several makes render write nothing for any of them', (t) => {
+  const dir = workspace(t, { 'ok.diagramplay': diagramplay('box a "가"\n'), 'bad.diagramplay': 'diagramplay\nnope\n' });
+  const before = snapshot(dir);
+  const run = cli(['render', 'ok.diagramplay', 'bad.diagramplay'], { cwd: dir });
+  assert.equal(run.status, 1);
+  assert.equal(run.stdout, '');
+  assert.match(run.stderr, /^bad\.diagramplay:2: /m);
+  assert.deepEqual(snapshot(dir), before, 'ok.svg is not written either');
+});
+
 test('L2 --json prints one JSON line per diagnostic with exactly six fields', (t) => {
   const dir = workspace(t, { 'bad.diagramplay': diagramplay('box a ""\nbox b ""\n') });
   const run = cli(['render', 'bad.diagramplay', '--json'], { cwd: dir });

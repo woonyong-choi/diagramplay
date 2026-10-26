@@ -12,6 +12,7 @@ DiagramPlay의 사용법과 설계 문서다. 문서는 한국어로 쓴다. 처
   - [배치](design/layout.md)
   - [재생](design/playback.md)
   - [그림 검사](design/figure-check.md)
+  - [문서 품질 검사](design/figure-quality.md)
   - [마크다운 반영과 배포](design/markdown.md)
   - [가져오기](design/import.md)
   - [문서 스킬 연동](design/docs-integration.md)

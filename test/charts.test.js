@@ -510,9 +510,53 @@ test('C-bar reference marks share one row line without crowding: a goal equal to
   const missing = findAll(dom, (n) => n.tag === 'text' && /\bchart-missing\b/.test(n.attrs.class ?? ''))[0];
   // 글자 기준선에서 글자 크기(11)만큼 위가 글 윗면이다. 아래에 안내 글이 있으면 눈금은 막대 아래로 내밀지 않는다.
   const [missingY, missingTop] = [num(missing, 'y'), num(missing, 'y') - 11];
-  const ticks = findAll(dom, (n) => n.tag === 'line' && n.attrs['stroke-linecap'] === 'round');
-  const row = ticks.filter((n) => Number(n.attrs.y1) < missingY && Number(n.attrs.y1) > missingY - 60);
-  assert.ok(row.length && row.every((n) => Number(n.attrs.y2) < missingTop), `the goal tick stops above the missing-slot text at ${missingTop}: ${row.map((n) => n.attrs.y2)}`);
+  const row = referenceTicks(dom).filter((tick) => tick.from < missingY && tick.from > missingY - 60);
+  assert.ok(row.length && row.every((tick) => tick.to < missingTop), `the goal tick stops above the missing-slot text at ${missingTop}: ${row.map((tick) => tick.to)}`);
+});
+
+// 막대 차트 기대값 눈금(둥근 끝 세로 경로)의 x와 그린 조각들 [위, 아래]. 신뢰구간과 만나는 자리는 비어 조각이 여럿일 수 있다.
+function referenceTicks(dom) {
+  const ticks = findAll(dom, (n) => n.attrs['stroke-linecap'] === 'round' && (n.tag === 'line' || (n.tag === 'path' && /^M[\d.]+ [\d.]+V/.test(n.attrs.d ?? ''))));
+  return ticks.map((n) => {
+    const runs = n.tag === 'line' ? [[num(n, 'y1'), num(n, 'y2')]] : [...n.attrs.d.matchAll(/M([\d.]+) ([\d.]+)V([\d.]+)/g)].map((m) => [Number(m[2]), Number(m[3])]);
+    const x = n.tag === 'line' ? num(n, 'x1') : Number(/^M([\d.]+)/.exec(n.attrs.d)[1]);
+    return { x, runs, from: runs[0][0], to: runs.at(-1)[1], width: num(n, 'stroke-width') };
+  });
+}
+
+// 막대 신뢰구간: 가로선(low~high)과 양끝 수염. 수염 높이는 막대 두께다.
+function confidenceIntervals(dom) {
+  const lines = findAll(dom, (n) => n.tag === 'line' && /\blate\b/.test(n.attrs.class ?? '') && n.attrs.y1 === n.attrs.y2 && n.attrs.stroke !== undefined);
+  return lines.map((n) => ({ x1: num(n, 'x1'), x2: num(n, 'x2'), cy: num(n, 'y1'), width: num(n, 'stroke-width') }));
+}
+
+test('C-bar goal ticks give way to confidence intervals: a tick never crosses an interval line or runs into an end whisker, in the wide and narrow layouts', async () => {
+  const bar = values.spacing.figure.chart.bar;
+  const gap = values.spacing['2'];
+  const sources = [
+    read(EXAMPLES, 'bar.diagramplay'),
+    // 목표가 high 수염 바로 옆(0.42 끝 0.55와 목표 0.5)과 신뢰구간 가운데(0.47~0.85 안의 0.5)에 놓인 최소 원본
+    diagramplay('chart c "C" bar {\n  x "x(%)"\n  decimals 2\n  series a "A" role=main\n  series b "B" role=compare\n  series g "G" role=reference\n  row "r" a=0.64 a.low=0.47 a.high=0.85 b=0.42 b.low=0.31 b.high=0.52 g=0.5\n}'),
+  ];
+  for (const source of sources) {
+    const page = parseMarkup(await toHtml(await build(source, { baseDir: EXAMPLES }), 'bar'), { html: true });
+    const narrow = descendants(page).find((node) => node.tag === 'template' && /\bfl-narrow\b/.test(node.attrs.class ?? ''));
+    const wide = descendants(page).find((node) => /\bfl-canvas\b/.test(node.attrs.class ?? ''));
+    for (const [name, dom] of [['wide', wide], ['narrow', narrow]]) {
+      if (dom === undefined) continue;
+      const ticks = referenceTicks(dom);
+      assert.ok(ticks.length, `${name}: goal ticks are drawn`);
+      for (const tick of ticks) for (const ci of confidenceIntervals(dom)) for (const [top, bottom] of tick.runs) {
+        // 좌표는 소수 첫째 자리로 반올림되어 쓰이므로 그만큼(0.05)은 닿음으로 보지 않는다.
+        const reach = [top - tick.width / 2 + 0.05, bottom + tick.width / 2 - 0.05];
+        const crossesLine = tick.x > ci.x1 && tick.x < ci.x2 && reach[0] < ci.cy + ci.width / 2 && reach[1] > ci.cy - ci.width / 2;
+        assert.ok(!crossesLine, `${name}: the goal tick at x=${tick.x} [${top}, ${bottom}] crosses the interval ${ci.x1}~${ci.x2} at y=${ci.cy}`);
+        const nearWhisker = Math.min(Math.abs(tick.x - ci.x1), Math.abs(tick.x - ci.x2)) < gap;
+        const overlapsWhisker = reach[0] < ci.cy + bar / 2 && reach[1] > ci.cy - bar / 2;
+        assert.ok(!(nearWhisker && overlapsWhisker), `${name}: the goal tick at x=${tick.x} [${top}, ${bottom}] runs into a whisker of ${ci.x1}~${ci.x2} at y=${ci.cy}`);
+      }
+    }
+  }
 });
 
 test('C-bar narrow header rule note keeps the rule value once: a name that already has the value is not followed by it again', async () => {
