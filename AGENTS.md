@@ -29,7 +29,7 @@
 
 ## 명령
 
-CI와 태그 릴리스의 runner는 `ubuntu-24.04`로 고정한다. Action 자체는 Node 24 기반 공식 release의 SHA로 고정한다(2026-10-19 확인). 제품 Node 20·22 행렬과 composite Action의 제품 Node 20은 유지한다. 아래 CI 설명의 runner는 이 고정값을 따른다.
+CI와 태그 릴리스의 runner는 `ubuntu-24.04`로 고정한다. Action 자체는 Node 24 기반 공식 release의 SHA로 고정한다(2026-10-19 확인). 제품 Node 20·22 행렬은 유지하고, composite Action은 호출한 작업에 Node 20 이상이 없을 때만 Node 20(입력 `node-version`)을 설치한다. CI와 release의 기본 권한은 `contents: read`이고 쓰기는 release 작업에만 준다. release의 `check` 작업은 CI `test` 작업과 같은 검사 목록이다(`test/tooling.test.js` G4). 아래 CI 설명의 runner는 이 고정값을 따른다.
 
 ```sh
 npm test
@@ -43,6 +43,13 @@ npm run check:package -- /absolute/new-consumer-path
 `npm test`는 공개 진입점(`buildFigure`, `toSvg`, `toHtml`, 명령, 마크다운)과 실제 공통 부품의 진입점으로 계약을 확인하는 시험이고 브라우저를 열지 않는다. 같은 요소(카드, 필드, 선, 화살촉, 라벨, 아이콘, 탭, 도구 막대)는 한 부품이 모양과 상태를 소유하므로 그 부품의 시험도 한 곳에 한 번만 두고, 종류마다 같은 색, 두께, 모양 시험을 되풀이하지 않는다. 부품 시험은 둘이다. `test/components.test.js`는 부품의 기하와 구조(잰 값과 그린 값이 같다)를, `test/component-state.test.js`는 움직이는 SVG와 HTML 같은 출력 어댑터가 같은 상태 정의(`--fx-*`)와 표식을 읽는지를 본다. 같은 계약을 두 파일이 되풀이하지 않는다. `test/text.test.js`는 글 읽기와 글 자리(측정이 놓은 자리를 그리는 쪽과 검사가 그대로 읽는가, 긴 제목의 줄바꿈)를, `test/sampler.test.js`는 순수 표본 추출기(`player/sample.js`)를 HTML에 넣는 같은 `PLAYER_SCRIPT`로 Node의 격리 컨텍스트(`node:vm`)에서 돌려 본다. 브라우저 시계와 DOM에 쓰는 일은 이 시험이 보지 않는다. 종류별 시험은 그 종류만의 수학, 의미, 배치 계산을 보고, 조합 시험은 부품 사이의 데이터 전달과 연결만 본다. 시험이 부르는 부품 진입점은 코드가 실제로 쓰는 것이어야 하고, 시험만을 위한 내보내기나 훅을 만들지 않는다. 시험 개수를 목표로 삼지 않는다. 실제 Chrome에서 폭과 테마를 바꿔 가며 그림을 눈으로 보는 화면 검수는 자동 시험이 대신하지 않는 별도의 일이고, 통과한 시험을 화면 검수의 완료로 쓰지 않는다. CI(`ubuntu-24.04`, Node 20과 22)는 `npm ci` 뒤 `npm test`, `npm run check`, `npm run check:sources`, `npm run check:figures`, `npm run check:docs`, Node 22 작업의 `npm run test:browser`(설치된 Chrome에서 좁은 화면 HTML 회귀 검사)와 저장소 밖 tarball 설치 검사(`npm run check:package`)를 돌고, `action` 작업이 추적하는 모든 `.diagramplay`와 `.md`에 저장소 Action을 한 번 돈다. 실행 결과와 날짜는 GitHub Actions 기록과 이슈에 있다.
 
 `npm run check:sources`는 예제, 문서 그림, showcase 원본(`examples`, `docs/assets`, `docs/assets/showcase`의 `.diagramplay`)을 `--strict`로 확인하고, `npm run check:figures`는 폴더를 걸어 찾은 모든 마크다운 문서(`scripts/run-md.mjs`, 울타리 모양과 상관없고 블록을 모두 지운 문서도 포함)의 `md --check --strict`와 showcase·how-it-works SVG가 원본에서 다시 만든 결과와 같은지(`build-showcase.mjs --check`) 본다. 고칠 때는 `npm run figures`다.
+
+의존성 버전 고정 정책:
+
+- 런타임 `dependencies`는 `^` 범위로 적고, 이 저장소와 Action은 `package-lock.json`(`npm ci`)으로 정확한 버전을 고정한다. 배포한 패키지를 설치하는 쪽은 범위 안의 최신을 받는다.
+- 정확한 버전으로 적는 것은 범위 안의 새 판이 출력 바이트를 바꿀 수 있는 의존성뿐이다. 지금은 `postcss`(디자인 패키지와 같은 판을 써야 같은 CSS가 나온다)와 `typescript`(선언 검사 결과가 판마다 달라진다)다. 그 밖의 의존성에 정확한 버전을 더하지 않는다.
+- 디자인 `@woonyong-choi/design-tokens`는 npm 레지스트리에 배포하지 않고 commit 고정 tarball로만 받는다. 저장소는 `devDependencies`에 그 tarball URL을 적고, `peerDependencies`의 `^0.2.0`은 호스트가 고르는 디자인 판의 범위 계약이다. Action과 `check:package`는 `package.json`의 tarball URL을 읽어 설치하며 주소를 다른 곳에 다시 적지 않는다.
+- 워크플로의 Action은 공식 release의 commit SHA로 고정하고 판 이름을 주석으로 단다.
 
 `npm run check`는 design-tokens의 `design-tokens-check`로 소스의 하드코딩을 검사한다. 디자인은 peer 의존성이고 이 저장소는 `devDependencies`에 commit을 고정한다. 공통 정본 변경 후 새 commit의 `diagram` 배포 tarball URL로 개발 의존성과 잠금 파일을 갱신하고 `npm run figures`, `npm test`, `npm run check` 순서로 확인한다.
 

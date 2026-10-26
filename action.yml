@@ -22,6 +22,10 @@ inputs:
     description: 'Summary text of the folds that `fold` creates. Default `그림 원본`. Only with `fold: fold`.'
     required: false
     default: ''
+  node-version:
+    description: 'Node version to install when the job has no Node 20 or newer on its PATH. Empty means 20. A job that already has Node 20 or newer keeps its own Node and this is not used.'
+    required: false
+    default: ''
   budget:
     description: 'Raises generation budgets, as `name=value` items separated by spaces or commas, for example `grid-elements=2000000 grid-path-commands=4000000`. Each value is a positive whole number, and an unknown name or a bad value fails the step before any figure is built. Empty keeps the defaults.'
     required: false
@@ -29,12 +33,26 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+    # 호출한 작업에 이미 Node 20 이상이 있으면 그 Node를 그대로 쓴다. setup-node는 PATH의 Node를 바꾸므로 없거나 낮을 때만 설치한다.
+    - name: Check Node
+      id: node
+      shell: bash
+      run: |
+        major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
+        if [ "$major" -ge 20 ]; then echo "install=false" >> "$GITHUB_OUTPUT"; else echo "install=true" >> "$GITHUB_OUTPUT"; fi
+    - if: steps.node.outputs.install == 'true'
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
-        node-version: 20
+        node-version: ${{ inputs.node-version || '20' }}
+    # 실행에 필요한 의존성만 설치한다(--omit=dev). 디자인은 peer 의존성이라 package.json의 devDependencies에 고정한 commit tarball을 그대로 읽어 따로 설치한다.
+    # --no-save와 --no-package-lock으로 Action 폴더의 package.json과 잠금 파일은 바꾸지 않는다. --save-prod는 개발 의존성 목록을 다시 풀지 않게 한다.
     - name: Install diagramplay
       shell: bash
-      run: npm ci --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
+      run: |
+        set -euo pipefail
+        npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
+        design="$(node -p "require(process.argv[1]).devDependencies['@woonyong-choi/design-tokens']" "$GITHUB_ACTION_PATH/package.json")"
+        npm install --no-save --no-package-lock --save-prod --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH" "@woonyong-choi/design-tokens@$design"
     - name: Run diagramplay
       shell: bash
       env:

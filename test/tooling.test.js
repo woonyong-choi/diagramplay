@@ -39,3 +39,34 @@ test('G3 the design is the peer package the host installs, pinned to a commit fo
   const resolved = createRequire(join(ROOT, 'src/styles.js')).resolve('@woonyong-choi/design-tokens/tokens.css');
   assert.equal(resolved, join(DESIGN, 'tokens.css'));
 });
+
+// 워크플로 파일을 YAML 해석기 없이 줄로 읽는다. 작업(job) 하나의 줄들과, 그 작업이 돌리는 명령(`run:` 한 줄 값)과 조건을 순서대로 모은다.
+const workflow = (name) => readFileSync(join(ROOT, name), 'utf8').replace(/\r\n/g, '\n');
+const jobLines = (text, job) => {
+  const lines = text.split('\n');
+  const start = lines.indexOf(`  ${job}:`);
+  assert.ok(start >= 0, `job ${job}`);
+  const end = lines.findIndex((line, i) => i > start && /^ {2}\S/.test(line));
+  return lines.slice(start + 1, end < 0 ? lines.length : end);
+};
+const checks = (lines) => lines.map((line) => /^\s+(?:- )?(run|if): (.+)$/.exec(line)).filter(Boolean).map(([, key, value]) => `${key}: ${value}`);
+
+test('G4 #398 release runs the same checks as ci before it publishes, and only the release job may write', () => {
+  const ci = workflow('.github/workflows/ci.yml');
+  const release = workflow('.github/workflows/release.yml');
+  assert.deepEqual(checks(jobLines(release, 'check')), checks(jobLines(ci, 'test')));
+  assert.deepEqual(jobLines(release, 'check').filter((line) => /node: \[/.test(line)), jobLines(ci, 'test').filter((line) => /node: \[/.test(line)));
+  assert.ok(jobLines(release, 'release').includes('    needs: check'));
+  for (const text of [ci, release]) assert.match(text, /^permissions:\n {2}contents: read\n/m);
+  assert.deepEqual(release.split('\n').filter((line) => /: write\b/.test(line)).map((line) => line.trim().split(' #')[0]), ['contents: write', 'id-token: write']);
+  assert.ok(jobLines(release, 'release').some((line) => line.trim().startsWith('contents: write')), 'write is granted in the release job only');
+  for (const text of [ci, release]) assert.ok(!/npm ci(?! --ignore-scripts)/.test(text), 'npm ci runs without install scripts');
+});
+
+test('G5 #398 the Action keeps a Node 20 or newer that the job has, and installs only what the command needs plus the pinned design', () => {
+  const action = readFileSync(join(ROOT, 'action.yml'), 'utf8');
+  assert.match(action, /if: steps\.node\.outputs\.install == 'true'\n\s+uses: actions\/setup-node@/);
+  assert.match(action, /npm ci --omit=dev --ignore-scripts/);
+  assert.match(action, /devDependencies\['@woonyong-choi\/design-tokens'\]/, 'the design version is read from package.json, not written twice');
+  assert.match(action, /npm install --no-save --no-package-lock --save-prod --omit=dev --ignore-scripts .*"@woonyong-choi\/design-tokens@\$design"/);
+});
