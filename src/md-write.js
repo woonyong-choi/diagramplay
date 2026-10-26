@@ -1,16 +1,31 @@
 // md 명령의 파일 쓰기. 쓸 파일을 모두 같은 폴더의 임시 이름으로 먼저 놓고, 하나도 빠짐없이 놓였을 때만 rename으로 제자리에 바꾼다(docs/design/markdown.md 쓰기 순서와 실패).
 // 파일 하나의 rename은 원자적이지만 여러 파일 전체는 트랜잭션이 아니다. 중간에 실패하면 이미 바꾼 파일을 메모리에 둔 옛 내용으로 되돌리고, 되돌리지 못한 파일은 알린다.
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { realPath } from './md-owner.js';
 
 /**
  * 파일 시스템 동작 한 벌. 쓰기와 되돌리기는 이 객체로만 파일 시스템을 만진다.
  * mkdir은 새로 만든 가장 바깥 폴더의 경로(없으면 undefined)를 돌려주고, rmdir은 빈 폴더만 지운다. 실패 때 이번 실행이 만든 폴더를 치우는 데 쓴다.
+ * writeFile은 임시 파일을 열어 쓰고 fsync로 디스크에 내린 뒤 닫는다. rename 뒤 전원이 꺼져도 제자리의 파일이 빈 파일이 되지 않게 하기 위해서다.
  */
+// cost: time O(n), heap O(1), stack O(1), io 4
+// vars: n = 글자 수
+// basis: estimate
+// 파일을 새로 쓰고 디스크에 내린다(open, write, fsync, close). mode가 있으면 그 권한으로 만든다.
+function writeDurable(path, text, mode) {
+  const fd = openSync(path, 'w', mode);
+  try {
+    writeFileSync(fd, text);
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
+}
+
 export const FILE_IO = {
   mkdir: (path) => mkdirSync(path, { recursive: true }),
-  writeFile: (path, text, mode) => writeFileSync(path, text, mode === undefined ? undefined : { mode }),
+  writeFile: writeDurable,
   rename: renameSync,
   unlink: unlinkSync,
   rmdir: rmdirSync,

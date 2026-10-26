@@ -1,7 +1,7 @@
 // 원본 하나를 장면과 시간표로 만든다. 읽기, 차트 값 읽기, 크기, 배치, 시간표(선 길이를 쓰려고 배치 뒤), 그림 검사를 차례로 부른다(docs/architecture.md 그림 만들기).
 import { waterfallDataRow } from './source/waterfall.js';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { insideBase, OUTSIDE } from './base-path.js';
 import { resolveBudget } from './budget.js';
 import { buildScene } from './build-scene.js';
 import { chartCards } from './chart-frames.js';
@@ -85,9 +85,14 @@ function loadChartData(plot, baseDir, problems) {
   const { chart, chartType } = plot;
   const { line } = chart.data;
   const where = `data "${chart.data.path}" at "${chart.data.pointer}"`;
+  const file = insideBase(baseDir, chart.data.path);
+  if (file === undefined) {
+    problems.error(line, `cannot read ${where}: ${OUTSIDE}`);
+    return;
+  }
   let records;
   try {
-    records = pointer(parseJson(readFileSync(resolve(baseDir, chart.data.path), 'utf8')), chart.data.pointer);
+    records = pointer(parseJson(readFileSync(file, 'utf8')), chart.data.pointer);
   } catch (error) {
     // 파일 시스템 오류는 코드만, JSON 오류는 위치만 알린다. 읽은 파일의 글은 진단에 싣지 않는다.
     problems.error(line, `cannot read ${where}: ${error.code ?? error.message}`);

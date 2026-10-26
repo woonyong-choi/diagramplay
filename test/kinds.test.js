@@ -41,7 +41,7 @@ test('K-arch a group holds boxes with badges, replica counts, icons and numbered
     ['box a "A" count=1', /count/],
     ['box a "A" shape=circle badge="x"', /./],
     ['box a "A" shape=tile', /icon/],
-    ['box a "A" icon=no-such-icon', /cannot use icon/],
+    ['box a "A" icon=no-such-icon', /unknown icon "no-such-icon"/],
     ['box a "A"\nbox b "B"\na -> b no=0', /./],
     ['box a "A"\nbox b "B"\na -> b no=1.5', /./],
   ]) {

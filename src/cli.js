@@ -146,7 +146,7 @@ function renderOutputs({ inputs, out, flags }) {
 
 // cost: time O(1), heap O(1), stack O(1), io 1
 // basis: estimate
-// 원본 확장자가 .dap가 아니면 오류로 알린다. 파일은 읽지 않고 아무것도 쓰지 않는다.
+// 원본 확장자가 .diagramplay가 아니면 오류로 알린다. 파일은 읽지 않고 아무것도 쓰지 않는다.
 function unsupportedExtension(input, json) {
   if (SOURCE_EXT.test(input)) return false;
   report(input, [makeDiagnostic({ severity: 'error', line: 1, message: 'only .diagramplay files are read' }, { code: 'unsupported-extension', column: 1 })], json);
@@ -245,6 +245,18 @@ function describe(figure, source) {
   return { title, kind: strategies.join('+'), isChart: strategies.length === 1 && strategies[0] === 'plot' };
 }
 
-// npm이 만든 실행 파일은 심볼릭 링크라서, 실제 경로끼리 비교해야 직접 실행을 알아본다.
-const isEntry = Boolean(process.argv[1]) && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+// cost: time O(d), heap O(n), stack O(1), io 1
+// vars: d = 경로 깊이, n = 경로 글자 수
+// basis: estimate
+// 실제 경로. 없는 경로(지워진 스크립트, 가짜 argv)면 undefined다.
+function realOrUndefined(path) {
+  try {
+    return realpathSync(path);
+  } catch {
+    return undefined;
+  }
+}
+
+// npm이 만든 실행 파일은 심볼릭 링크라서, 실제 경로끼리 비교해야 직접 실행을 알아본다. 실행한 경로를 풀 수 없으면 직접 실행이 아니다.
+const isEntry = Boolean(process.argv[1]) && realOrUndefined(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
 if (isEntry) process.exitCode = await main(process.argv.slice(2));

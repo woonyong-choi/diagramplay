@@ -17,22 +17,28 @@ function shiftDecimal(x, n) {
   return Number(`${mantissa}e${Number(exponent) + n}`);
 }
 
+// 큰 수의 단위. 값의 절댓값은 1e15 미만이라(source/chart-rules.js) T가 마지막이다.
+const UNITS = [[1e3, 'k'], [1e6, 'M'], [1e9, 'B'], [1e12, 'T']];
+
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-/** 숫자 글자. 1000 이상은 k, 1000000 이상은 M, 소수 한 자리, 끝의 .0은 지운다. 1000 미만은 가장 짧은 십진 표기다. */
+/** 숫자 글자. 1000 이상은 k, 1e6 이상은 M, 1e9 이상은 B, 1e12 이상은 T, 소수 한 자리, 끝의 .0은 지운다. 반올림해 1000이 되면 다음 단위다. 1000 미만은 가장 짧은 십진 표기다. */
 export function formatNumber(value) {
   const abs = Math.abs(value);
   if (abs < 1000) return String(Number(value.toPrecision(12)));
-  const inK = roundHalfAway(value / 1000, 1);
-  if (Math.abs(inK) < 1000) return `${inK}k`;
-  return `${roundHalfAway(value / 1e6, 1)}M`;
+  for (const [i, [size, unit]] of UNITS.entries()) {
+    const scaled = roundHalfAway(value / size, 1);
+    if (Math.abs(scaled) < 1000 || i === UNITS.length - 1) return `${scaled}${unit}`;
+  }
+  return undefined;
 }
+
 
 // cost: time O(t), heap O(t), stack O(1)
 // vars: t = 눈금 수
 // basis: estimate
 /**
- * 눈금 글자 목록(눈금과 같은 순서). 기본은 formatNumber다. k, M의 소수 한 자리 반올림 때문에 서로 다른 눈금이 같은 글자가 되면(큰 값 위의 작은 간격)
+ * 눈금 글자 목록(눈금과 같은 순서). 기본은 formatNumber다. k, M, B, T의 소수 한 자리 반올림 때문에 서로 다른 눈금이 같은 글자가 되면(큰 값 위의 작은 간격)
  * 눈금마다 15자리 유효숫자의 십진 표기로 쓴다. 눈금이 15자리로도 가려지지 않는 범위는 값의 절댓값 1e15 미만 제한(source/chart-rules.js)이 막는다.
  */
 export function tickLabels(ticks) {
@@ -47,7 +53,7 @@ export const SHARE_PLACES = 1;
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 값 수
 // basis: estimate
-/** 값 목록에 쓰인 가장 긴 소수 자릿수(상한 DECIMALS_MAX). 1000 이상 값은 k, M 표기라 세지 않는다. */
+/** 값 목록에 쓰인 가장 긴 소수 자릿수(상한 DECIMALS_MAX). 1000 이상 값은 k, M, B, T 표기라 세지 않는다. */
 function decimalPlaces(list) {
   const places = list.filter((v) => Math.abs(v) < 1000).map((v) => (String(Number(v.toPrecision(12))).split('e')[0].split('.')[1] ?? '').length);
   return Math.min(DECIMALS_MAX, maxOf(places, 0));
@@ -58,7 +64,7 @@ function decimalPlaces(list) {
 // basis: estimate
 /**
  * 값 글자를 만드는 함수. 같은 목록(계열, 표)은 같은 소수 자릿수로 쓴다. 자릿수는 decimals(머리 줄)이고, 없으면 목록에 쓰인 가장 긴 소수 자릿수다.
- * 1000 이상은 formatNumber(k, M)로 쓴다.
+ * 1000 이상은 formatNumber(k, M, B, T)로 쓴다.
  */
 export function valueFormat(list, decimals) {
   const places = decimals ?? decimalPlaces(list);

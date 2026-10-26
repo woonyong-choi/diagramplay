@@ -32,6 +32,11 @@ test('narrow heatmap fit diagnostics keep the source row and column lines', () =
   for (const text of ['B', 'Y']) assert.equal(result.fits.find(fit => fit.text === text).line, 20);
 });
 
+test('K-number #397 numbers of a billion and more are written with B and T, not as thousands of M', async () => {
+  const { formatNumber } = await import('../src/chart/scale.js');
+  assert.deepEqual([999_949_999, 2.5e9, 1e9, 999.96e9, 1e12, 1.25e14, -3e9].map(formatNumber), ['999.9M', '2.5B', '1B', '1T', '1T', '125T', '-3B']);
+});
+
 test('incomplete box aria labels use the displayed decimal format', async () => {
   const dom = await stillDom(chart('box', 'row "A" min=1 q1=- median=2.125 q3=- max=-', 'x "x(u)"\n decimals 2'));
   const label = findAll(dom, node => node.attrs['aria-label']?.startsWith('A:'))[0].attrs['aria-label'];
@@ -462,6 +467,21 @@ test('C5 chart data from JSON: relative path, element keys become series, and ev
   }
 });
 
+
+test('C5 #397 a data path outside the source folder is an error on its line and the file is not read', async (t) => {
+  const { workspace } = await import('./support.js');
+  const { symlinkSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const rows = JSON.stringify([{ label: 'A', ours: 4 }]);
+  const dir = workspace(t, { 'outside.json': rows, 'src/inside.json': rows });
+  symlinkSync(join(dir, 'outside.json'), join(dir, 'src/link.json'));
+  const source = (file) => diagramplay(`chart c "C" bar {\n  x "x(u)"\n  data "${file}"\n  series ours "ours" key="ours"\n}\n`);
+  for (const file of ['../outside.json', join(dir, 'outside.json'), 'link.json']) {
+    const problems = await reject(source(file), { baseDir: join(dir, 'src') });
+    assert.deepEqual(problems.map((p) => [p.line, /outside the source folder/.test(p.message)]), [[4, true]], `${file}: ${JSON.stringify(problems)}`);
+  }
+  await build(source('inside.json'), { baseDir: join(dir, 'src') });
+});
 
 test('chart_axis_titles_share_the_same_wrapped_line_spacing', async () => {
   const title = 'Long axis title with enough words to wrap over several lines '.repeat(3) + '(ms)';

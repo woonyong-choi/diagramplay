@@ -1,6 +1,8 @@
 // 글과 아이콘의 안전: 어느 글 자리에 어떤 글이 와도 SVG는 올바른 XML, HTML은 같은 구조로 남고, 사용자 아이콘은 안전한 도형만 거쳐 들어온다.
 // 시험 이름 첫 낱말(I1~I3)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
+import { rmSync, symlinkSync } from 'node:fs';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { build, diagramplay, descendants, findAll, lineOf, parseMarkup, reject, textContent, textsOf, toHtml, toSvg, workspace } from './support.js';
 
@@ -257,6 +259,28 @@ test('I2 icon references that are missing, from an unknown set, or that reach ou
     assert.ok(problems.some((p) => p.line === lineOf(source, 'icon=')), `${ref}: ${JSON.stringify(problems)}`);
   }
   await build(usingIcon('mine'), { baseDir: dir });
+});
+
+test('I2 #397 an icon from an unknown set or with an unknown name is one diagnostic on its line, with no internal error text', async () => {
+  for (const ref of ['nope:x', 'nopeicon']) {
+    const source = diagramplay(`box a "가" icon=${ref}\nbox b "나"\na -> b\n`);
+    const problems = await reject(source);
+    assert.deepEqual(problems.map((p) => p.line), [lineOf(source, 'icon=')], `${ref}: ${JSON.stringify(problems)}`);
+    assert.doesNotMatch(problems[0].message, /Cannot read properties|cannot use icon/, ref);
+  }
+});
+
+test('I2 #397 an icon set folder outside the source folder is one error on the icons line, and the icons that use it add no second error', async (t) => {
+  const dir = workspace(t, { 'src/x': '', 'icons/mine.svg': ICON('<path d="M0 0h1"/>'), 'src/link/.keep': '' });
+  rmSync(join(dir, 'src/link'), { recursive: true });
+  symlinkSync(join(dir, 'icons'), join(dir, 'src/link'));
+  for (const folder of ['../icons', join(dir, 'icons'), 'link']) {
+    const source = diagramplay(`icons s "${folder}"\nbox a "A" icon=s:mine\n`);
+    const problems = await reject(source, { baseDir: join(dir, 'src') });
+    assert.deepEqual(problems.map((p) => p.line), [lineOf(source, 'icons s')], `${folder}: ${JSON.stringify(problems)}`);
+    assert.match(problems[0].message, /outside the source folder/, folder);
+  }
+  await build(diagramplay('icons s "icons"\nbox a "A" icon=s:mine\n'), { baseDir: dir });
 });
 
 test('I2 built-in icons: concept names and technology brands draw shapes; an unknown name is an error', async () => {
