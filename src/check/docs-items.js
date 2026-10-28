@@ -27,7 +27,7 @@ export const LIMITS = Object.freeze({
   series: PALETTE.length,
   // 문서 본문 단 폭과 가장 작은 그리는 글, 읽히는 가장 작은 글
   column: values.container['body-width'],
-  smallestText: values.text['figure-meta'],
+  smallestText: values.text.caption,
   readable: Math.min(...Object.values(values.text.figure)),
 });
 
@@ -49,7 +49,7 @@ export const DOCS_CHECKS = [
   { number: 11, code: 'docs-11', severity: ['warning'], title: '선 없는 카드가 있다', criterion: '선이 있는 그래프 보기에 선이 하나도 닿지 않는 카드(차트 카드 제외)가 2개 이상이다' },
   { number: 12, code: 'docs-12', severity: ['warning'], title: '순서 그림 장면의 메시지가 많다', criterion: '순서 보기의 한 장면 메시지가 `2 × 참여자 수 − 2`를 넘는다. 구획(`fragment`, `branch`) 안 메시지도 센다' },
   { number: 13, code: 'docs-13', severity: ['warning'], title: '순서 그림에 장면이 여럿이다', criterion: '순서 보기 메시지가 장면 2개 이상에 나뉘어 있다. 정지 SVG는 첫 장면만 보인다' },
-  { number: 14, code: 'docs-14', severity: ['warning'], title: '차트 계열이 많다', criterion: '차트 계열 수가 범주 색 수(7)를 넘어 색이 되풀이된다' },
+  { number: 14, code: 'docs-14', severity: ['warning'], title: '차트 계열이 많다', criterion: '차트 계열 수가 범주 색 수(4)를 넘어 색이 되풀이된다' },
   { number: 15, code: 'docs-15', severity: ['error'], title: '요구 항목이 그림에 있다', criterion: '`require` 줄마다 대안 하나 이상이 그림의 보이는 글에 들어 있다. 띄어쓰기는 하나로 접어 비교한다' },
-  { number: 16, code: 'docs-16', severity: ['warning'], title: '문서 본문 단에서 읽힌다', criterion: '그림 폭이 본문 단 폭(`container.body-width`, 680)보다 넓을 때, 본문 단으로 줄인 가장 작은 그리는 글(`text.figure-meta`, 11px)이 가장 작은 글 토큰(`text.figure`의 최솟값, 9px) 미만' },
+  { number: 16, code: 'docs-16', severity: ['warning'], title: '문서 본문 단에서 읽힌다', criterion: '그림 폭이 본문 단 폭(`container.body-width`, 680)보다 넓을 때, 본문 단으로 줄인 가장 작은 그리는 글(`text.caption`, 13px)이 가장 작은 글 토큰(`text.figure`의 최솟값, 9px) 미만' },
 ];

@@ -1,13 +1,11 @@
 // 범주 색 도우미. 차트의 표식, 범례, 원·도넛이 함께 쓴다. 값은 모두 토큰에서 오고, 개수는 토큰에 기록된 판(revision)의 길이다.
 // 계열(family)은 판이 정한 앞쪽 목록을 돌고, 한 바퀴를 돌 때마다 층(tier)이 오른다. 층 0은 단색 면이고 층 1부터 무늬가 달라진다. 점의 모양은 층과 상관없이 범주 번호마다 돌아서, 점만 있는 차트도 첫 바퀴 안에서 색 없이 구분된다.
 // 색·무늬·모양 목록은 뒤에만 늘어난다. 늘어나면 `index % n`의 n이 바뀌어 기존 범주의 칠이 달라지므로, 판 하나가 세 목록의 앞쪽 개수를 고정한다. 기본은 언제나 1판이다.
-// 색만으로 구분하지 않는다: 층 1부터와 경계가 대비 3에 못 미치는 계열은 `needsLabel`이 참이라 직접 라벨이나 범례가 있어야 한다.
+// 색만으로 구분하지 않는다: 층 1부터와 토큰이 직접 라벨을 요구하는 계열(3·4번 회색)은 `needsLabel`이 참이라 직접 라벨이나 범례가 있어야 하고, 선은 계열의 선 모양(`dash`: 실선, 점선, 점점선)을 함께 쓴다.
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 
 /** 소스가 판을 고르지 않을 때 쓰는 판. 최신 판이 아니다. */
 const BASE_REVISION = 1;
-// 1판의 앞 네 계열은 Things 공식 사이트 기능 아이콘의 solid 면색 그대로라 바뀌지 않는다. 네이티브 앱의 모든 역할이 같은 색이라는 뜻은 아니다.
-const FIRST_FAMILIES = ['blue', 'yellow', 'red', 'green'];
 const COUNTS = ['family', 'pattern', 'shape'];
 
 const orderedKeys = (group) => Object.keys(group).sort((a, b) => a - b);
@@ -18,7 +16,7 @@ const listOf = (group) => orderedKeys(group).map((key) => group[key]);
 // basis: estimate
 /**
  * 토큰의 판 목록(번호 순서). 판은 `{ revision, family, pattern, shape, step }`이고 세 개수는 각 목록의 앞에서부터 쓰는 개수, step은 무늬 간격 배율이다.
- * 번호가 1부터 빈칸 없이 이어지지 않거나, 개수가 줄거나 목록 길이를 넘거나, 최신 판이 목록 전체를 덮지 않거나, 앞 네 계열이 blue, yellow, red, green이 아니면 던진다.
+ * 번호가 1부터 빈칸 없이 이어지지 않거나, 개수가 줄거나 목록 길이를 넘거나, 최신 판이 목록 전체를 덮지 않으면 던진다. 계열의 순서와 값은 토큰이 정하고 여기서 다시 고정하지 않는다.
  */
 function readRevisions({ raw = values.color.data } = {}) {
   const lengths = { family: Object.keys(raw['category-family']).length, pattern: Object.keys(raw['category-pattern']).length, shape: Object.keys(raw['category-shape']).length };
@@ -39,8 +37,6 @@ function readRevisions({ raw = values.color.data } = {}) {
   });
   const latest = revisions.at(-1);
   if (COUNTS.some((name) => latest[name] !== lengths[name])) throw new RangeError(`category-revision ${latest.revision}: the latest revision must cover every recorded entry`);
-  const families = listOf(raw['category-family']);
-  if (revisions[0].family < FIRST_FAMILIES.length || FIRST_FAMILIES.some((name, index) => families[index] !== name)) throw new RangeError(`the first families must be ${FIRST_FAMILIES.join(', ')}`);
   return revisions;
 }
 
@@ -56,7 +52,7 @@ const revisionOf = (raw, revision) => {
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 판이 쓰는 계열 수
 // basis: estimate
-/** 판이 쓰는 앞쪽 계열 목록(토큰의 번호 순서). 칸은 `{ family, fill, border, on, ink, effect, tint, needsLabel }`이고 색은 `var(--…)` 참조다. effect는 갱신 효과의 한 단계(그 계열 테두리를 같은 색상에서 밝힌 값)다. 판을 생략하면 1판이다. */
+/** 판이 쓰는 앞쪽 계열 목록(토큰의 번호 순서). 칸은 `{ family, fill, border, on, ink, effect, tint, dash, needsLabel }`이고 색은 `var(--…)` 참조다. effect는 갱신 효과의 한 단계, dash는 선 모양(solid, dashed, dotted)이다. 판을 생략하면 1판이다. */
 function readPalette({ ref = tokens.color.data, raw = values.color.data, revision = BASE_REVISION } = {}) {
   return orderedKeys(raw['category-family']).slice(0, revisionOf(raw, revision).family).map((key) => ({
     family: raw['category-family'][key],
@@ -66,6 +62,7 @@ function readPalette({ ref = tokens.color.data, raw = values.color.data, revisio
     ink: ref['category-ink'][key],
     effect: ref['category-effect'][key],
     tint: ref['category-tint'][key],
+    dash: raw['category-dash'][key],
     needsLabel: raw['category-label'][key] === 'required',
   }));
 }
@@ -106,7 +103,7 @@ export const PALETTE = SNAPSHOTS[BASE_REVISION].palette;
  * 범주 번호(0부터)의 색과 구분 방법.
  * @param index 범주 번호. 상한이 없다
  * @param options { revision, snapshots, palette, tiers }. revision은 판 번호이며 생략하면 최신 판이 아니라 1판이다. snapshots는 다른 토큰 표(시험)이고, palette·tiers는 판의 목록을 덮어쓴다
- * @returns { index, revision, tier, family, fill, border, on, ink, tint, pattern, spacing, shape, needsLabel }. pattern은 층 0에서 'solid', spacing은 무늬 간격 배율이다
+ * @returns { index, revision, tier, family, fill, border, on, ink, tint, dash, pattern, spacing, shape, needsLabel }. pattern은 층 0에서 'solid', spacing은 무늬 간격 배율이다
  */
 export function categoryPaint(index, { revision = BASE_REVISION, snapshots = SNAPSHOTS, palette, tiers } = {}) {
   if (!Number.isInteger(index) || index < 0) throw new RangeError(`category index must be a non-negative integer: ${index}`);

@@ -7,7 +7,7 @@ import { renderRich, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { COPY } from './copy.js';
 import { ecdfGroups } from './data.js';
-import { BAR, DOT, PAD, SPACE, TEXT, WIDTH, isReference, seriesBoundary, seriesColor, seriesPaint, seriesStroke } from './metrics.js';
+import { BAR, DOT, PAD, SPACE, TEXT, WIDTH, isReference, seriesBoundary, seriesColor, seriesDashClass, seriesPaint, seriesStroke } from './metrics.js';
 import { patternRect } from './pattern.js';
 import { markShape } from './shape.js';
 import { OTHER, groupedSeries, memberPaint } from './other.js';
@@ -66,7 +66,7 @@ function legendSwatch(chart, i, kind, { x, y, grouped }) {
   const marker = markShape({ shape: paint.shape, cx: x + swatchWidth(kind) / 2, cy, radius: DOT, attrs: dotAttrs(chart, i) });
   if (kind === 'dot') return marker;
   const span = `x1="${r(x)}" x2="${r(x + swatchWidth(kind))}" y1="${r(cy)}" y2="${r(cy)}"`;
-  const dash = isReference(chart, i) ? ' class="chart-dashed"' : '';
+  const dash = seriesDashClass(chart, i) ? ` class="${seriesDashClass(chart, i)}"` : '';
   return `<line ${span} stroke="${seriesStroke(chart, i)}" stroke-width="${values["border-width"].strong}"${dash}/>${isReference(chart, i) ? '' : marker}`;
 }
 
@@ -97,8 +97,8 @@ export function drawLegend(figure, y) {
   const room = limit - PAD - swatchWidth(kind) - SPACE["1-5"];
   const grouped = groupedSeries(chart, chartType);
   const entries = legendOrder(figure, grouped).map(({ i }) => {
-    const lines = wrap(legendText(figure, i, grouped), room, { size: TEXT['11'] });
-    return { i, lines, width: swatchWidth(kind) + SPACE["1-5"] + Math.max(...lines.map((line) => measure(line, TEXT['11']))) + SPACE["4-5"] };
+    const lines = wrap(legendText(figure, i, grouped), room, { size: TEXT });
+    return { i, lines, width: swatchWidth(kind) + SPACE["1-5"] + Math.max(...lines.map((line) => measure(line, TEXT))) + SPACE["4-5"] };
   });
   const rows = [];
   let x = PAD;

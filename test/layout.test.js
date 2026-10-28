@@ -110,12 +110,12 @@ scene "중단 · 재전달" mode=loop
   shipping -> worker-a time=750ms
   worker-a -> api time=750ms
   light worker-a
-  show worker-a "ACK 없이 중단" tag="중단" tone=red
+  show worker-a "ACK 없이 중단" tag="중단" tone=orange
   light records
   show records "만료돼도 처리 중 유지" tag="만료" tone=orange
   shipping -> worker-b time=750ms
   worker-a -> records "이전 권한" time=750ms set="rejected=1"
-  show worker-a "이전 권한 ACK 거부" tag="거부" tone=red
+  show worker-a "이전 권한 ACK 거부" tag="거부" tone=orange
   worker-b -> api time=750ms
   worker-b -> records time=750ms
   wait 1400ms
@@ -164,8 +164,9 @@ test('buildFigure_narrow_shared_destination_reduces_detours_without_losing_conte
     const result = await buildFigure(SOURCE, { layoutWidth, strict: layoutWidth >= wide.scene.width });
     assert.ok(result.warnings.every(warning => warning.code === 'layout-width'));
     assert.equal(result.scene.width, wide.scene.width);
-    assert.equal(result.scene.height, 361);
-    assert.ok(Math.abs(Math.max(...result.scene.edges.map(routeLength)) - 196.43515625) < 0.01);
+    assert.equal(result.scene.height, 352);
+    const longest = Math.max(...result.scene.edges.map(routeLength));
+    assert.ok(Math.abs(longest - 194.43515625) < 0.01, `longest route ${longest}`);
   }
 });
 
@@ -204,7 +205,7 @@ test('layoutOrFail_optional_candidate_failure_preserves_the_fitting_original', a
     const scene = await layoutOrFail(figure, sizes, { width: 390, isSound: isSoundGraph });
 
     assert.equal(scene.width, 305.959375, `${failure}: keep the original fitting candidate`);
-    assert.equal(scene.height, 977, failure);
+    assert.equal(scene.height, 968, failure);
     assert.equal(scene.items.length, 7);
     assert.equal(scene.edges.length, 6);
     assert.ok(calls.length <= 12, `${failure}: no more than four extra ELK calls`);

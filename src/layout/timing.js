@@ -12,7 +12,7 @@ import { MS_PER_SECOND } from '../source/values.js';
 import { ALONG_SPOTS } from './labels.js';
 
 /** 구간 표시(`note`) 한 줄의 높이. 양쪽 화살표와 그 위 글 한 줄이 든다. */
-const NOTE_ROW = TEXT['13'] + SPACE['6'];
+const NOTE_ROW = TEXT + SPACE['6'];
 /** 띠와 높낮이 선이 줄 안에서 차지하는 높이의 절반. 줄 높이에서 위아래 여유를 뺀다. */
 export const BAND_HALF = (ROW - SPACE['3'] * 2) / 2;
 /** 띠의 경사 변 폭. 값이 바뀌는 순간을 WaveDrom처럼 비스듬한 변으로 보인다. */
@@ -34,7 +34,7 @@ const LABEL_PAD = SPACE['2'];
  */
 export function layoutTiming(view, { width = CANVAS - FIGURE_PAD * 2, statuses = new Map() } = {}) {
   const pillW = Math.max(0, ...view.rows.flatMap((row) => [...(statuses.get(row.id) ?? [])].map((kind) => sizeStatus(kind).w)));
-  const nameW = Math.max(0, ...view.rows.map((row) => measure(row.label, TEXT['13'], 'regular')));
+  const nameW = Math.max(0, ...view.rows.map((row) => measure(row.label, TEXT, 'regular')));
   const labelW = Math.max(labelColumn(view.rows.map((row) => row.label)), pillW ? nameW + pillW + SPACE['3'] * 2 : 0);
   const plotX = PAD + labelW;
   const plotRight = width - PAD;
@@ -115,7 +115,7 @@ function valueShape(row, { timeline, si, x, binary, end }) {
     const points = periods.flatMap((p, k) => [...(k ? [{ x: p.x0, y: level(periods[k - 1].text) }] : []), { x: p.x0, y: level(p.text) }, { x: p.x1, y: level(p.text) }]);
     return { id: row.id, wave: points, changes: periods.slice(1).map((p) => p.x0) };
   }
-  const bands = periods.filter((p) => p.x1 > p.x0).map((p) => ({ ...p, showsText: measure(p.text, TEXT['13'], 'regular') + LABEL_PAD * 2 + SLOPE * 2 <= p.x1 - p.x0 }));
+  const bands = periods.filter((p) => p.x1 > p.x0).map((p) => ({ ...p, showsText: measure(p.text, TEXT, 'regular') + LABEL_PAD * 2 + SLOPE * 2 <= p.x1 - p.x0 }));
   return { id: row.id, bands };
 }
 
@@ -169,8 +169,8 @@ function placeArrowLabels(arrows, timing) {
   const placed = [];
   return arrows.map((arrow) => {
     if (!arrow.label) return arrow;
-    const lw = measure(arrow.label, TEXT['13'], 'regular') + ARROW_LABEL_PAD * 2;
-    const lh = TEXT['13'] + ARROW_LABEL_PAD * 2;
+    const lw = measure(arrow.label, TEXT, 'regular') + ARROW_LABEL_PAD * 2;
+    const lh = TEXT + ARROW_LABEL_PAD * 2;
     const boxAt = (f) => {
       const cx = Math.min(Math.max(arrow.x0 + (arrow.x1 - arrow.x0) * f, timing.plotX + lw / 2), timing.plotRight - lw / 2);
       const cy = arrow.y0 + (arrow.y1 - arrow.y0) * f;

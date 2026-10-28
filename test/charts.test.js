@@ -104,14 +104,15 @@ test('K2 lengths are proportional to values: bar, stacked, percent and histogram
 });
 
 test('K2 small series grouped as other read as one piece: their segments touch and one label carries the summed share', async () => {
-  const dom = await stillDom(chart('percent', 'series a "a"\nseries b "b"\nseries c "c"\nseries d "d"\nseries e "e"\nrow "A" a=50 b=40 c=4 d=3 e=3', 'x "x(u)"'));
+  const dom = await stillDom(chart('percent', 'series a "a"\nseries b "b"\nseries c "c"\nseries d "d"\nseries e "e"\nrow "A" a=48 b=40 c=4 d=4 e=4', 'x "x(u)"'));
   const segments = marks(dom).map((m) => ({ x: num(m, 'x'), w: num(m, 'width') })).filter((s) => s.w > 0).sort((p, q) => p.x - q.x);
   const [, , ...grouped] = segments;
   assert.equal(grouped.length, 3, 'c, d and e are each under 5% and fall into other');
   for (let k = 1; k < grouped.length; k += 1) assert.ok(grouped[k - 1].x + grouped[k - 1].w >= grouped[k].x, `grouped segment ${k} touches the one before it`);
   assert.ok(segments[1].x + segments[1].w < segments[2].x, 'a named segment still keeps its gap before other');
   const shares = visibleTexts(dom).map((n) => textContent(n).trim()).filter((t) => /%$/.test(t));
-  assert.deepEqual(shares, ['50.0%', '40.0%', '10.0%'], 'other is labelled once with c + d + e');
+  // 값 글자는 설명 단계(13)라 묶인 조각 합이 그 글 폭보다 넓어야 안에 보인다.
+  assert.deepEqual(shares, ['48.0%', '40.0%', '12.0%'], 'other is labelled once with c + d + e');
 });
 
 test('K3 positions follow values: scatter orders points by x and y, a negative difference points left of zero', async () => {

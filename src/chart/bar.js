@@ -36,7 +36,7 @@ const rowRuleOf = (chart, row) => (hasRowRule(chart, 'bar') ? row.values.rule : 
 function ruleReaches(chart) {
   return chart.rows.flatMap((row) => {
     const rule = rowRuleOf(chart, row);
-    return rule === undefined ? [] : [{ value: rule, extra: SPACE["1"] + measure(formatNumber(rule), TEXT['11']) }];
+    return rule === undefined ? [] : [{ value: rule, extra: SPACE["1"] + measure(formatNumber(rule), TEXT) }];
   });
 }
 
@@ -50,7 +50,7 @@ function valueReaches(chart) {
     chart.series.flatMap((s, i) => {
       const v = row.values[s.id];
       if (typeof v !== 'number') return [];
-      return [{ value: Math.max(v, row.values[`${s.id}.high`] ?? 0), extra: SPACE["1-5"] + measure(formats[i](v), TEXT['11'], i === 0 ? 'numSemibold' : 'num') }];
+      return [{ value: Math.max(v, row.values[`${s.id}.high`] ?? 0), extra: SPACE["1-5"] + measure(formats[i](v), TEXT, i === 0 ? 'numSemibold' : 'num') }];
     }),
   );
 }
@@ -70,7 +70,7 @@ function barScale(chart) {
 // basis: estimate
 // 값이 없는 계열 슬롯: 막대 없이 안내 글만 둔다.
 function missingMark(chart, plotX, { k, i, cy }) {
-  return inkGroup(k, `<text x="${r(plotX)}" y="${r(centerBaseline(cy, TEXT['11']))}" class="chart-missing">${renderRich(chart.missing ?? MISSING)}</text>`, i);
+  return inkGroup(k, `<text x="${r(plotX)}" y="${r(centerBaseline(cy, TEXT))}" class="chart-missing">${renderRich(chart.missing ?? MISSING)}</text>`, i);
 }
 
 // cost: time O(1), heap O(1), stack O(1)
@@ -172,8 +172,8 @@ function labelSide(ctx, row, { x, label }) {
   const rule = rowRuleOf(ctx.chart, row);
   if (rule === undefined) return 'right';
   const ruleX = ctx.scale.at(rule);
-  const ruleBox = [ruleX + SPACE["1"], ruleX + SPACE["1"] + measure(formatNumber(rule), TEXT['11'])];
-  const width = measure(label, TEXT['11']);
+  const ruleBox = [ruleX + SPACE["1"], ruleX + SPACE["1"] + measure(formatNumber(rule), TEXT)];
+  const width = measure(label, TEXT);
   const clear = ([a, b]) => b + SPACE["2"] <= ruleBox[0] || ruleBox[1] + SPACE["2"] <= a;
   if (clear([x + SPACE["1"], x + SPACE["1"] + width])) return 'right';
   return clear([x - SPACE["1"] - width, x - SPACE["1"]]) ? 'left' : 'right';
@@ -199,7 +199,7 @@ function barMark(ctx, row, at) {
   const width = Math.max(SPACE["0-5"], end - plotX);
   const face = { x: plotX, y: by, w: width, h: BAR, radius: barRadius(width) };
   const label = formats[i](v);
-  const textX = clearOfLines(ctx, row, { x: Math.max(end, reach) + SPACE["1-5"], width: measure(label, TEXT['11'], i === 0 ? 'numSemibold' : 'num') });
+  const textX = clearOfLines(ctx, row, { x: Math.max(end, reach) + SPACE["1-5"], width: measure(label, TEXT, i === 0 ? 'numSemibold' : 'num') });
   const text = valueText({ x: textX, cy }, label, `chart-value${i === 0 ? ' ours' : ''} late`, { chart, id: markId(chart, i, k), raw: v, paint: seriesPaint(chart, i) });
   return { mark: `<g class="cr-${k}"><g class="cs-${i}">${barFace({ ...ctx, row }, { i, k }, face)}${ci}</g></g>`, value: inkGroup(k, text, i) };
 }

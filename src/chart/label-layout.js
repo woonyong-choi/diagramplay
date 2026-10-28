@@ -19,7 +19,7 @@ const LABEL_ROOM = LABEL_MAX - LABEL_GAP;
 // basis: estimate
 /** 항목 이름 칸 너비. 가장 긴 이름에 맞추되 LABEL_W와 LABEL_MAX 사이다. 넘는 이름은 그림 검사 1번이 알린다. */
 export function labelColumn(names) {
-  return Math.min(LABEL_MAX, maxOf(names.map((name) => measure(name, TEXT['13'], 'regular') + LABEL_GAP), LABEL_W));
+  return Math.min(LABEL_MAX, maxOf(names.map((name) => measure(name, TEXT, 'regular') + LABEL_GAP), LABEL_W));
 }
 
 // cost: time O(n), heap O(1), stack O(1)
@@ -27,7 +27,7 @@ export function labelColumn(names) {
 // basis: estimate
 /** 항목 이름이 이름 칸에 들어가야 한다는 그림 검사 항목 */
 export function labelFit(name, line) {
-  return { text: name, width: measure(name, TEXT['13'], 'regular'), room: LABEL_ROOM, line, what: 'item name' };
+  return { text: name, width: measure(name, TEXT, 'regular'), room: LABEL_ROOM, line, what: 'item name' };
 }
 
 // cost: time O(r·n²), heap O(r·n), stack O(1)
@@ -37,8 +37,8 @@ export function labelFit(name, line) {
 export function rowLabelLayout(chart) {
   // 넓은 배치의 이름은 이름 칸 오른쪽(값 축 시작에서 LABEL_GAP 앞)에 맞춰 막대 바로 옆에 붙는다.
   if (!chart.layout) return { space: 0, right: PAD + labelColumn(chart.rows.map((row) => row.label)) - LABEL_GAP };
-  const lines = chart.rows.map((row) => wrap(row.label, chart.layout.width - PAD * 2, { size: TEXT['13'], face: row.total ? 'semibold' : 'regular' }));
-  const lineHeight = TEXT['13'] * values.leading.normal;
+  const lines = chart.rows.map((row) => wrap(row.label, chart.layout.width - PAD * 2, { size: TEXT, face: row.total ? 'semibold' : 'regular' }));
+  const lineHeight = TEXT * values.leading.normal;
   return { lines, lineHeight, space: maxOf(lines.map((row) => row.length)) * lineHeight + SPACE["3"] };
 }
 
@@ -68,7 +68,7 @@ function ruleNote(rule) {
 // basis: estimate
 /**
  * 제목과 부제의 글 자리 { texts, bottom }. bottom은 마지막 글 줄 아래다(범례가 있으면 그 아래에 놓인다).
- * 제목은 카드 제목(label), 부제와 덧붙임과 좁은 배치의 기준선 이름은 카드 부제(sub)와 같은 글 역할과 줄 높이로 위에서 아래로 쌓는다. 차트는 플롯 배치라 왼쪽에 맞추고, 긴 글은 어느 폭에서나 그림 폭 안에서 줄을 나눈다.
+ * 제목은 그림·그룹 제목(frame, 작은 글 15 semibold), 부제와 덧붙임과 좁은 배치의 기준선 이름은 카드 부제(sub)와 같은 글 역할과 줄 높이로 위에서 아래로 쌓는다. 차트는 플롯 배치라 왼쪽에 맞추고, 긴 글은 어느 폭에서나 그림 폭 안에서 줄을 나눈다.
  */
 export function headerLayout(figure) {
   const { layout } = figure.chart;
@@ -76,7 +76,7 @@ export function headerLayout(figure) {
   const room = (layout?.width ?? WIDTH) - PAD * 2;
   const linesOf = (text, role, style) => wrap(text, room, style).map((line) => ({ role, text: line, style }));
   const lines = [
-    ...(figure.title ? linesOf(figure.title, 'label', STYLE.label) : []),
+    ...(figure.title ? linesOf(figure.title, 'frame', STYLE.group) : []),
     ...[figure.subtitle, excludedNote(figure), ...rules].filter(Boolean).flatMap((text) => linesOf(text, 'sub', STYLE.sub)),
   ];
   const texts = stackTexts(lines, { x: PAD, top: PAD, anchor: 'start' });

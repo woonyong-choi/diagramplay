@@ -24,7 +24,7 @@ const LEADER_RUN = SPACE["4"];
 // 이름과 값 사이 틈
 const NAME_GAP = SPACE["1-5"];
 // 이름 줄 높이. 이름(13)과 값(11)이 한 줄에 놓인다.
-const LINE = TEXT['13'] * values.leading.normal;
+const LINE = TEXT * values.leading.normal;
 // 바깥 이름 열이 들어갈 때 원 반지름의 하한. 이보다 작아지면 목록 배치로 바꾼다.
 const MIN_RADIUS = SIZE.chart['plot-h'] / 4;
 
@@ -89,7 +89,7 @@ function labelEntries(chart, { parts, grouped, isUndefined }) {
     const fraction = members.reduce((sum, part) => sum + part.fraction, 0);
     entries.push({ key: 'other', name: OTHER, detail: detailOf(value, fraction), raw: value, paint: OTHER_PAINT, start: Math.min(...members.map((p) => p.start)), end: Math.max(...members.map((p) => p.end)), hidden: false, members: [...grouped] });
   }
-  return entries.map((entry) => ({ ...entry, nameW: measure(entry.name, TEXT['13']), detailW: measure(entry.detail, TEXT['11'], 'num') }));
+  return entries.map((entry) => ({ ...entry, nameW: measure(entry.name, TEXT), detailW: measure(entry.detail, TEXT, 'num') }));
 }
 
 // cost: time O(1), heap O(1), stack O(1)
@@ -127,8 +127,8 @@ function outsideLabel(chart, entry, geometry) {
   const hidden = entry.hidden ? ' visibility="hidden"' : '';
   const leader = `<path d="M ${r(edge.x)} ${r(edge.y)} L ${r(elbow.x)} ${r(elbow.y)} L ${r(columnX)} ${r(entry.cy)}" fill="none" stroke="${entry.paint.border}" stroke-width="${values["border-width"].thin}" class="chart-leader"${hidden}${markAttrs(chart, markId(chart, 0, entry.key, '.l'))}/>`;
   const [nameX, detailX] = sign > 0 ? [textX, textX + entry.nameW + NAME_GAP] : [textX - entry.detailW - NAME_GAP, textX];
-  const name = `<text x="${r(nameX)}" y="${r(centerBaseline(entry.cy, TEXT['13']))}" class="chart-label"${sign > 0 ? '' : ' text-anchor="end"'}${hidden}${markAttrs(chart, markId(chart, 0, entry.key, '.n'), { isText: true })}>${renderRich(entry.name)}</text>`;
-  const detail = `<text x="${r(detailX)}" y="${r(centerBaseline(entry.cy, TEXT['11']))}" class="chart-value${sign > 0 ? '' : ' end'}"${hidden}${markAttrs(chart, markId(chart, 0, entry.key, '.d'), { raw: entry.raw, isText: true, paint: entry.paint })}>${escapeXml(entry.detail)}</text>`;
+  const name = `<text x="${r(nameX)}" y="${r(centerBaseline(entry.cy, TEXT))}" class="chart-label"${sign > 0 ? '' : ' text-anchor="end"'}${hidden}${markAttrs(chart, markId(chart, 0, entry.key, '.n'), { isText: true })}>${renderRich(entry.name)}</text>`;
+  const detail = `<text x="${r(detailX)}" y="${r(centerBaseline(entry.cy, TEXT))}" class="chart-value${sign > 0 ? '' : ' end'}"${hidden}${markAttrs(chart, markId(chart, 0, entry.key, '.d'), { raw: entry.raw, isText: true, paint: entry.paint })}>${escapeXml(entry.detail)}</text>`;
   return `${leader}${name}${detail}`;
 }
 
@@ -138,13 +138,13 @@ function outsideLabel(chart, entry, geometry) {
 // 좁은 폭의 목록 한 줄: 색 칸, 이름, 그 아래 값과 비율
 function listLabel(chart, entry, { y, width }) {
   const x = PAD + SIZE.chart.bar + SPACE["1-5"];
-  const lines = wrap(entry.name, width - PAD - x, { size: TEXT['13'], face: 'regular' });
+  const lines = wrap(entry.name, width - PAD - x, { size: TEXT, face: 'regular' });
   const hidden = entry.hidden ? ' visibility="hidden"' : '';
-  const name = lines.map((line, i) => `<text x="${r(x)}" y="${r(y + TEXT['13'] + i * LINE)}" class="chart-label"${hidden}${i ? '' : markAttrs(chart, markId(chart, 0, entry.key, '.n'), { isText: true })}>${renderRich(line)}</text>`).join('');
-  const detailY = y + lines.length * LINE + TEXT['11'];
+  const name = lines.map((line, i) => `<text x="${r(x)}" y="${r(y + TEXT + i * LINE)}" class="chart-label"${hidden}${i ? '' : markAttrs(chart, markId(chart, 0, entry.key, '.n'), { isText: true })}>${renderRich(line)}</text>`).join('');
+  const detailY = y + lines.length * LINE + TEXT;
   const detail = `<text x="${r(x)}" y="${r(detailY)}" class="chart-value"${hidden}${markAttrs(chart, markId(chart, 0, entry.key, '.d'), { raw: entry.raw, isText: true, paint: entry.paint })}>${escapeXml(entry.detail)}</text>`;
   const swatch = `<g${hidden}>${fillSwatch(entry.paint, { x: PAD, y: y + SPACE["1"] })}</g>`;
-  return { svg: swatch + name + detail, bottom: detailY + STYLE.meta.line - TEXT['11'] + SPACE["2"] };
+  return { svg: swatch + name + detail, bottom: detailY + STYLE.meta.line - TEXT + SPACE["2"] };
 }
 
 // cost: time O(r), heap O(r), stack O(1)
@@ -237,14 +237,14 @@ function centerTotal(chart, { cx, cy, outer }, { isUndefined, isDonut }) {
   const mark = markAttrs(chart, markId(chart, 0, 'total', '.t'), { raw: chart.total, isText: true, paint: categoryPaint(0) });
   if (!isDonut) {
     const y = cy + outer + SPACE["3"] + LINE / 2;
-    return [`<text x="${r(cx)}" y="${r(centerBaseline(y, TEXT['13']))}" text-anchor="middle" class="chart-label"${hidden}${mark}>${escapeXml(`${COPY.total} ${total}`)}</text>`];
+    return [`<text x="${r(cx)}" y="${r(centerBaseline(y, TEXT))}" text-anchor="middle" class="chart-label"${hidden}${mark}>${escapeXml(`${COPY.total} ${total}`)}</text>`];
   }
-  const big = values.text.figure['22'];
+  const big = values.text['title-3'];
   const valueY = cy - SPACE["1"];
   return [
     // 큰 합계는 공통 글 역할에 22 semibold가 없어(design-tokens chart.css) 토큰 변수로 크기와 굵기만 덮는다. 기준선은 모든 글과 같은 centerBaseline이다.
-    `<text x="${r(cx)}" y="${r(centerBaseline(valueY, big))}" text-anchor="middle" style="font-size: ${tokens.text.figure['22']}; font-weight: ${tokens['font-weight'].semibold}" class="chart-label"${hidden}${mark}>${escapeXml(total)}</text>`,
-    `<text x="${r(cx)}" y="${r(centerBaseline(valueY + big / 2 + SPACE["2"] + TEXT['11'] / 2, TEXT['11']))}" text-anchor="middle" class="chart-legend"${hidden}>${escapeXml(COPY.total)}</text>`,
+    `<text x="${r(cx)}" y="${r(centerBaseline(valueY, big))}" text-anchor="middle" style="font-size: ${tokens.text['title-3']}; font-weight: ${tokens['font-weight'].semibold}" class="chart-label"${hidden}${mark}>${escapeXml(total)}</text>`,
+    `<text x="${r(cx)}" y="${r(centerBaseline(valueY + big / 2 + SPACE["2"] + TEXT / 2, TEXT))}" text-anchor="middle" class="chart-legend"${hidden}>${escapeXml(COPY.total)}</text>`,
   ];
 }
 
@@ -262,10 +262,10 @@ function emptyRing(chart, { cx, cy, outer, inner }, isUndefined) {
 // 합이 0임을 알리는 글. 고리 한가운데에 구멍(도넛) 또는 원 폭 안에서 줄을 바꿔 적는다. 합이 양수이면 숨어 있고, 줄 수는 늘 같다.
 function zeroNote(chart, { cx, cy, outer, inner }, isUndefined) {
   const room = (inner || outer) * 2 - SPACE["3"];
-  const lines = wrap(COPY.zeroSum, room, { size: TEXT['11'] });
+  const lines = wrap(COPY.zeroSum, room, { size: TEXT });
   const lineHeight = STYLE.meta.line;
   return lines.map((line, k) => {
     const y = cy + (k - (lines.length - 1) / 2) * lineHeight;
-    return `<text x="${r(cx)}" y="${r(centerBaseline(y, TEXT['11']))}" text-anchor="middle" class="chart-missing"${isUndefined ? '' : ' visibility="hidden"'}${markAttrs(chart, markId(chart, 0, 'empty', `.t${k}`), { isText: true })}>${renderRich(line)}</text>`;
+    return `<text x="${r(cx)}" y="${r(centerBaseline(y, TEXT))}" text-anchor="middle" class="chart-missing"${isUndefined ? '' : ' visibility="hidden"'}${markAttrs(chart, markId(chart, 0, 'empty', `.t${k}`), { isText: true })}>${renderRich(line)}</text>`;
   });
 }

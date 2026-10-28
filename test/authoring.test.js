@@ -177,15 +177,16 @@ test('G3 a scene name is never only digits, since --scene reads digits as a numb
   for (const label of ['2단계', 'v2', '2.0', ' 2 x']) await build(diagramplay(`box a "A"\nscene "${label}" mode=static\n`));
 });
 
-const TONES = ['blue', 'yellow', 'red', 'green', 'orange', 'purple', 'cyan', 'gray'];
+const TONES = ['blue', 'orange', 'gray', 'silver'];
 
-test('G5 tone is the one color word on people, boxes, externals, stores, groups and card rows; it takes the eight names only', async () => {
+test('G5 tone is the one color word on people, boxes, externals, stores, groups and card rows; it takes the four distinction names only', async () => {
   for (const tone of TONES) {
     for (const card of ['person', 'box', 'external', 'store']) await build(diagramplay(`${card} a "A" tone=${tone}\n`));
     await build(diagramplay(`group g "G" tone=${tone} {\n  box a "A"\n}\n`));
     await build(diagramplay(`box a "A"\nbox b "B"\na -> b\nscene "s"\n  a -> b\n  show b "x" tag="t" tone=${tone}\n`));
   }
-  for (const bad of ['brand', 'amber', 'teal', 'navy', 'pink', 'sky', '"blue"', '#ff0000', 'Blue', '']) {
+  // 상태색(빨강, 초록)과 없앤 색(보라, 노랑, 청록)도 다른 모르는 이름과 같은 일반 오류다.
+  for (const bad of ['red', 'green', 'purple', 'yellow', 'cyan', 'brand', 'amber', 'teal', 'navy', 'pink', 'sky', '"blue"', '#ff0000', 'Blue', '']) {
     const source = diagramplay(`box a "A" tone=${bad}\n`);
     assert.ok((await reject(source)).some((p) => p.line === lineOf(source, 'tone=')), `tone=${bad}`);
   }
@@ -203,14 +204,14 @@ test('G5 the options tone replaced are errors at their line, not silently ignore
 });
 
 test('G5 appearance is plain, filled or outline; without a tone the colored two use the neutral gray family; plain is the default', async () => {
-  for (const appearance of ['plain', 'filled', 'outline']) await build(diagramplay(`box a "A" tone=red appearance=${appearance}\n`));
+  for (const appearance of ['plain', 'filled', 'outline']) await build(diagramplay(`box a "A" tone=orange appearance=${appearance}\n`));
   for (const appearance of ['plain', 'filled', 'outline']) await build(diagramplay(`box a "A" appearance=${appearance}\ngroup g "G" appearance=${appearance} {\n  box b "B" {\n    text "t" appearance=${appearance}\n  }\n}\n`));
   for (const appearance of ['filled', 'outline']) {
     const gray = await build(diagramplay(`box a "A" tone=gray appearance=${appearance}\n`));
     const neutral = await build(diagramplay(`box a "A" appearance=${appearance}\n`));
     assert.equal(await toSvg(neutral, { isStatic: true }), await toSvg(gray, { isStatic: true }), `appearance=${appearance} without a tone is tone=gray`);
   }
-  for (const line of ['box a "A" tone=red appearance=hollow', 'box a "A" tone=red appearance=']) {
+  for (const line of ['box a "A" tone=orange appearance=hollow', 'box a "A" tone=orange appearance=']) {
     const source = diagramplay(`${line}\n`);
     assert.ok((await reject(source)).some((p) => p.line === lineOf(source, line)), line);
   }
@@ -220,9 +221,9 @@ test('G5 tone and appearance change the picture, and plain without a tone is the
   const svg = async (options) => toSvg(await build(diagramplay(`box a "A" ${options}\nbox b "B"\na -> b\n`)), { isStatic: true });
   const neutral = await svg('');
   assert.equal(await svg('appearance=plain'), neutral, 'plain is the default');
-  const toned = await svg('tone=purple');
-  const filled = await svg('tone=purple appearance=filled');
-  const outline = await svg('tone=purple appearance=outline');
-  const other = await svg('tone=green appearance=filled');
+  const toned = await svg('tone=blue');
+  const filled = await svg('tone=blue appearance=filled');
+  const outline = await svg('tone=blue appearance=outline');
+  const other = await svg('tone=orange appearance=filled');
   assert.equal(new Set([neutral, toned, filled, outline, other]).size, 5, 'each choice draws something different');
 });

@@ -52,7 +52,7 @@ export function layoutTime(card, names, width = WIDTH) {
   return { kind: 'time', id: card.id, width, height: bottom + PAD, header: header.texts, lanes: laid, labelLayout, axisY, scale, unit: card.unit, plotX, plotRight, text };
 }
 
-const SPAN_TEXT = { size: TEXT['11'], face: 'regular', line: lineHeight(TEXT['11'], values.leading.normal) };
+const SPAN_TEXT = { size: TEXT, face: 'regular', line: lineHeight(TEXT, values.leading.normal) };
 
 function wideRows(source, scale, { y, right }) {
   const rows = packRows(source, scale, right);
@@ -71,7 +71,7 @@ function wideRows(source, scale, { y, right }) {
 function wideLength(spans, { total, plotX, plotRight }) {
   const room = plotRight - plotX;
   const unit = makeScale('linear', { min: 0, max: total, start: 0, length: 1 });
-  const reaches = spans.map((s) => ({ value: s.at + s.dur, extra: NAME_GAP + measure(s.label, TEXT['11']) }));
+  const reaches = spans.map((s) => ({ value: s.at + s.dur, extra: NAME_GAP + measure(s.label, TEXT) }));
   return Math.min(room, Math.max(room / 2, fitLength(unit, [...reaches, ...tickReach(unit)], { start: plotX, right: plotRight })));
 }
 
@@ -100,7 +100,7 @@ function packRows(spans, scale, right) {
   for (const span of [...spans].sort((a, b) => a.at - b.at || a.dur - b.dur)) {
     const x = scale.at(span.at);
     const w = Math.max(SPACE['1'], scale.at(span.at + span.dur) - x);
-    const nameW = measure(span.label, TEXT['11']);
+    const nameW = measure(span.label, TEXT);
     // 이름은 막대 오른쪽에 두고, 그림 영역 오른쪽 끝(right)을 넘으면 막대 왼쪽에 둔다. 축 길이가 이름 자리를 남기므로(wideLength) 보통 오른쪽에 들어간다.
     const isLeft = x + w + NAME_GAP + nameW > right;
     const [from, to] = isLeft ? [x - NAME_GAP - nameW, x + w] : [x, x + w + NAME_GAP + nameW];

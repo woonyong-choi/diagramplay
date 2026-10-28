@@ -116,7 +116,7 @@ function drawBand({ x0, x1, text, showsText }, row, glyphs) {
   const shape = `<path d="${d}" fill="${BAND.tint}" stroke="${BAND.border}" stroke-width="${STROKE.thin}"/>`;
   if (!showsText) return shape;
   glyphs.add(text, 'regular');
-  return `${shape}<text x="${r((x0 + x1) / 2)}" y="${r(centerBaseline(row.cy, TEXT['13']))}" text-anchor="middle" class="chart-label">${renderRich(text)}</text>`;
+  return `${shape}<text x="${r((x0 + x1) / 2)}" y="${r(centerBaseline(row.cy, TEXT))}" text-anchor="middle" class="chart-label">${renderRich(text)}</text>`;
 }
 
 // cost: time O(n), heap O(out), stack O(1)
@@ -132,15 +132,15 @@ function drawArrow(arrow, id, glyphs) {
 function arrowLabel({ label, labelBox: box }, glyphs) {
   glyphs.add(label, 'regular');
   const cy = box.y + box.h / 2;
-  return `${drawTextBack(box, { rx: LABEL_BG })}<text x="${r(box.x + box.w / 2)}" y="${r(centerBaseline(cy, TEXT['13']))}" text-anchor="middle" class="chart-label">${renderRich(label)}</text>`;
+  return `${drawTextBack(box, { rx: LABEL_BG })}<text x="${r(box.x + box.w / 2)}" y="${r(centerBaseline(cy, TEXT))}" text-anchor="middle" class="chart-label">${renderRich(label)}</text>`;
 }
 
 // 구간 표시: 값이 상태를 가진 구간의 양쪽 화살표와 그 위 글.
 function drawNote({ x0, x1, y, label }, id, glyphs) {
   glyphs.add(label, 'regular');
-  const lineY = y + TEXT['13'] / 2;
+  const lineY = y + TEXT / 2;
   const marker = edgeMarker({ head: 'both' }, id);
   const path = `<path d="M${r(x0)} ${r(lineY)}H${r(x1)}" class="fl-path"${marker.attributes}/>`;
-  const text = `<text x="${r((x0 + x1) / 2)}" y="${r(centerBaseline(lineY - TEXT['13'] / 2 - NOTE_GAP, TEXT['13']))}" text-anchor="middle" class="sub">${renderRich(label)}</text>`;
+  const text = `<text x="${r((x0 + x1) / 2)}" y="${r(centerBaseline(lineY - TEXT / 2 - NOTE_GAP, TEXT))}" text-anchor="middle" class="sub">${renderRich(label)}</text>`;
   return `<g class="fl-edge">${marker.defs}${path}</g>${text}`;
 }

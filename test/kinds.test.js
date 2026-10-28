@@ -262,7 +262,7 @@ test('K-trace span labels use the current time panel boundary when its width gro
   const panel = wide.scene.times[0];
   assert.equal(panel.width, width);
   for (const span of panel.lanes[0].spans) {
-    assert.ok(span.nameX + measure(span.label, values.text.figure['11']) < panel.plotRight, 'the label fits to the right of its span');
+    assert.ok(span.nameX + measure(span.label, values.text.caption) < panel.plotRight, 'the label fits to the right of its span');
     assert.equal(span.isLeft, false, 'unused space past the original width remains available');
   }
 });

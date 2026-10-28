@@ -20,7 +20,7 @@ const BOX_NAMES = { min: '최솟값', q1: '제1사분위', median: '중앙값', 
 const BOX_H = BAR * 2;
 const BOX_MIN_W = SPACE["0-25"];
 // 중앙값 글자는 상자 위 한 줄에 중앙선 바로 오른쪽에서 시작한다. 글자 줄이 상자 위에 차지하는 높이와 중앙선에서 띄운 거리다.
-const LABEL_RISE = TEXT['11'] + SPACE["1"];
+const LABEL_RISE = TEXT + SPACE["1"];
 const LABEL_SHIFT = SPACE["1"];
 // 값 글자 앞에 붙여 무엇의 값인지 알리는 글. 글자가 수염 끝 옆에 있어 최댓값으로 읽히기 때문이다.
 export const MEDIAN_LABEL = '중앙값';
@@ -50,7 +50,7 @@ function boxScale(chart) {
   const { min, max } = valueRange(ruled, chart.scale);
   // 다섯 값이 있는 행의 값 글자는 중앙선 위에서 오른쪽으로, 빠진 값이 있는 행은 수염 끝 옆에 놓인다.
   const reaches = () => chart.rows.flatMap((row, k) => {
-    const extra = measure(texts[k], TEXT['11'], 'num');
+    const extra = measure(texts[k], TEXT, 'num');
     if (isComplete(row)) return [{ value: row.values.median, extra: LABEL_SHIFT + extra }];
     return chart.layout ? [] : [{ value: tipOf(row) ?? min, extra: SPACE["1-5"] + extra }];
   });
@@ -96,7 +96,7 @@ export function drawBoxes(figure, top) {
   const { scale } = boxScale(chart);
   const texts = medianTexts(chart);
   const labels = rowLabelLayout(chart);
-  const pitch = chart.layout ? labels.space + LABEL_RISE + BOX_H + SPACE["3"] + TEXT['11'] + SPACE["5-5"] : ROW + LABEL_RISE;
+  const pitch = chart.layout ? labels.space + LABEL_RISE + BOX_H + SPACE["3"] + TEXT + SPACE["5-5"] : ROW + LABEL_RISE;
   const parts = chart.rows.map((row, k) => boxRow({ chart, scale, labels, format, top: top + k * pitch, cy: top + k * pitch + (chart.layout ? labels.space + LABEL_RISE + BAR : LABEL_RISE + ROW / 2), text: texts[k] }, row, k));
   return finishRowChart(chart, { parts, scale, top, bottom: top + chart.rows.length * pitch });
 }

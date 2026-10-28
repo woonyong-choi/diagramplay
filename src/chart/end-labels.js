@@ -33,7 +33,7 @@ const lineHeightOf = () => STYLE.meta.line;
 // 이름 한 줄의 최대 폭. 넓은 배치는 이름 칸 기준(size.chart.label), 좁은 배치는 그 절반이다. 가장 긴 이름이 이보다 짧으면 그 이름까지만 비운다.
 function labelWidth(chart, empty) {
   const cap = chart.layout ? SIZE.chart.label / 2 : SIZE.chart.label;
-  return Math.min(cap, maxOf(chart.series.map((s, i) => measure(textOf(s, i, empty), TEXT['11']))));
+  return Math.min(cap, maxOf(chart.series.map((s, i) => measure(textOf(s, i, empty), TEXT))));
 }
 
 // 이름 글: 값이 하나도 없는 계열은 뒤에 `COPY.noData`가 붙는다.
@@ -65,8 +65,8 @@ export function endLabelBoxes(chart, empty = new Set()) {
   const room = labelWidth(chart, empty);
   const lineHeight = lineHeightOf();
   return chart.series.map((s, i) => {
-    const lines = wrap(textOf(s, i, empty), room, { size: TEXT['11'] });
-    return { i, lines, height: lines.length * lineHeight, width: Math.max(...lines.map((line) => measure(line, TEXT['11']))) };
+    const lines = wrap(textOf(s, i, empty), room, { size: TEXT });
+    return { i, lines, height: lines.length * lineHeight, width: Math.max(...lines.map((line) => measure(line, TEXT))) };
   });
 }
 
@@ -138,7 +138,7 @@ export function endLabelMarks(chart, placed, anchors, column) {
   const lineHeight = lineHeightOf();
   return placed.map((box) => {
     const back = drawTextBack({ x: column.x, y: box.top, w: box.width, h: box.height }, { pad: TEXT_BACK_PAD.tight, attrs: markAttrs(chart, markId(chart, box.i, 'end', '.b')) });
-    const texts = box.lines.map((line, k) => `<text x="${r(column.x)}" y="${r(centerBaseline(box.top + lineHeight / 2 + k * lineHeight, TEXT['11']))}" fill="${seriesPaint(chart, box.i).ink}" class="chart-end-label"${markAttrs(chart, markId(chart, box.i, 'end', `.t${k}`), { isText: true })}>${renderRich(line)}</text>`);
+    const texts = box.lines.map((line, k) => `<text x="${r(column.x)}" y="${r(centerBaseline(box.top + lineHeight / 2 + k * lineHeight, TEXT))}" fill="${seriesPaint(chart, box.i).ink}" class="chart-end-label"${markAttrs(chart, markId(chart, box.i, 'end', `.t${k}`), { isText: true })}>${renderRich(line)}</text>`);
     return `<g class="cs-${box.i}">${leader(chart, box, anchors.get(box.i), column)}${back}${texts.join('')}</g>`;
   });
 }

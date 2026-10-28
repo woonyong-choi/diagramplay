@@ -87,7 +87,7 @@ function pointMark(ctx, { p, text, toLeft, shift, side, lines, box }, k) {
   const textX = isStacked ? (box.x0 + box.x1) / 2 : toLeft ? x - NAME_OFFSET : x + NAME_OFFSET;
   const centerY = isStacked ? (box.y0 + box.y1) / 2 : y + shift * NAME_STEP;
   const label = chart.layout ? lines.map((line, i) => `<tspan x="${r(textX)}" dy="${i ? NAME_STEP : -(lines.length - 1) * NAME_STEP / 2}">${i ? ' ' : ''}${renderRich(line)}</tspan>`).join('') : renderRich(text);
-  const name = `<text x="${r(textX)}" y="${r(centerBaseline(centerY, TEXT['11']))}"${isStacked ? ' text-anchor="middle"' : ''} class="chart-name late${toLeft ? ' end' : ''}">${label}</text>`;
+  const name = `<text x="${r(textX)}" y="${r(centerBaseline(centerY, TEXT))}"${isStacked ? ' text-anchor="middle"' : ''} class="chart-name late${toLeft ? ' end' : ''}">${label}</text>`;
   const back = drawTextBack({ x: box.x0, y: box.y0, w: box.x1 - box.x0, h: box.y1 - box.y0 }, { pad: TEXT_BACK_PAD.tight, late: true });
   const dot = markShape({ shape: seriesPaint(chart, i).shape, cx: x, cy: y, radius: DOT, attrs: dotAttrs(chart, i, ` class="pop"${markAttrs(chart, markId(chart, i, k), { raw: `${p.values.x},${p.values.y}`, paint: seriesPaint(chart, i) })}`) });
   return `<g class="cr-${k}"><g class="cs-${i}">${dot}</g></g>${inkGroup(k, back + name, i)}`;

@@ -121,10 +121,10 @@ test('D7 sequence messages and scenes, chart series, and text size in a 680px co
   assert.ok(!has(t, sequence('scene "하나"\n  a -> b "요청"\n  b -> c "전달"\n'), 'docs-12'));
   assert.ok(has(t, sequence('scene "하나"\n  a -> b "요청"\nscene "둘"\n  b -> c "전달"\n'), 'docs-13'));
   const series = (n) => diagramplay(`chart c "차트" bar {\n  x "값(개)"\n${Array.from({ length: n }, (_, i) => `  series s${i} "계열${i}"`).join('\n')}\n  row "가" ${Array.from({ length: n }, (_, i) => `s${i}=1`).join(' ')}\n}\n`);
-  assert.ok(has(t, series(8), 'docs-14'));
-  assert.ok(!has(t, series(7), 'docs-14'));
+  assert.ok(has(t, series(5), 'docs-14'));
+  assert.ok(!has(t, series(4), 'docs-14'));
   const people = (n) => diagramplay(`${Array.from({ length: n }, (_, i) => `box p${i} "참여자 이름${i}"`).join('\n')}\nview sequence {\n${Array.from({ length: n }, (_, i) => `  p${i}`).join('\n')}\n}\nscene "하나"\n  p0 -> p1 "요청"\n`);
-  assert.ok(has(t, people(8), 'docs-16'));
+  assert.ok(has(t, people(9), 'docs-16'));
   assert.ok(!has(t, people(3), 'docs-16'));
 });
 
