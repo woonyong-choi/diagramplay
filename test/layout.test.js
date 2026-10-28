@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { COMPARISON_EXAMPLES } from '../scripts/lib/comparison-examples.mjs';
 
 import { isSoundGraph } from '../src/check/figure.js';
 import { checkDocs } from '../src/compile/docs-check.js';
@@ -489,4 +490,18 @@ test('sequence_labels_prefer_the_message_center_without_covering_intermediate_li
   const around = sequenceLabelX(0, 600, [0, 300, 600], 80);
   assert.ok(Math.abs(around - 300) >= 48, 'an intermediate lifeline is outside the pill and its clearance');
   assert.ok(Math.abs(around - 300) < Math.abs(48 - 300), 'the nearest safe center beats a sender-aligned label');
+});
+
+test('composite_fk_multiplicities_stay_beside_their_endpoint_route_without_crossing_parallel_relations', async () => {
+  const { scene } = await buildFigure(COMPARISON_EXAMPLES.find(example => example.id === 'schema').source, { strict: true });
+  const labels = scene.edges.flatMap(edge => edge.endpointLabels ?? []);
+  assert.ok(labels.some(label => label.text === '0..*'));
+  for (const label of labels) {
+    const box = { left: label.x - label.w / 2, right: label.x + label.w / 2, top: label.y - label.h / 2, bottom: label.y + label.h / 2 };
+    for (const edge of scene.edges) for (let index = 1; index < edge.points.length; index++) {
+      const [a, b] = [edge.points[index - 1], edge.points[index]];
+      const crosses = Math.min(a.x, b.x) < box.right && Math.max(a.x, b.x) > box.left && Math.min(a.y, b.y) < box.bottom && Math.max(a.y, b.y) > box.top;
+      assert.equal(crosses, false, `${label.text}: ${edge.from} -> ${edge.to}`);
+    }
+  }
 });

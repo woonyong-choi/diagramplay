@@ -3,7 +3,7 @@ import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
 import { endMarks } from './end-marks.js';
 import { LayoutError } from './error.js';
-import { ALONG_SPOTS, settleLabels } from './labels.js';
+import { ALONG_SPOTS, settleLabels, spotsAlong } from './labels.js';
 import { CROWD, ROOT, SAME_POINT, decorOf } from './model.js';
 import { placeTitles } from './titles.js';
 
@@ -38,8 +38,8 @@ export function readElk(laid, model) {
 // cost: time O(l·(c + s + e·p + l)), heap O(c), stack O(1)
 // vars: l = 끝 라벨 수, c = 옆 폭 사각형 수, s = 도형 수, e = 선 수, p = 경로 점 수
 // basis: estimate
-// 끝 라벨(다중성 글)이 박자 이동 글 상자가 쓸고 지나는 다른 선의 옆 폭(sweep) 안에 있거나, 다른 선 위에 있거나, 앞서 놓인 다른 끝 라벨이나 선 위 알약과 겹치면 자기 끝 구간의 반대쪽으로 옮긴다.
-// 같은 열에서 나가고 들어오는 두 선(묶음 배치에서 둘 다 오른쪽 면)은 elkjs가 두 끝 라벨을 한자리에 둔다. 옮긴 자리가 옆 폭, 도형, 다른 선, 다른 라벨과 만나면 그대로 둔다.
+// 끝 라벨이 다른 선의 이동 통로, 선, 라벨과 겹치면 자기 끝 구간 반대쪽과 첫 꺾임 주변의 빈자리를 찾는다.
+// 복합 외래 키가 이웃 열 사이에서 출발하면 반대쪽도 다른 열의 선에 걸린다. 경로 끝의 두 구간 안에서만 찾아 어느 관계의 다중성인지 유지한다. 빈자리가 없으면 기존 자리를 보존한다.
 function clearEndLabels(edges, { items, sweep }) {
   const lanes = edges.filter((e) => sweep.has(e.index)).flatMap((e) => e.points.slice(1).map((p, i) => laneOf(e.points[i], p, sweep.get(e.index), e.index)));
   const lines = edges.flatMap((o) => o.points.slice(1).map((p, i) => laneOf(o.points[i], p, { x: 0, y: 0 }, o.index)));
@@ -52,11 +52,14 @@ function clearEndLabels(edges, { items, sweep }) {
     const onOther = (box) => lines.some((l) => l.edge !== e.index && meets(box, l));
     if (!inLane(labelBox(label)) && !onOther(labelBox(label)) && !earlier.some((o) => meets(labelBox(label), o))) return;
     const [a, b] = label.end === 'from' ? [e.points[0], e.points[1]] : [e.points.at(-1), e.points.at(-2)];
-    const moved = a.x === b.x ? { x: 2 * a.x - label.x, y: label.y } : { x: label.x, y: 2 * a.y - label.y };
-    const box = labelBox({ ...label, ...moved });
     const others = labels.filter((o) => o.label !== label).map((o) => labelBox(o.label));
-    if (inLane(box) || items.some((it) => meets(box, it)) || others.some((o) => meets(box, o)) || lines.some((l) => meets(box, l))) return;
-    Object.assign(label, moved);
+    const reflected = a.x === b.x ? { x: 2 * a.x - label.x, y: label.y } : { x: label.x, y: 2 * a.y - label.y };
+    const route = label.end === 'from' ? e.points : [...e.points].reverse();
+    const moved = [reflected, ...spotsAlong(route.slice(0, 3), label, true)].find((at) => {
+      const box = labelBox({ ...label, ...at });
+      return !inLane(box) && !items.some((it) => meets(box, it)) && !others.some((o) => meets(box, o)) && !lines.some((l) => meets(box, l));
+    });
+    if (moved) Object.assign(label, moved);
   });
 }
 

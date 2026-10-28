@@ -386,15 +386,15 @@ test('IM9 a source that cannot be imported is exit 1 on its line with nothing wr
   assert.deepEqual(snapshot(dir), before);
 });
 
-test('IM10 an imported figure that DiagramPlay lays out with a figure check error is still written, with the check as a warning on the result line', (t) => {
-  // 한 열로 들어오는 외래 키 선 셋과 다대다 관계선의 다중성 글이 겹친다. 원본은 맞고 배치를 손볼 곳이라 파일을 쓴다.
+test('IM10 imported dense foreign keys and many-to-many multiplicities render without overlapping end labels', (t) => {
   const text = 'Table a {\n  id int [pk]\n}\nTable b {\n  id int [pk]\n  a1 int [ref: > a.id]\n  a2 int [ref: > a.id]\n  a3 int [ref: > a.id]\n}\nRef: a.id <> b.id\n';
   const dir = workspace(t, { 'x.dbml': text });
   const run = cli(['import', 'x.dbml', '--out', 'x.diagramplay'], { cwd: dir });
   assert.equal(run.status, 0);
   assert.equal(run.stdout, 'x.diagramplay\n');
-  assert.match(run.stderr, /^x\.diagramplay:\d+: warning: edge label "1" overlaps edge label "1"/m);
+  assert.equal(run.stderr, '');
   assert.ok(existsSync(join(dir, 'x.diagramplay')));
-  assert.equal(cli(['render', 'x.diagramplay'], { cwd: dir }).status, 1, 'render still refuses the figure until the source is fixed');
+  const rendered = cli(['render', 'x.diagramplay', '--strict'], { cwd: dir });
+  assert.equal(rendered.status, 0, rendered.stderr);
 });
 

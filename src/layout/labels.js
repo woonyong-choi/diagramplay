@@ -57,7 +57,7 @@ export function settleLabels(edges, items, bounds, groups = []) {
 // vars: p = 경로 구간 수, L = 구간 길이
 // basis: estimate
 // 경로 중앙에서 가까운 순서의 라벨 후보 자리. 세로 구간은 선 오른쪽과 왼쪽, 가로 구간은 선 위와 아래다. 라벨 앞 끝이 구간 위의 걸음 자리에 온다.
-function spotsAlong(points, { w, h }, fromStart = false, onLine = false) {
+export function spotsAlong(points, { w, h }, fromStart = false, onLine = false) {
   const spots = [];
   const total = points.slice(1).reduce((sum, point, index) => sum + Math.hypot(point.x - points[index].x, point.y - points[index].y), 0);
   let offset = 0;
