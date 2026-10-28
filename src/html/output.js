@@ -4,11 +4,11 @@ import { STYLES, tokensFor } from '../draw/styles.js';
 import { roundedNumbers } from '../format/numbers.js';
 import { escapeXml, figureDesc, plainText, roundCoord as r } from '../format/text.js';
 import { hasStatus } from '../layout/status.js';
-import { CANVAS, canvasOf } from '../measure/canvas.js';
+import { canvasOf } from '../measure/canvas.js';
 import { createGlyphSet, embedFonts } from '../measure/fonts.js';
 import { figureContent } from './content.js';
 import { CANONICAL_NAME, PLAYER_SCRIPT, figureFrame } from './player-script.js';
-import { THEME_BUTTONS, THEME_KEY, THEME_SCRIPT } from './theme.js';
+import { THEME_BUTTONS, THEME_KEY, THEME_LABELS, THEME_SCRIPT } from './theme.js';
 
 // iframe 안에서 열리면 틀을 빼고, 목록 쪽이 iframe 높이를 맞추도록 본문 높이를 알린다. 문서(html) 높이는 iframe 창보다 작아지지 않아 쓰지 않는다.
 // 목록 쪽의 라이트·다크 선택은 iframe의 prefers-color-scheme에 안정적으로 전해지지 않아, 목록 쪽이 보내는 테마 메시지로 이 문서의 data-theme을 바꾼다. 처음에는 목록 쪽에 현재 테마를 물어본다.
@@ -65,11 +65,16 @@ async function canonicalHtml(result, name, source) {
   const glyphs = createGlyphSet();
   const content = figureContent(result, glyphs);
   addTimelineGlyphs(timeline, glyphs);
+  for (const label of THEME_LABELS) {
+    glyphs.add(label, 'regular');
+    glyphs.add(label, 'semibold');
+  }
   const fonts = await embedFonts(glyphs.used);
   const title = plainText(figure.title ?? name);
   // 점이 나타나는 시각은 배치마다 다르므로(좁은 배치는 선 위치가 다르다) 넓은 배치와 좁은 배치의 시각을 모두 규칙으로 둔다.
   const styles = [STYLES.control, STYLES.player, STYLES.figure, paintCss(result.scene), hasStatus(timeline) ? STYLES.status : ''].join('');
-  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', source });
+  const naturalWidth = content.panels.length === 1 ? content.data.tight.w : content.width;
+  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }), style: ` style="--figure-canvas: ${r(Math.min(canvasOf(figure), naturalWidth))}px"`, source });
   return `<!doctype html>
 <html lang="ko">
 <head>

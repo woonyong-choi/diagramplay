@@ -43,7 +43,6 @@
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
-  --color-ui-line: var(--primitive-line);
   --color-soft: var(--primitive-soft);
   --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
@@ -75,7 +74,6 @@
   --font-weight-semibold: 600;
   --primitive-ink: #303336;
   --primitive-muted: #55606e;
-  --primitive-line: #dfe3e8;
   --primitive-link: #2576eb;
   --primitive-soft: #e9edf2;
   --primitive-small-text: 15px;
@@ -87,7 +85,6 @@
   --primitive-figure-dark-bg: #26272b;
   --primitive-figure-dark-node: #303136;
   --primitive-figure-dark-edge: #50535b;
-  --primitive-figure-dark-separator: #454850;
   --primitive-figure-dark-hover: #343e50;
   --primitive-figure-dark-selection: #274174;
   --primitive-figure-dark-muted: #a9adb6;
@@ -130,7 +127,6 @@
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
-  --color-ui-line: var(--primitive-figure-dark-separator);
   --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
@@ -158,7 +154,6 @@
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
-  --color-ui-line: var(--primitive-figure-dark-separator);
   --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
@@ -185,7 +180,6 @@
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
-  --color-ui-line: var(--primitive-line);
   --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   color-scheme: light;
@@ -616,26 +610,26 @@
   pointer-events: none;
 }
 
-/* 제어 구획의 경계는 관계선보다 약하며 제목 밑면은 생명선을 가린다. */
+/* 제어 구획은 일반 그룹과 같은 경계·제목 역할을 쓴다. 제목 밑면은 판과 같아 생명선만 가린다. */
 .fl .fl-fragment-border {
   fill: none;
-  stroke: var(--color-ui-line);
+  stroke: var(--color-figure-outline);
   stroke-width: var(--border-width-thin);
 }
 
 .fl .fl-fragment-divider {
   fill: none;
-  stroke: var(--color-ui-line);
+  stroke: var(--color-figure-outline);
   stroke-width: var(--border-width-hair);
   stroke-dasharray: var(--dash-card) var(--dash-card);
 }
 
 .fl .fl-fragment-heading {
-  fill: var(--color-ui-card);
+  fill: var(--color-figure-canvas);
 }
 
-.fl .fl-fragment-label {
-  font-weight: var(--font-weight-semibold);
+.fl .fl-fragment-branch .meta {
+  fill: var(--color-ui-muted);
 }
 
 .fl .fl-packet > circle:first-child {

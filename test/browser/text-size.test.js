@@ -56,6 +56,9 @@ test('every example scales text uniformly within the natural figure and fits nar
           await page.evaluate(() => document.fonts.ready);
           const { texts, pageOverflow } = await page.evaluate(measureText);
           if (pageOverflow > 0) problems.push(`${id}: page overflows by ${pageOverflow}px`);
+          const frame = await page.locator('.fl-figure').boundingBox();
+          const panels = await page.locator('.dp-panels').evaluate(element => Number.parseFloat(getComputedStyle(element).getPropertyValue('--view-w')));
+          if (frame.width > panels + SLACK) problems.push(`${id}: the frame exceeds the natural drawing width`);
           const scales = texts.map(({ role, shown }) => shown / role);
           if (Math.max(...scales) - Math.min(...scales) > SLACK) problems.push(`${id}: text roles use different scales`);
           for (const { role, shown } of texts) {
@@ -72,4 +75,39 @@ test('every example scales text uniformly within the natural figure and fits nar
   } finally {
     await browser.close();
   }
+});
+
+test('sequence_ranges_share_group_typography_and_boundaries_without_button_surfaces', async () => {
+  const graph = await buildFigure('diagramplay\ngroup domain "주문 도메인" {\n box a "A"\n box b "B"\n}\na -> b\nscene "구조"\n', { strict: true });
+  const sequence = await buildFigure(await readFile(new URL('sequence.diagramplay', EXAMPLES), 'utf8'), { strict: true });
+  const browser = await launchBrowser();
+  const titleStyle = element => {
+    const style = getComputedStyle(element);
+    return { family: style.fontFamily, size: style.fontSize, weight: style.fontWeight, ink: style.fill };
+  };
+  try {
+    for (const colorScheme of ['light', 'dark']) {
+      let page = await browser.newPage({ colorScheme, reducedMotion: 'reduce' });
+      try {
+        await page.setContent(await toHtml(graph));
+        await page.evaluate(() => document.fonts.ready);
+        const groupTitle = await page.locator('.fl-group .frame').first().evaluate(titleStyle);
+        const groupLine = await page.locator('.frame-box').first().evaluate(element => ({ stroke: getComputedStyle(element).stroke, width: getComputedStyle(element).strokeWidth }));
+        await page.close();
+        page = await browser.newPage({ colorScheme, reducedMotion: 'reduce' });
+        await page.setContent(await toHtml(sequence));
+        await page.evaluate(() => document.fonts.ready);
+        for (const selector of ['.dp-theme button', '.fl-foot button']) {
+          assert.equal(await page.locator(selector).first().evaluate(element => getComputedStyle(element).fontFamily), groupTitle.family, 'controls and diagram prose use the same embedded family');
+        }
+        assert.deepEqual(await page.locator('.fl-fragment-title .frame').first().evaluate(titleStyle), groupTitle);
+        assert.deepEqual(await page.locator('.fl-fragment-border').first().evaluate(element => ({ stroke: getComputedStyle(element).stroke, width: getComputedStyle(element).strokeWidth })), groupLine);
+        const surface = await page.locator('.fl-canvas').evaluate(element => getComputedStyle(element).backgroundColor);
+        assert.equal(await page.locator('.fl-fragment-heading').first().evaluate(element => getComputedStyle(element).fill), surface, 'the title masks a lifeline with the canvas, without a white button face');
+        const frames = sequence.scene.fragments.filter(frame => frame.si === 0 && frame.depth === 0).sort((a, b) => a.y - b.y);
+        assert.ok(frames.length > 1);
+        for (let index = 1; index < frames.length; index++) assert.ok(frames[index].y > frames[index - 1].y + frames[index - 1].h, 'independent control ranges have breathing room');
+      } finally { await page.close(); }
+    }
+  } finally { await browser.close(); }
 });

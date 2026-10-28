@@ -1,6 +1,6 @@
 // 시퀀스 구획은 메시지 행의 앞뒤에 제목과 경계 여백을 예약한다.
 import { FIGURE_PAD } from '../measure/canvas.js';
-import { STYLE, textBlock } from '../measure/texts.js';
+import { STYLE, lineHeight, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const SPACE = values.spacing;
@@ -41,6 +41,7 @@ export function fragmentRows(controls = []) {
       for (const frame of (after.get(index) ?? []).sort((a, b) => b.depth - a.depth)) {
         y += PAD;
         frame.h = y - frame.y;
+        y += SPACE["4"];
       }
       return y;
     },
@@ -62,8 +63,8 @@ function add(map, index, entry) {
 // basis: estimate
 // 제목 또는 대안 이름 줄: 메모 상자와 같은 글 덩어리(measure/texts.js textBlock)이고, 생명선 위에 얹는 제목 면(plate)이 함께 따라온다. 면은 덩어리보다 가로 왼쪽을 반 여백, 위아래를 반 여백씩 안으로 들인 사각형이다(덩어리 왼쪽 위가 원점).
 function header(text, isTitle = false) {
-  const style = { ...STYLE.meta, face: isTitle ? 'semibold' : STYLE.meta.face };
-  const { w, h, texts } = textBlock(text, { textW: values.spacing.figure.chip["max-width"], pad: PAD, style, role: isTitle ? 'meta fl-fragment-label' : 'meta' });
+  const style = isTitle ? { ...STYLE.group, line: lineHeight(STYLE.group.size, values.leading.normal) } : STYLE.meta;
+  const { w, h, texts } = textBlock(text, { textW: values.spacing.figure.chip["max-width"], pad: PAD, style, role: isTitle ? 'frame' : 'meta' });
   return { text, w, h, texts, plate: { x: PAD / 2, y: PAD / 2, w: w - PAD / 2, h: h - PAD } };
 }
 

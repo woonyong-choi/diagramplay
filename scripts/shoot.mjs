@@ -14,6 +14,7 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(/^https?:/.test(input) ? input : `file://${resolve(input)}`);
+  await page.evaluate(() => document.fonts.ready);
   if (process.argv.includes('--click')) await page.click(option('--click'));
   await page.waitForTimeout(Number(waitArg ?? 800));
   const size = await page.evaluate(({ width, hasWidth }) => {

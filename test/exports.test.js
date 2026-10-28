@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
+import { create as createFont } from 'fontkit';
 import { figureViewBounds } from '../src/html/view-bounds.js';
 import { statusBoxes } from '../src/layout/status.js';
 
@@ -10,6 +11,15 @@ import { statusBoxes } from '../src/layout/status.js';
 import { EXAMPLES, build, descendants, diagramplay, findAll, findOne, parseMarkup, read, reject, textContent, textsOf, toHtml, toSvg } from './support.js';
 
 const MOVE = (mode, speed = 1, time = '10s') => diagramplay(`box a "A"\nbox b "B"\na -> b\nscene "s" mode=${mode} speed=${speed}\n  a -> b "m" time=${time}\n`);
+test('player_embeds_theme_glyphs_even_when_diagram_and_scenes_use_only_latin', async () => {
+  const html = await toHtml(await build(MOVE('static')));
+  const faces = [...html.matchAll(/@font-face\{font-family:FigSans;font-weight:(400|600);src:url\(data:font\/woff2;base64,([^)]*)\)/g)];
+  assert.equal(faces.length, 2);
+  for (const [, weight, data] of faces) {
+    const font = createFont(Buffer.from(data, 'base64'));
+    for (const char of '시스템라이트다크') assert.ok(font.hasGlyphForCodePoint(char.codePointAt(0)), `${weight}: ${char}`);
+  }
+});
 test('embedded bounds include status pills beyond the node corner', async () => {
   const result = await build(diagramplay('box a "A"\nscene "warning" status="a=warn"\n  light a\n'));
   const svg = await toSvg(result);
