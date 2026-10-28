@@ -88,7 +88,7 @@ ${EMBED_SCRIPT}
 ${tokensFor(styles + PLAYER_SCRIPT + frame + THEME_BUTTONS + JSON.stringify(content.data))}${styles}</style>
 </head>
 <body>
-<div class="dp-theme"><div class="theme app-tablist is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div>
+<div class="dp-theme"><div class="theme app-tablist is-subtle is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div>
 ${frame}
 <script>
 ${PLAYER_SCRIPT}

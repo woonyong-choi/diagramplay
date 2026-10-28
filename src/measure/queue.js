@@ -2,7 +2,7 @@
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { INNER_MAX, PAD } from './card.js';
 import { measure, wrap } from './fonts.js';
-import { STYLE, titleTexts } from './texts.js';
+import { STYLE, textAt, titleTexts } from './texts.js';
 
 const SPACE = values.spacing;
 const SIZE = values.spacing.figure;
@@ -18,8 +18,9 @@ export function sizeQueue(node) {
   const labelLines = wrap(node.label, INNER_MAX, STYLE.label);
   const textW = Math.max(...labelLines.map((l) => measure(l, STYLE.label.size, STYLE.label.face)));
   const slots = slotLayout(node.slots);
-  const w = Math.max(SIZE.node['min-width'], textW + PAD.x * 2, slots.w + PAD.x * 2);
-  const h = PAD.y * 2 + labelLines.length * STYLE.label.line + GAP + slots.h;
+  const counterW = measure(`${node.slots} / ${node.slots}`, STYLE.sub.size, STYLE.sub.face);
+  const w = Math.max(SIZE.node['min-width'], textW + PAD.x * 2, counterW + PAD.x * 2, slots.w + PAD.x * 2);
+  const h = PAD.y * 2 + labelLines.length * STYLE.label.line + GAP * 2 + STYLE.sub.line + slots.h;
   return { w, h, marginTop: 0, marginBottom: 0, texts: titleTexts({ labelLines }, { x: w / 2, top: PAD.y }) };
 }
 
@@ -54,4 +55,10 @@ export function queueSlots(it, { maxWidth = INNER_MAX, padY = PAD.y } = {}) {
 /** 값을 찬 칸 수로. 음수는 0칸, 칸 수를 넘으면 가득 찬 칸이다. 값 글자는 시간표가 숫자로 담는다. */
 export function filledSlots(text, slots) {
   return Math.min(slots, Math.max(0, Math.floor(Number(text))));
+}
+
+/** 현재 점유 수와 전체 용량은 슬롯 위의 같은 자리에 놓인다. */
+export function queueCounter(it, text) {
+  const center = it.h - PAD.y - slotLayout(it.slots).h - GAP - STYLE.sub.line / 2;
+  return textAt('sub', `${text} / ${it.slots}`, STYLE.sub, { x: it.w / 2, center, anchor: 'middle' });
 }

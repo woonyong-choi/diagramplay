@@ -11,20 +11,20 @@ const LEADING = values.leading.normal;
 /** 글자 크기에 줄 높이 비율을 곱해 반올림한 줄 높이 */
 export const lineHeight = (size, leading) => Math.round(size * leading);
 
-// 글 위계 셋: 제목(text.small-text 15: 카드 제목은 regular, 그룹 제목은 semibold), 문장과 이름표(detail-size 13), 작은 표시(micro-size 11). CSS(styles/figure.css, status.css)가 같은 토큰으로 같은 크기와 굵기를 그린다. 굵기는 regular와 semibold 둘이다.
+// 글 위계 셋: 제목(text.small-text 15: 카드 제목은 semibold, 그룹 제목은 semibold), 문장과 이름표(detail-size 13), 작은 표시(micro-size 11). CSS(styles/figure.css, status.css)가 같은 토큰으로 같은 크기와 굵기를 그린다. 굵기는 regular와 semibold 둘이다.
 const TITLE = values.text["small-text"];
 const FIELD = values.text["tiny-text"];
 const META = values.text["figure-meta"];
 
 /**
  * 글 모양. 크기, 글꼴, 줄 높이. 역할 하나가 크기 하나를 쓴다.
- * 제목(15): label 카드 제목(regular), group 그룹 제목과 보기 이름(semibold). 문장과 이름표(13): sub 부제, row·mono·cell·item·value 카드 줄, meta 메모와 구획 제목, pill 선 라벨, chip 이동 글, mini 관계 그래프 이름, type 열 형식.
+ * 제목(15): label 카드 제목(semibold), group 그룹 제목과 보기 이름(semibold). 문장과 이름표(13): sub 부제, row·mono·cell·item·value 카드 줄, meta 메모와 구획 제목, pill 선 라벨, chip 이동 글, mini 관계 그래프 이름, type 열 형식.
  * 작은 표시(11): tag, key, mark(번호, 태그, 표식, 열 키). CSS가 같은 역할에 같은 크기와 굵기를 그리므로 여기서 잰 폭이 그린 폭이다. 글자 사이 간격도 CSS와 같게 `tracking.text` 하나만 쓴다(fonts.js measure).
  * value는 사용자 자료라 글자 그대로 읽는 굵은 글꼴이다(format/text.js isLiteralFace). 바뀐 값의 초점이라 굵게 둔다.
  */
 export const STYLE = Object.freeze({
   cell: { size: FIELD, face: 'regular', line: lineHeight(FIELD, LEADING) },
-  label: { size: TITLE, face: 'regular', line: lineHeight(TITLE, LEADING) },
+  label: { size: TITLE, face: 'semibold', line: lineHeight(TITLE, LEADING) },
   sub: { size: FIELD, face: 'regular', line: lineHeight(FIELD, LEADING) },
   row: { size: FIELD, face: 'regular', line: lineHeight(FIELD, LEADING) },
   mono: { size: FIELD, face: 'mono', line: lineHeight(FIELD, LEADING) },
@@ -34,6 +34,7 @@ export const STYLE = Object.freeze({
   mark: { size: META, face: 'semibold' },
   value: { size: FIELD, face: 'semiboldLiteral', line: lineHeight(FIELD, LEADING) },
   pill: { size: FIELD, face: 'regular' },
+  end: { size: FIELD, face: 'semibold', line: lineHeight(FIELD, LEADING) },
   group: { size: TITLE, face: 'semibold' },
   chip: { size: FIELD, face: 'regular', line: lineHeight(FIELD, values.leading.snug) },
   item: { size: FIELD, face: 'regular', line: lineHeight(FIELD, LEADING) },

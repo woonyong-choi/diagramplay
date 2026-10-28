@@ -2,7 +2,7 @@
 // 같은 카드가 여러 보기에 그려지면 도형마다 같은 값 글자를 한 벌씩 그린다(data-v는 같다). 카드에 놓이지 않은 값(`on=` 없음)은 그리지 않는다.
 import { escapeXml, roundCoord as r } from '../format/text.js';
 import { CONTENT, contentBox, rowSpan, valueText } from '../measure/content.js';
-import { filledSlots, queueSlots } from '../measure/queue.js';
+import { filledSlots, queueCounter, queueSlots } from '../measure/queue.js';
 import { indicatorText } from '../source/indicators.js';
 import { drawSlot } from './card.js';
 import { outlineOf } from './shape.js';
@@ -70,7 +70,7 @@ export function drawValues(scene, timeline, { glyphs, windows, isStatic = false 
   const shown = isStatic ? 1 : 0;
   return (timeline.values ?? [])
     .flatMap((row, vi) => instancesOf(scene, row).map(({ item }) => {
-      if (row.slots !== undefined) return drawQueueValue(row, { item, vi, shown }, windows);
+      if (row.slots !== undefined) return drawQueueValue(row, { item, vi, shown, glyphs }, windows);
       const box = contentBox(item);
       const layout = item.content.layouts[row.card];
       const at = layout.rows.findIndex((laid) => laid.row.valueId === row.id);
@@ -128,10 +128,10 @@ function addRowFlashes(flashes, scene, timeline, anim) {
 // vars: c = 값이 바뀌는 횟수, s = 칸 수
 // basis: estimate
 // 큐 값 줄. 값 글자마다 그 찬 칸 수만큼 칸을 얹은 묶음을 하나씩 두고 불투명도로 바꾸며(글자와 같은 data-v, data-t), 바뀔 때는 큐 면(도형과 같은 윤곽)을 잠깐 칠한다.
-function drawQueueValue(row, { item, vi, shown }, windows) {
+function drawQueueValue(row, { item, vi, shown, glyphs }, windows) {
   const texts = [...new Set(row.periods.map(([, , text]) => text))].map((text) => {
     const spans = row.periods.filter(([, , t]) => t === text).map(([start, end]) => [start, end]);
-    return `<g class="queue-fill" opacity="${shown}"${hiddenAttr(shown)} data-v="${vi}" data-t="${escapeXml(text)}">${filledRects(item, filledSlots(text, row.slots))}${windows(spans, { holdEnd: isLastText(row, text) })}</g>`;
+    return `<g class="queue-fill" opacity="${shown}"${hiddenAttr(shown)} data-v="${vi}" data-t="${escapeXml(text)}">${filledRects(item, filledSlots(text, row.slots))}${drawText(queueCounter(item, text), item, glyphs)}${windows(spans, { holdEnd: isLastText(row, text) })}</g>`;
   });
   return `<g class="fl-value">${texts.join('')}</g>`;
 }

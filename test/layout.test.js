@@ -206,14 +206,15 @@ test('buildFigure_narrow_shared_destination_reduces_detours_without_losing_conte
     const result = await buildFigure(SOURCE, { layoutWidth, strict: layoutWidth >= wide.scene.width });
     assert.ok(result.warnings.every(warning => warning.code === 'layout-width'));
     assert.equal(result.scene.width, wide.scene.width);
-    assert.equal(result.scene.height, 361);
-    assert.ok(Math.abs(Math.max(...result.scene.edges.map(routeLength)) - 196.43515625) < 0.01);
+    assert.equal(result.scene.height, wide.scene.height);
+    assert.equal(Math.max(...result.scene.edges.map(routeLength)), Math.max(...wide.scene.edges.map(routeLength)));
   }
 });
 
 // #390: 선택적 후보의 기하 해석 실패가 기존 유효 모바일 후보까지 버리는지 격리된 실제 배치 진입점으로 확인한다.
 test('layoutOrFail_optional_candidate_failure_preserves_the_fitting_original', async () => {
   const wide = await buildFigure(SOURCE, { layoutWidth: 1000, strict: true });
+  const fitting = await reflowFigure(wide, { layoutWidth: 390, strict: true });
   const figure = viewFigure(wide.figure, wide.figure.views[0]);
   const sizes = new Map(wide.scene.items.map(item => [item.id, item.size]));
   const elkUrl = import.meta.resolve('elkjs/lib/elk.bundled.js');
@@ -245,8 +246,8 @@ test('layoutOrFail_optional_candidate_failure_preserves_the_fitting_original', a
     const { layoutOrFail } = await import(`data:text/javascript,${encodeURIComponent(code)}`);
     const scene = await layoutOrFail(figure, sizes, { width: 390, isSound: isSoundGraph });
 
-    assert.equal(scene.width, 305.959375, `${failure}: keep the original fitting candidate`);
-    assert.equal(scene.height, 977, failure);
+    assert.equal(scene.width, fitting.scene.width, `${failure}: keep the original fitting candidate`);
+    assert.equal(scene.height, 977, `${failure}: retain the original candidate before optional compaction`);
     assert.equal(scene.items.length, 7);
     assert.equal(scene.edges.length, 6);
     assert.ok(calls.length <= 12, `${failure}: no more than four extra ELK calls`);

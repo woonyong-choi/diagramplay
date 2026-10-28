@@ -30,14 +30,15 @@ export function sizeClassifier(node) {
   const header = headerOf(node, { room: Math.max(body, INNER_MAX) });
   const w = Math.max(values.spacing.figure.node["min-width"], Math.max(header.w, body) + PAD.x * 2);
   const { decor, texts } = placeHeader(header, w);
-  const dividers = [header.h];
+  const populated = sections.filter(lines => lines.length);
+  const dividers = populated.length ? [header.h] : [];
   let y = header.h;
-  for (const [index, lines] of sections.entries()) {
+  for (const [index, lines] of populated.entries()) {
     y += PAD.y;
     texts.push(...stackTexts(lines, { x: PAD.x, top: y, anchor: 'start' }));
-    y += lines.length ? lines.reduce((sum, line) => sum + line.style.line, 0) : STYLE.mono.line;
+    y += lines.reduce((sum, line) => sum + line.style.line, 0);
     y += PAD.y;
-    if (index < sections.length - 1) dividers.push(y);
+    if (index < populated.length - 1) dividers.push(y);
   }
   const description = [plainText(node.label), header.above, header.below, ...groups.flat().map((member) => member.text)].filter(Boolean).join('; ');
   return { w, h: y, marginTop: 0, marginBottom: 0, decor, texts, dividers, description };

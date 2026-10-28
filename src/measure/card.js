@@ -18,7 +18,7 @@ export const INNER_MAX = SIZE.node['max-width'] - PAD.x * 2;
  * 머리의 공통 치수. 머리는 아이콘 틀(24 격자 한 칸)과 제목이 한 줄로 나란하다. iconGap은 아이콘과 제목 사이,
  * rowH는 구획으로 나뉜 카드(표, API, 클래스, 순서 보기 참여자)의 머리 띠 한 줄 높이다. 제목이 여러 줄이면 줄 높이만큼 늘어난다.
  */
-const HEADER = Object.freeze({ iconGap: SPACE["2"], rowH: Math.max(SIZE.node['table-row'], SIZE.icon.node + SPACE["2"]) });
+const HEADER = Object.freeze({ iconGap: SPACE["2"], rowH: Math.max(SIZE.node['header-height'], STYLE.label.line) });
 
 /** 머리 한 줄의 장식: 아이콘, 제목(너비 titleW, 높이 titleH), 배지, 개수가 한 줄로 나란하다. 아이콘은 제목 첫 줄과 가운데가 같다. 장식이 없으면 undefined. */
 export const headerDecor = (node, { titleW, titleH }) => layoutDecor(node, { iconSize: SIZE.icon.node, titleW, titleH, iconGap: HEADER.iconGap });

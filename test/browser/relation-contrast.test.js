@@ -98,7 +98,7 @@ scene "loop" mode=loop
   }
 });
 
-test('numbered_and_plain_pills_share_filled_contrast_in_both_players_and_themes', async () => {
+test('numbered_and_plain_pills_keep_filled_contrast_with_distinct_rest_emphasis', async () => {
   const result = await buildFigure(`diagramplay
 box a "A"
 box b "B"
@@ -150,7 +150,7 @@ scene "run" mode=loop
               assert.equal(pill.alpha, 255, `${kind}/${colorScheme}/${state}: filled background`);
               assert.ok(pill.ratio >= 4.5, `${kind}/${colorScheme}/${state}: ${JSON.stringify(pill)}`);
             }
-            if (state === 'rest') assert.equal(pills[0].fill, pills[1].fill, 'numbering does not change the label palette');
+            if (state === 'rest') assert.notEqual(pills[0].fill, pills[1].fill, 'numbered steps have stronger rest emphasis than ordinary descriptions');
           }
         } finally {
           await page.close();

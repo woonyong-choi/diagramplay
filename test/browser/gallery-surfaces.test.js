@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 import { chromium } from 'playwright-core';
@@ -45,6 +46,8 @@ test('comparison_gallery_and_diagram_surfaces_keep_white_content_cards_distinct'
           assert.equal(surfaces.cards.length, 5);
           assert.equal(surfaces.details.length, 5);
           assert.equal(surfaces.overflow, false, `${width}/${mode}: no page overflow`);
+          await page.locator('.comparison-detail img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
+          for (const size of await page.locator('.comparison-detail img').evaluateAll(images => images.map(image => ({ shown: image.getBoundingClientRect().width, natural: image.naturalWidth })))) assert.ok(size.shown <= size.natural + 1, 'detail never magnifies a small diagram');
           for (const face of [...surfaces.cards, ...surfaces.details]) {
             assert.notEqual(face, 'rgba(0, 0, 0, 0)');
             assert.notEqual(face, surfaces.page, `${width}/${mode}: the gallery card remains distinct from the page`);
@@ -60,6 +63,32 @@ test('comparison_gallery_and_diagram_surfaces_keep_white_content_cards_distinct'
               const card = await player.locator('.fl-node > .fl-stroke').first().evaluate(element => getComputedStyle(element).fill);
               assert.equal(paper, surfaces.cards[0], `${example.id}: diagram and gallery backgrounds share the neutral surface`);
               assert.notEqual(paper, card, `${example.id}: content cards stay distinct from the diagram background`);
+              const roles = await player.evaluate(() => {
+                const style = selector => getComputedStyle(document.querySelector(selector));
+                const paths = [...document.querySelectorAll('.fl-path')].map(path => getComputedStyle(path).fill);
+                const foot = document.querySelector('.fl-foot').getBoundingClientRect();
+                const surface = document.querySelector('.fl-surface').getBoundingClientRect();
+                return { paths, before: foot.bottom <= surface.top + 1, toolbar: style('.app-toolbar').opacity, title: style('.fl-node .label').fontWeight, border: style('.fl-node > .fl-stroke').stroke, edge: style('.fl-path').stroke, group: document.querySelector('.frame-box') ? style('.frame-box').stroke : undefined };
+              });
+              assert.ok(roles.paths.every(fill => fill === 'none'), 'relationship paths never gain a closed fill');
+              assert.equal(roles.before, true, 'scene selection precedes the drawing');
+              assert.equal(roles.toolbar, '1', 'zoom entry remains discoverable without hover');
+              assert.equal(roles.title, '600');
+              if (roles.group) assert.notEqual(roles.group, roles.border, 'large boundaries recede behind cards');
+              if (mode === 'light') assert.notEqual(roles.border, roles.edge, 'card and relationship have separate roles');
+              if (width === 1280 && example.id === 'architecture') {
+                const [download] = await Promise.all([player.waitForEvent('download'), player.getByRole('button', { name: 'HTML 다운로드', exact: true }).click()]);
+                const saved = await readFile(await download.path(), 'utf8');
+                assert.ok(saved.includes('fl-source') && saved.toLowerCase().includes('<!doctype html>'), 'download preserves the working source document');
+                await player.getByRole('button', { name: '전체화면', exact: true }).click();
+                await player.waitForFunction(() => document.querySelector('.fl-figure.full'));
+                const scale = await player.locator('svg.fl').first().evaluate(svg => svg.getScreenCTM().a);
+                assert.ok(scale >= 0.99, 'reading opens at the natural text size without repeated zoom clicks');
+                await player.getByRole('button', { name: '전체 보기', exact: true }).click();
+                const fitted = await player.locator('svg.fl').first().evaluate(svg => svg.getScreenCTM().a);
+                assert.ok(fitted < scale, 'the existing fit action still shows the whole structure');
+                await player.getByRole('button', { name: '전체화면 종료', exact: true }).click();
+              }
             } finally { await player.close(); }
           }
         }

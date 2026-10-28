@@ -4,7 +4,7 @@ import { STYLE, lineHeight, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const SPACE = values.spacing;
-const PAD = SPACE["3"];
+const PAD = values.spacing.figure.sequence["heading-pad"];
 const INDENT = SPACE["2"];
 
 // cost: time O(f·n²), heap O(f·n), stack O(1)

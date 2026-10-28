@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import postcss from 'postcss';
 import { paintCss } from '../src/draw/paint.js';
-import { figureRoles, STYLES } from '../src/draw/styles.js';
+import { STYLES } from '../src/draw/styles.js';
 import { build, diagramplay, toHtml, toSvg } from './support.js';
 
 const GRAPH = diagramplay(`
@@ -38,33 +38,13 @@ const SCATTER = `chart p "점" scatter {
 
 const KEYFRAMES = /@keyframes[^{]*\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g;
 
-// #388: 관계선은 의미 그래픽 역할을 고르되 공통 상태·cascade를 복제하거나 덮어쓰지 않는다.
-test('relation_defaults_use_outline_without_changing_shared_state_or_cascade', async () => {
+test('outputs_use_shared_relation_roles_without_consumer_css_rewriting', async () => {
   const require = createRequire(import.meta.url);
-  const shared = postcss.parse(readFileSync(require.resolve('@woonyong-choi/design-tokens/styles/diagram/figure.css'), 'utf8'));
-  let defaults = 0;
-  shared.walkRules('.fl', rule => rule.walkDecls('--fx-line-rest', declaration => {
-    assert.equal(declaration.value, 'var(--color-line)');
-    assert.ok(!declaration.important);
-    declaration.value = 'var(--color-outline)';
-    defaults++;
-  }));
-  assert.equal(defaults, 1, 'shared default must be reviewed when its contract changes');
-  assert.equal(STYLES.figure, shared.toString(), 'only the default role changes; order, selectors and priority stay intact');
+  const shared = readFileSync(require.resolve('@woonyong-choi/design-tokens/styles/diagram/figure.css'), 'utf8');
+  assert.equal(STYLES.figure, shared);
+  assert.match(shared, /--fx-line-rest: var\(--color-figure-relation\)/);
   const result = await build(GRAPH);
-  for (const output of [await toSvg(result), await toSvg(result, { isStatic: true }), await toHtml(result)]) {
-    assert.ok(output.includes(STYLES.figure));
-    assert.match(output, /\.fl \.fl-edge\.mark\s*\{[^}]*--fx-line-rest: var\(--color-ink\)/);
-    assert.match(output, /color: var\(--fx-line-rest\)/);
-  }
-  assert.match(await toSvg(result), /color: var\(--fx-edge\)/, 'active keyframes still use the shared active role');
-});
-
-test('figureRoles_changed_shared_default_fails_explicitly', () => {
-  const declaration = '.fl { --fx-line-rest: var(--color-line); }';
-  for (const css of ['', declaration + declaration, declaration.replace('--color-line', '--color-ink'), declaration.replace(';', ' !important;'), `@media print { ${declaration} }`, declaration.replace('.fl', '.fl.other')]) {
-    assert.throws(() => figureRoles(css), /shared figure CSS must define one unqualified/);
-  }
+  for (const output of [await toSvg(result), await toSvg(result, { isStatic: true }), await toHtml(result)]) assert.ok(output.includes(shared));
 });
 
 test('paintCss supplies only used tone variables; the shared stylesheet owns appearance', () => {
@@ -128,12 +108,12 @@ test('S4 움직이는 SVG의 선은 점이 떠나면 평소로 돌아오고, 알
   const [pillClass] = /class="pill (a\d+)"/.exec(svg).slice(1);
   const pillStops = framesOf(svg, pillClass);
   const [hold, settled] = pillStops.slice(-2);
-  assert.equal(settled.value, 'fill: var(--color-figure-label-fill)');
+  assert.equal(settled.value, 'fill: var(--fx-pill-rest)');
   assert.equal(hold.value, 'fill: var(--color-figure-label-active-fill)');
   assert.ok(Math.abs(ms(hold.at[0]) - 500) < 1, `the pill stays active until the dot leaves (${ms(hold.at[0])}ms)`);
   assert.ok(Math.abs(ms(settled.at[0]) - ms(hold.at[0]) - 400) < 1, `the pill fades for 400 display ms at speed 4 (${ms(settled.at[0]) - ms(hold.at[0])}ms)`);
   const on = pillStops.findIndex((stop) => stop.value === 'fill: var(--color-figure-label-active-fill)');
-  assert.ok(on > 0 && pillStops[on - 1].value === 'fill: var(--color-figure-label-fill)' && pillStops[on].at[0] - pillStops[on - 1].at.at(-1) < 0.01, 'the pill turns active at once, with no rise');
+  assert.ok(on > 0 && pillStops[on - 1].value === 'fill: var(--fx-pill-rest)' && pillStops[on].at[0] - pillStops[on - 1].at.at(-1) < 0.01, 'the pill turns active at once, with no rise');
   const [quietClass] = /class="fl-edge quiet (a\d+) a\d+"/.exec(svg).slice(1);
   const quietStops = framesOf(svg, quietClass);
   assert.deepEqual([quietStops.at(-1).at.at(-1), quietStops.at(-1).value], [100, 'opacity: 1'], '조용한 선은 100%에서도 보인다');
@@ -189,7 +169,7 @@ test('S5 light가 켠 그룹은 경계 색만 강조 색이 되고 굵기와 면
   assert.ok(frames.includes('stroke: var(--fx-edge)') && frames.includes('stroke: var(--fx-edge-rest)'), 'the border goes from its rest colour to the lit colour');
   assert.doesNotMatch(frames, /stroke-width|fill/, 'only the border colour changes');
   assert.match(await toHtml(result, 'group'), /\.fl \.fl-group\.on > \.frame-box \{\s*stroke: var\(--fx-edge\);\s*\}/, 'the HTML player lights the same border');
-  assert.match(svg, /\.fl \.frame-box \{\s*--fx-edge-rest: var\(--color-figure-outline\);\s*fill: none;\s*stroke: var\(--fx-edge-rest\);/, 'a group reads its rest border through the variable, set on the rect itself so a badge inside the group does not inherit it');
+  assert.match(svg, /\.fl \.frame-box \{\s*--fx-edge-rest: var\(--color-figure-boundary\);\s*--fx-edge: var\(--color-figure-boundary-active\);\s*fill: none;\s*stroke: var\(--fx-edge-rest\);/, 'a group reads its rest border through the variable, set on the rect itself so a badge inside the group does not inherit it');
 });
 
 test('surface_paint_and_relation_dashes_are_owned_by_shared_css', async () => {

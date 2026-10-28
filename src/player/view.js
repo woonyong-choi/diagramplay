@@ -87,7 +87,7 @@ function showFull(viewer, isFull) {
   fullButton.setAttribute('aria-label', label);
   fullButton.title = label;
   viewer.zoom = 1;
-  if (isFull) layoutFull(viewer);
+  if (isFull) layoutFull(viewer, true);
   else {
     clearFull(viewer);
     viewer.fit?.();
@@ -108,14 +108,15 @@ function bundleBox(panels) {
 
 // 전체 화면에서 판 묶음의 폭. 그림 전체가 그림 영역에 들어가는 폭(맞춤)에 확대 배수를 곱한다. 그림이 영역보다 넓어지면 영역이 스크롤된다.
 // 맞춤은 문서 안의 보기 폭(--view-w, 가장 넓은 판의 폭)과 같은 값이며 판 묶음의 실제 좌표 크기로 잰다. 같은 폭을 판 비율의 분모(--bundle-w)로 써서 판의 상대 크기는 문서 안과 같고 줄어드는 비율은 한 번뿐이다.
-function layoutFull(viewer) {
-  const { canvas, panels, zoom } = viewer;
+function layoutFull(viewer, isReading = false) {
+  const { canvas, panels } = viewer;
   const bundle = bundleBox(panels);
-  const fit = Math.min(canvas.clientWidth, (canvas.clientHeight * bundle.w) / bundle.h);
+  const fit = Math.min(bundle.w, canvas.clientWidth, (canvas.clientHeight * bundle.w) / bundle.h);
+  if (isReading) viewer.zoom = Math.min(viewer.metrics.zoomMax, Math.max(1, bundle.w / fit));
   panels.style.setProperty('--bundle-w', bundle.w);
   panels.style.setProperty('--fit-w', `${fit}px`);
-  panels.style.setProperty('--zoom', zoom);
-  viewer.root.classList.toggle('zoomed', zoom > 1);
+  panels.style.setProperty('--zoom', viewer.zoom);
+  viewer.root.classList.toggle('zoomed', viewer.zoom > 1);
 }
 
 function clearFull(viewer) {

@@ -49,7 +49,7 @@ export function drawScene(scene, decorate, glyphs) {
 // 그리는 데 함께 쓰는 것: toneOf(카드 태그 색), decorate(움직이는 SVG의 class), glyphs(쓴 글자 모음), scene(후광이 바깥 바탕을 찾는 데 쓴다)
 function drawGroup(g, j, { decorate, glyphs }) {
   const head = placeGroupHead(g);
-  const corner = CORNER.outer;
+  const corner = values.radius["group-radius"];
   const decor = head.decor ? drawDecor(head.decor, { x: g.x + head.decor.x, y: g.y + head.decor.y, iconData: g.iconData, prefix: `icon-g-${j}` }, glyphs) : '';
   const clipId = `group-icon-${j}`;
   const clippedDecor = g.iconData?.library === 'nhn-cloud'

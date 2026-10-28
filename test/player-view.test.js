@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
+import { PLAYER_METRICS } from '../src/html/metrics.js';
 
 const script = readFileSync(new URL('../src/player/view.js', import.meta.url), 'utf8');
 function harness({ native = false } = {}) {
@@ -18,7 +19,7 @@ function harness({ native = false } = {}) {
   const window = {}; window.self = window.top = window;
   const context = { document, window, ToolIcon: () => '' };
   runInNewContext(script, context);
-  const viewer = { root, fullButton, canvas, panels, zoom: 1 };
+  const viewer = { root, fullButton, canvas, panels, zoom: 1, metrics: PLAYER_METRICS };
   return { ...context, viewer, calls, focusable };
 }
 

@@ -28,15 +28,15 @@ export function drawEdge(e, j, { decorate, glyphs, scene, cuts }) {
   const relation = e.relation ?? (e.isForeignKey ? 'references' : e.fromMultiplicity !== undefined || e.toMultiplicity !== undefined ? 'connects to' : undefined);
   const description = relation ? ` role="img" aria-label="${escapeXml(`${from} ${relation} ${to}${e.label ? `: ${e.label}` : ''}`)}"` : '';
   const ends = (e.endpointLabels ?? []).filter((label) => !label.isPill).map((label) => {
-    glyphs.add(label.text, STYLE.pill.face);
-    return `<text class="edgelabel fl-end-label ${decorate('pilltext', j)}" data-end="${label.end}" x="${r(label.x)}" y="${r(centerBaseline(label.y, STYLE.pill.size))}">${escapeXml(label.text)}</text>`;
+    glyphs.add(label.text, STYLE.end.face);
+    return `<text class="edgelabel fl-end-label ${decorate('pilltext', j)}" data-end="${label.end}" x="${r(label.x)}" y="${r(centerBaseline(label.y, STYLE.end.size))}">${escapeXml(label.text)}</text>`;
   });
   return `<g id="e-${j}" class="${edgeClass(e, j, decorate)} ${decorate('edge', j)}${tag.off}"${tag.attr}${description}>${marker.defs}${clip.defs ? `<defs>${clip.defs}</defs>` : ''}${path}${ends.join('')}</g>`;
 }
 
 // 선과 라벨 묶음이 함께 쓰는 class. 라벨 묶음도 선과 같이 켜지고 조용해진다.
 function edgeClass(e, j, decorate) {
-  return `fl-edge${e.isMark ? ' mark' : ''}${e.quiet ? ` quiet ${decorate('quiet', j)}` : ''}`;
+  return `fl-edge${e.no !== undefined ? ' is-ordered' : ''}${e.dashed && !e.relation && !e.isForeignKey ? ' is-auxiliary' : ''}${e.isMark ? ' mark' : ''}${e.quiet ? ` quiet ${decorate('quiet', j)}` : ''}`;
 }
 
 // cost: time O(n), heap O(out), stack O(1)

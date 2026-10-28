@@ -62,7 +62,7 @@ export function toDocument(figures, heading) {
 <body>
 <div class="bar">
 <a href="index.html">목록으로</a>
-<div class="theme app-tablist is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div>
+<div class="theme app-tablist is-subtle is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div>
 </div>
 <article>
 <h1>${escapeXml(heading)}</h1>
@@ -125,5 +125,5 @@ function galleryDocument(heading, content, { count, comparison = false } = {}) {
   const top = comparison ? `<div><h1>${escapeXml(heading)}</h1><p>복잡한 설명용 모형 · 전체 구조 미리보기 · 세부 내용은 재생·확대 · <a href="../examples/index.html">전체 예제</a> · <a href="../authentication/commerce-nhn.html">복잡한 아키텍처</a></p></div>` : examples
     ? `<a href="index.html">DiagramPlay · 예제 갤러리</a>`
     : `<h1>${escapeXml(heading)}</h1><p>그림 ${count}개 · <a href="document.html">문서 안 모습 보기</a></p>`;
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeXml(heading)}</title><style>${STYLES.tokens}${STYLES.control}${STYLES.gallery}</style><script>${THEME_SCRIPT}</script></head><body${examples ? ` class="is-examples${comparison ? ' is-comparison' : ''}"` : ''}><div id="top" class="top${examples ? ' catalog-header' : ''}">${top}<div class="theme app-tablist is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div><main${examples ? ' class="catalog-main"' : ''}>${content}</main>${GALLERY_SCRIPT}</body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeXml(heading)}</title><style>${STYLES.tokens}${STYLES.control}${STYLES.gallery}</style><script>${THEME_SCRIPT}</script></head><body${examples ? ` class="is-examples${comparison ? ' is-comparison' : ''}"` : ''}><div id="top" class="top${examples ? ' catalog-header' : ''}">${top}<div class="theme app-tablist is-subtle is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div><main${examples ? ' class="catalog-main"' : ''}>${content}</main>${GALLERY_SCRIPT}</body></html>`;
 }

@@ -82,7 +82,7 @@ function decorateElement(kind, { id, i, extra, scene }, { segs, toggle, quiet, m
       return stack([scene.edges[i]?.quiet ? quiet(i, { on: 'opacity: 1', off: 'opacity: 0' }) : undefined, moving(i, { on: 'color: var(--fx-edge)', off: 'color: var(--fx-line-rest)' })]);
     // 고정 라벨 알약은 늘 보인다. 점이 선 위에 있는 동안 테두리와 글자만 활성 색이고(알약과 글 전체의 불투명도는 그대로), 점이 떠나면 중립 색으로 PILL_FADE 동안 돌아온다.
     case 'pill':
-      return moving(i, { on: 'fill: var(--color-figure-label-active-fill)', off: 'fill: var(--color-figure-label-fill)', fade: PILL_FADE }) ?? '';
+      return moving(i, { on: 'fill: var(--color-figure-label-active-fill)', off: 'fill: var(--fx-pill-rest)', fade: PILL_FADE }) ?? '';
     case 'pilltext':
       return moving(i, { on: 'fill: var(--fx-ink)', off: 'fill: var(--fx-ink-rest)', fade: PILL_FADE }) ?? '';
     // 조용한 선의 라벨 알약 묶음(l-번호)은 선 요소(e-번호)와 다른 요소라 같은 보임 구간을 따로 건다. 알약과 글자의 활성 색은 안쪽 요소의 'pill', 'pilltext'가 맡아 이 묶음의 `animation`과 겹치지 않는다.

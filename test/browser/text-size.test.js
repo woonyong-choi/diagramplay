@@ -77,7 +77,7 @@ test('every example scales text uniformly within the natural figure and fits nar
   }
 });
 
-test('sequence_ranges_share_group_typography_and_boundaries_without_button_surfaces', async () => {
+test('sequence_ranges_share_group_typography_with_distinct_control_boundaries_without_button_surfaces', async () => {
   const graph = await buildFigure('diagramplay\ngroup domain "주문 도메인" {\n box a "A"\n box b "B"\n}\na -> b\nscene "구조"\n', { strict: true });
   const sequence = await buildFigure(await readFile(new URL('sequence.diagramplay', EXAMPLES), 'utf8'), { strict: true });
   const browser = await launchBrowser();
@@ -101,7 +101,9 @@ test('sequence_ranges_share_group_typography_and_boundaries_without_button_surfa
           assert.equal(await page.locator(selector).first().evaluate(element => getComputedStyle(element).fontFamily), groupTitle.family, 'controls and diagram prose use the same embedded family');
         }
         assert.deepEqual(await page.locator('.fl-fragment-title .frame').first().evaluate(titleStyle), groupTitle);
-        assert.deepEqual(await page.locator('.fl-fragment-border').first().evaluate(element => ({ stroke: getComputedStyle(element).stroke, width: getComputedStyle(element).strokeWidth })), groupLine);
+        const controlLine = await page.locator('.fl-fragment-border').first().evaluate(element => ({ stroke: getComputedStyle(element).stroke, width: getComputedStyle(element).strokeWidth }));
+        assert.equal(controlLine.width, groupLine.width);
+        assert.notEqual(controlLine.stroke, groupLine.stroke, 'semantic control boundaries remain clearer than containing regions');
         const surface = await page.locator('.fl-canvas').evaluate(element => getComputedStyle(element).backgroundColor);
         assert.equal(await page.locator('.fl-fragment-heading').first().evaluate(element => getComputedStyle(element).fill), surface, 'the title masks a lifeline with the canvas, without a white button face');
         const frames = sequence.scene.fragments.filter(frame => frame.si === 0 && frame.depth === 0).sort((a, b) => a.y - b.y);

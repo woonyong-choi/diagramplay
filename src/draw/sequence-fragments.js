@@ -1,4 +1,5 @@
 // 시퀀스 구획은 공통 중립 경계와 제목 면을 쓴다. 메시지의 실제 재생 강조와 구획의 구조 표시는 분리한다.
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { escapeXml, roundCoord as r } from '../format/text.js';
 import { sceneTag } from './scene-tag.js';
 import { CORNER, rectOpen } from './surface.js';
@@ -10,7 +11,7 @@ import { drawTexts } from './texts.js';
 /** 생명선 위에 제목 면을 얹어 글자를 가로지르지 않게 한다. */
 export function drawSequenceFragments(scene, glyphs) {
   return (scene.fragments ?? []).map((frame) => {
-    const box = `<rect x="${r(frame.x)}" y="${r(frame.y)}" width="${r(frame.w)}" height="${r(frame.h)}" rx="${CORNER.outer}" class="fl-fragment-border"/>`;
+    const box = `<rect x="${r(frame.x)}" y="${r(frame.y)}" width="${r(frame.w)}" height="${r(frame.h)}" rx="${values.radius["group-radius"]}" class="fl-fragment-border"/>`;
     const title = drawHeading(frame.header, frame, glyphs);
     const branches = frame.branches.map((branch, i) => `${i ? `<path d="M${r(frame.x)} ${r(branch.y)} h${r(frame.w)}" class="fl-fragment-divider"/>` : ''}${drawHeading(branch, frame, glyphs)}`).join('');
     const tag = sceneTag(frame, scene.shownSi);

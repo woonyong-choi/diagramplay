@@ -168,10 +168,10 @@ function containerOptions(c, ctx) {
     // 순환이 없는 그룹은 MODEL_ORDER로 바꾸면 선 높이가 달라지는 그림이 있어(memory 예제) 처음 설정을 지킨다.
     // 안전 배치(처음 배치가 실패한 뒤의 두 번째 시도)는 모델 순서를 쓰지 않는 기본 순환 처리로 한다.
     'elk.layered.cycleBreaking.strategy': cycleStrategy(c, ctx),
-    'elk.spacing.nodeNode': String(SPACE["8"]),
-    'elk.layered.spacing.nodeNodeBetweenLayers': String(LAYER_GAP),
-    'elk.spacing.edgeEdge': String(SPACE["2-5"]),
-    'elk.spacing.edgeNode': String(SPACE["4"]),
+    'elk.spacing.nodeNode': String(ctx.figure.compactRelations ? SPACE["6"] : SPACE["8"]),
+    'elk.layered.spacing.nodeNodeBetweenLayers': String(ctx.figure.compactRelations ? SPACE["8"] : LAYER_GAP),
+    'elk.spacing.edgeEdge': String(ctx.figure.compactRelations ? SPACE["2"] : SPACE["2-5"]),
+    'elk.spacing.edgeNode': String(ctx.figure.compactRelations ? SPACE["3"] : SPACE["4"]),
     'elk.spacing.edgeLabel': String(EDGE_LABEL_GAP),
     'elk.layered.spacing.edgeNodeBetweenLayers': String(SPACE["4"]),
     'elk.edgeLabels.placement': 'CENTER',

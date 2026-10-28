@@ -42,8 +42,8 @@ test('S4 table relations and foreign keys share endpoint labels (multiplicity, d
     const result = await build(source);
     const dom = parseMarkup(await toSvg(result, { isStatic: true }));
     for (const edge of result.scene.edges) for (const label of edge.endpointLabels ?? []) {
-      assert.equal(label.w, measure(label.text, STYLE.pill.size, STYLE.pill.face), 'multiplicity reserves only its rendered text width');
-      assert.equal(label.h, STYLE.meta.line);
+      assert.equal(label.w, measure(label.text, STYLE.end.size, STYLE.end.face), 'multiplicity reserves only its rendered text width');
+      assert.equal(label.h, STYLE.end.line);
     }
     const labels = findAll(dom, (node) => node.tag === 'text' && node.attrs.class?.includes('fl-end-label'));
     assert.deepEqual(labels.map((node) => [node.attrs['data-end'], textContent(node)]), [['from', '0..*'], ['to', '1']]);

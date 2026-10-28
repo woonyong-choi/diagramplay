@@ -11,7 +11,7 @@ export function endMarks(edge, end) {
   const marks = [];
   const multiplicity = edge[`${end}Multiplicity`];
   if (multiplicity !== undefined) {
-    const { w, h } = textBlock(multiplicity, { textW: Infinity, pad: 0, style: STYLE.meta });
+    const { w, h } = textBlock(multiplicity, { textW: Infinity, pad: 0, style: STYLE.end });
     marks.push({ id: `end::${edge.index}::${end}`, end, text: multiplicity, isPill: false, w, h });
   }
   return marks;

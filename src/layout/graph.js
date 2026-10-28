@@ -86,7 +86,7 @@ async function place(figure, sizes, layoutWidth) {
   return blocked.length && !figure.wideGroups ? place({ ...figure, wideGroups: new Set(blocked) }, sizes, layoutWidth) : scene;
 }
 
-// cost: time O(6·(elk + check + p²)), heap O(s + p), stack O(d)
+// cost: time O(9·(elk + check + p²)), heap O(s + p), stack O(d)
 // vars: elk = 배치 시간, check = 기하 검사 시간, s = 도형 수, p = 전체 경로 점 수, d = 그룹 깊이
 // basis: estimate
 // 자연 배치는 같은 방향·도형을 유지하고 경로·꺾임·교차·빈 면적으로 비교한다. 관계형은 그룹 수와 무관하게 참조 루트를 앞에 놓는 후보와 최장선도 비교한다.
@@ -99,6 +99,8 @@ async function compactNatural(figure, sizes, original) {
   const choices = [
     ...['NETWORK_SIMPLEX', 'SIMPLE'].map(naturalPlacement => ({ naturalPlacement })),
     ...(relational ? [undefined, 'NETWORK_SIMPLEX', 'SIMPLE'].map(naturalPlacement => ({ naturalPlacement, referenceFirst: true })) : []),
+    ...(relational ? [{ compactRelations: true, referenceFirst: true }, { compactRelations: true, naturalPlacement: 'NETWORK_SIMPLEX' }] : []),
+    ...(relational && hasColumnEdges(figure) ? [{ isBracket: true, naturalPlacement: 'NETWORK_SIMPLEX' }] : []),
   ];
   for (const choice of choices) {
     try {
@@ -137,7 +139,7 @@ function naturalMetrics(scene, relational = false) {
     if (v.edge !== h.edge && v.a.x > Math.min(h.a.x, h.b.x) && v.a.x < Math.max(h.a.x, h.b.x) && h.a.y > Math.min(v.a.y, v.b.y) && h.a.y < Math.max(v.a.y, v.b.y)) crossings++;
   }
   const empty = Math.max(0, scene.width * scene.height - scene.items.reduce((sum, it) => sum + it.w * it.h, 0));
-  return { length, bends, crossings, empty, ...(relational ? { longest } : {}) };
+  return { length, bends, crossings, empty, ...(relational ? { longest, breadth: scene.width, extent: Math.max(scene.width, scene.height) } : {}) };
 }
 
 // cost: time O(elk(s + e) + e·d), heap O(s + e·d), stack O(d)

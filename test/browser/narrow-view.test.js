@@ -170,7 +170,10 @@ async function checkFullscreen(frame) {
   const trigger = frame.getByRole('button', { name: '전체화면', exact: true });
   await trigger.click();
   await frame.waitForFunction(() => document.querySelector('.fl-figure.full'));
+  const reading = await frame.evaluate(measure);
+  await frame.getByRole('button', { name: '전체 보기', exact: true }).click();
   const fit = await frame.evaluate(measure);
+  assert(reading.panelWidth >= fit.panelWidth, 'fullscreen opens at a readable scale before the explicit whole-structure fit');
   for (let index = 0; index < 16; index++) await frame.getByRole('button', { name: '확대', exact: true }).click();
   const zoomed = await frame.evaluate(measure);
   assert(zoomed.panelWidth > fit.panelWidth, 'fullscreen zoom changes the rendered width');

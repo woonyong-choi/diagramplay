@@ -232,7 +232,7 @@ test('U8 NHN group and resource glyphs use their measured roles and explicit bou
   assert.equal(measured[0].w, values.spacing.figure.group.title, 'the box-type icon occupies the group title height');
   assert.equal(result.scene.groups[0].titleDx, 0, 'the group icon starts at its boundary');
   const frame = findOne(dom, node => hasClass(node, 'frame-box'));
-  assert.equal(Number(frame.attrs.rx), values.radius.lg);
+  assert.equal(Number(frame.attrs.rx), values.radius["group-radius"]);
   const clip = findOne(dom, node => node.tag === 'clipPath' && node.attrs.id?.includes('group-icon-'));
   const clipRect = findOne(clip, node => node.tag === 'rect');
   for (const attr of ['x', 'y', 'width', 'height', 'rx']) assert.equal(clipRect.attrs[attr], frame.attrs[attr], `icon clip shares the group ${attr}`);
@@ -463,10 +463,10 @@ test('U4 one text component writes every card text: XML characters are escaped, 
   assert.ok(glyphs.used.get('regular').includes('<') && glyphs.used.get('semibold').includes('P') && glyphs.used.get('mono').includes('n'));
 });
 
-test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits in the drawing, the tab row below it, and neither depends on the figure', async () => {
+test('U9 every page has one frame, one toolbar and one tab row: the visible toolbar precedes the drawing and the scene row precedes the surface', async () => {
   const frame = parseMarkup(figureFrame({ canvas: '<p>x</p>', source: 'diagramplay\n' }), { html: true });
   const figure = findOne(frame, (n) => n.tag === 'figure' && hasClass(n, 'fl-figure'), 'figure');
-  const [surface, foot] = figure.children.filter((n) => n.tag === 'div');
+  const [foot, surface] = figure.children.filter((n) => n.tag === 'div');
   assert.ok(hasClass(surface, 'fl-surface') && hasClass(foot, 'fl-foot'));
   const tools = findOne(surface, (n) => hasClass(n, 'app-toolbar'), 'toolbar');
   assert.equal(tools.attrs.role, 'toolbar');

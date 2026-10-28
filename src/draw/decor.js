@@ -1,6 +1,6 @@
 // 도형 윗줄과 그룹 제목 줄의 장식(아이콘, 글자 배지, 복제 개수 알약)과 단계별 상태 알약의 몸통(기호와 글자)을 그린다. 크기와 자리는 measure/decor.js가 정한 그대로다.
 import { ratio } from '../format/numbers.js';
-import { BADGE_STYLE, STATUS_GAPS, STATUS_ICON, STATUS_KINDS } from '../measure/pills.js';
+import { BADGE_STYLE, STATUS_GAPS, STATUS_ICON, STATUS_KINDS, STATUS_STYLE } from '../measure/pills.js';
 import { markIcon } from '../icons/index.js';
 import { centerBaseline, escapeXml, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
@@ -68,12 +68,12 @@ function drawMonoIcon(name, { x, y, size, prefix, cls }) {
  */
 export function drawStatusPill({ x, y, w, h }, kind, { glyphs, prefix }) {
   const { icon, text } = STATUS_KINDS[kind];
-  glyphs.add(text, BADGE_STYLE.face);
+  glyphs.add(text, STATUS_STYLE.face);
   const iconX = x + STATUS_GAPS.pad;
   const textX = iconX + STATUS_ICON + STATUS_GAPS.icon;
   return (
     pillFace({ x, y, w, h }, 'status') +
     drawMonoIcon(icon, { x: iconX, y: y + (h - STATUS_ICON) / 2, size: STATUS_ICON, prefix, cls: 'status-icon' }) +
-    `<text x="${r(textX)}" y="${r(centerBaseline(y + h / 2, BADGE_STYLE.size))}" class="status-text">${text}</text>`
+    `<text x="${r(textX)}" y="${r(centerBaseline(y + h / 2, STATUS_STYLE.size))}" class="status-text">${text}</text>`
   );
 }

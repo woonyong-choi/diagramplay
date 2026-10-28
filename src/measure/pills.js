@@ -11,6 +11,8 @@ export const PILL_H = values.spacing.figure.pill.height;
 export const BADGE_STYLE = Object.freeze({ size: values.text["figure-meta"], face: 'semibold' });
 /** 배지와 개수 알약의 좌우 안쪽 간격 합 */
 const BADGE_PAD = SPACE["3-5"];
+export const STATUS_STYLE = Object.freeze({ size: values.text["figure-status"], face: 'semibold' });
+const STATUS_H = values.spacing.figure.status.height;
 
 // cost: time O(n), heap O(1), stack O(1)
 // vars: n = 글자 수
@@ -30,7 +32,7 @@ export function sizeBadge(text) {
 export function sizePill(label, no) {
   const h = PILL_H;
   const textW = label === undefined ? 0 : measure(label, STYLE.pill.size, STYLE.pill.face);
-  if (no === undefined) return { w: textW + SPACE["3-5"], h };
+  if (no === undefined) return { w: textW + values.spacing.figure.pill.padding * 2, h };
   const numW = numberBadgeWidth(no);
   return { w: label === undefined ? numW + SPACE["0-5"] * 2 : SPACE["0-5"] + numW + SPACE["1"] + textW + SPACE["3-5"] / 2, h, numW, numH: h - SPACE["0-5"] * 2, textW };
 }
@@ -50,7 +52,7 @@ export const isOnLinePill = (edge) => edge.no !== undefined && edge.label === un
 export const hasPill = (edge) => edge.label !== undefined || edge.no !== undefined;
 
 /** 상태 알약의 기호 칸. 알약 높이에서 위아래 안쪽 간격 `space.1`씩을 뺀 정사각이다. */
-export const STATUS_ICON = PILL_H - SPACE["1"] * 2;
+export const STATUS_ICON = STATUS_H - SPACE["1"] * 2;
 /** 상태 알약 안의 왼쪽 안쪽 간격, 기호와 글 사이 간격 */
 export const STATUS_GAPS = Object.freeze({ pad: SPACE["1-5"], icon: SPACE["1"] });
 
@@ -66,5 +68,5 @@ export const STATUS_KINDS = Object.freeze({
 // basis: estimate
 /** 상태 알약 크기. 왼쪽 안쪽 간격, 기호, 간격, 글자, 오른쪽 안쪽 간격이다. 도형 모서리에 같은 크기로 표시한다. */
 export function sizeStatus(kind) {
-  return { w: STATUS_GAPS.pad + STATUS_ICON + STATUS_GAPS.icon + measure(STATUS_KINDS[kind].text, BADGE_STYLE.size, BADGE_STYLE.face) + STATUS_GAPS.pad, h: PILL_H };
+  return { w: STATUS_GAPS.pad + STATUS_ICON + STATUS_GAPS.icon + measure(STATUS_KINDS[kind].text, STATUS_STYLE.size, STATUS_STYLE.face) + STATUS_GAPS.pad, h: STATUS_H };
 }
