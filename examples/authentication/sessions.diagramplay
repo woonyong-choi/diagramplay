@@ -1,0 +1,36 @@
+diagramplay
+pace 900ms
+title "02 · 세션과 쿠키"
+subtitle "설명용 모형 · 쿠키는 세션 ID를 보내고 서버 저장소는 로그인 상태를 보관한다"
+icons story "icons" paint=source
+box browser "브라우저" icon=story:browser
+box server "서버" icon=story:server
+store sessions "세션 저장소" icon=story:session {
+  value rows "세션 수" from=0
+}
+box cookie "쿠키" icon=story:cookie
+browser -> server "로그인" no=1
+server -> sessions "세션 저장·조회" no=2
+server -> cookie "Set-Cookie" no=3
+cookie -> browser "sid=7" dashed
+sessions -> server "세션 확인" dashed
+server -> browser "응답" dashed
+view graph right
+scene "발급과 저장" mode=loop
+  browser -> server
+  server -> sessions set="rows+1"
+  show sessions "sid 7 → 민수" mono
+  server -> cookie
+  show cookie "HttpOnly · Secure" tag="sid=7"
+  cookie -> browser
+  show browser "쿠키 저장 완료" tone=green appearance=filled
+  wait 1500ms
+scene "다음 요청" mode=loop set="rows=1"
+  browser -> server "Cookie: sid=7"
+  show server "세션 ID 수신"
+  server -> sessions
+  show sessions "민수의 세션 발견" tone=green appearance=filled
+  sessions -> server
+  server -> browser
+  show browser "내 페이지 응답" tone=green appearance=filled
+  wait 1500ms

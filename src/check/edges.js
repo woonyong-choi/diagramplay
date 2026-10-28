@@ -75,9 +75,7 @@ function isPortPlace(p, it, { way, isSelf, columns, cell }) {
   // 원통은 뚜껑 윤곽까지가 선이 닿는 면이라 그린 사각형으로 본다.
   if (it.shape === 'store') {
     const drawn = drawnBox(it);
-    if (it.direction !== 'down') return onBorder(p, drawn);
-    // 세로 그룹 안 원통도 그룹 밖에서 오는 선은 선이 놓이는 방향의 옆면에 닿는다(layout.md 연결점).
-    return onBorder(p, drawn) && (near(p.y, way === 'out' ? drawn.y + drawn.h : drawn.y) || near(p.x, way === 'out' ? drawn.x + drawn.w : drawn.x));
+    return onBorder(p, drawn);
   }
   return onBorder(p, it);
 }

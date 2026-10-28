@@ -1,0 +1,28 @@
+diagramplay
+pace 900ms
+title "05 · 한 번 로그인하고 다른 앱으로"
+subtitle "설명용 모형 · 앱은 각각 자기 세션을 만들고 계정 제공자는 기존 로그인 상태를 재사용한다"
+icons story "icons" paint=source
+box user "사용자" shape=symbol icon=user
+box mail "메일 앱" shape=symbol icon=story:mail
+box provider "계정 제공자" shape=symbol icon=story:provider
+box drive "드라이브" shape=symbol icon=story:drive
+view sequence {
+  user mail provider drive
+}
+scene "첫 앱 로그인" mode=loop
+  user -> mail "메일 열기"
+  mail -> provider "로그인 요청"
+  provider -> user "사용자 인증"
+  user -> provider "인증 완료"
+  provider -> mail "인증 결과" dashed
+  mail -> user "앱 세션 생성" dashed
+  wait 1600ms
+scene "두 번째 앱" mode=loop
+  user -> drive "드라이브 열기"
+  drive -> provider "로그인 요청"
+  provider -> provider "기존 로그인 확인"
+  note provider "인증 절차를 다시 요구하지 않을 수 있다"
+  provider -> drive "인증 결과" dashed
+  drive -> user "별도 앱 세션 생성" dashed
+  wait 1600ms

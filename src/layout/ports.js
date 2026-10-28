@@ -8,6 +8,7 @@ const FAN_GAP = values.spacing['2'];
 
 const SIDE_OUT = { right: 'EAST', down: 'SOUTH' };
 const SIDE_IN = { right: 'WEST', down: 'NORTH' };
+const OPPOSITE = { EAST: 'WEST', WEST: 'EAST', SOUTH: 'NORTH', NORTH: 'SOUTH' };
 
 /** 원통. 바깥 여백까지 배치 사각형에 넣고, 연결점을 몸통 범위에 고정하는 도형이다. */
 export function isBodyShape(n) {
@@ -94,6 +95,28 @@ export function fanColumnPorts(nodes) {
       list.forEach((port, k) => {
         port.position = { ...port.position, y: port.position.y + (k - (list.length - 1) / 2) * gap };
       });
+    }
+  }
+}
+
+// cost: time O(s + g + e·d), heap O(s + g), stack O(1)
+// vars: s = 도형 수, g = 그룹 수, e = 선 수, d = 그룹 깊이
+// basis: estimate
+// 되돌아가는 선은 원통의 반대 면에 닿는다. 나가는 선을 무조건 앞면에 고정하면 바로 옆의 요청자에게 보내는 응답도 원통 전체를 돌아간다.
+export function orientFlowPorts({ nodes, containers, pieces }) {
+  const orders = new Map([...containers].map(([id, container]) => [id, new Map(container.children.map((child, i) => [child, i]))]));
+  for (const list of pieces.values()) {
+    const isBack = list.some(piece => {
+      const from = piece.from.split('::')[0], to = piece.to.split('::')[0];
+      return orders.get(piece.container).get(from) > orders.get(piece.container).get(to);
+    });
+    if (!isBack) continue;
+    for (const end of new Set(list.flatMap(piece => [piece.from, piece.to]))) {
+      const id = end.split('::')[0];
+      const owner = nodes.get(id) ?? containers.get(id);
+      if (!owner || ['grid', 'table', 'api', 'decision', 'circle'].includes(owner.shape)) continue;
+      const port = owner.ports.find(p => p.id === end);
+      if (port) port.side = OPPOSITE[port.side];
     }
   }
 }

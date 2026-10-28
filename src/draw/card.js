@@ -23,7 +23,8 @@ import { drawTexts } from './texts.js';
  */
 export function drawCard(it, stroke, paint) {
   if (it.shape === 'chart') return drawChart(it, stroke, paint);
-  const surface = drawStack(it, stroke);
+  // 기호도 같은 크기·연결점·도착 후광을 쓴다. 평소 면만 감추고 머리와 내용은 공통 부품으로 그린다.
+  const surface = drawStack(it, it.symbol ? `${stroke} opacity="0"` : stroke);
   if (it.shape === 'grid') return surface + drawGridBody(it, paint);
   if (it.shape === 'queue') return surface + drawQueueSlots(it);
   return surface + drawParts(it, paint) + drawDividers(it);

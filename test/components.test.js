@@ -328,6 +328,17 @@ test('U7 in a drawn figure each head a line points at exists once, and ordinary 
 
 // ---- 아이콘 ----
 
+test('drawCard_symbol_keeps_the_shared_icon_and_label_with_an_invisible_connection_surface', async () => {
+  const { result, dom } = await rendered(diagramplay('box a "Client" shape=symbol icon=user\nbox b "Server"\na -> b\n'));
+  const item = result.scene.items.find(item => item.id === 'a');
+  const group = nodeGroup(dom, result.scene.items.indexOf(item));
+  const surface = findOne(group, node => node.tag === 'rect' && hasClass(node, 'fl-stroke'));
+  assert.equal(surface.attrs.opacity, '0');
+  assert.equal(findAll(group, node => hasClass(node, 'fl-symbol')).length, 1);
+  assert.ok(findAll(group, node => node.tag === 'text').some(node => textContent(node) === 'Client'));
+  assert.ok(result.scene.edges[0].points[0].x >= item.x + item.w - EPS, 'the edge attaches to the same measured card');
+});
+
 test('U8 a brand has the same measured and drawn size in a card, tile, store and group title while a person tile keeps its role size', async () => {
   const { groupHead } = await import('../src/measure/sizes.js');
   const result = await build(diagramplay(`
@@ -578,7 +589,7 @@ test('U7 경로 표본은 유턴과 원본 끝점을 보존한다', () => {
   assert.equal(points.at(-1).x, 10);
 });
 
-test('U7 두 선이 곧은 구간에서 직각으로 지나면 세로 선만 끊기고, 모서리·선 끝·장면마다 나타나는 선은 끊지 않는다', async () => {
+test('U7 교차는 둥근 모서리까지 같은 규칙으로 끊고 선 끝의 합류와 장면별 선은 끊지 않는다', async () => {
   const across = { points: [{ x: 0, y: 100 }, { x: 200, y: 100 }] };
   const down = { points: [{ x: 100, y: 0 }, { x: 100, y: 200 }] };
   const cuts = crossingCuts([across, down]);
@@ -589,6 +600,10 @@ test('U7 두 선이 곧은 구간에서 직각으로 지나면 세로 선만 끊
   assert.equal(crossingCuts([across, { points: [{ x: 200, y: 0 }, { x: 200, y: 200 }] }]).size, 0);
   assert.equal(crossingCuts([across, { points: [{ x: 100, y: 98 }, { x: 100, y: 300 }] }]).size, 0);
   assert.equal(crossingCuts([across, { ...down, si: 0 }]).size, 0);
+  const curved = { points: [{ x: 100, y: 0 }, { x: 100, y: 100 }, { x: 200, y: 100 }] };
+  assert.equal(crossingCuts([{ points: [{ x: 0, y: 99 }, { x: 220, y: 99 }] }, curved]).size, 1, 'a crossing near the rounded corner uses the same gap');
+  const nearby = crossingCuts([across, { points: [{ x: 0, y: 103 }, { x: 200, y: 103 }] }, down]);
+  assert.equal(nearby.get(2).length, 1, 'overlapping gaps are merged instead of cancelling under evenodd');
   // 그린 그림: 끊긴 선은 자기 clipPath를 걸고, 구멍은 바깥 사각형 안에 있다(clip-rule evenodd).
   const flow = parseMarkup(await toSvg(await build(read(EXAMPLES, 'flow.diagramplay')), { isStatic: true }));
   const clipped = findAll(flow, (n) => n.tag === 'path' && n.attrs['clip-path']?.startsWith('url(#fl-cut-'));

@@ -8,6 +8,7 @@ import { buildModel } from './model.js';
 import { isBodyShape, recordPortOrder } from './ports.js';
 import { readElk } from './read.js';
 import { compactOrderVariants, orderCompactGroups } from './order.js';
+import { shortcutScene } from './shortcuts.js';
 
 // 알맞은 보이는 비율의 범위. 세로로 긴 쪽은 두 화면 모두 페이지 스크롤로 읽혀 한도(aspect-max)의 역수까지, 가로로 넓은 쪽은 데스크톱 가로 화면 비율(1400x900)까지다.
 const FIT_MIN = 1 / ASPECT_MAX;
@@ -48,10 +49,10 @@ export async function layoutOrFail(figure, sizes, { problems, width, isSound }) 
 /**
  * 그림을 배치한다.
  * @param sizes Map<도형 id, sizeNode 결과>
- * @param layoutWidth 배치가 들어갈 목표 폭. 표시 배율이나 글자 크기는 바꾸지 않는다
+ * @param layoutWidth 명시적으로 요청한 배치 목표 폭. 생략하면 원본 방향과 연결을 유지하고 표시 배율은 뷰어가 정한다
  * @returns { items, groups, edges, width, height }. items는 도형 사각형(배치 사각형과 바깥 여백), edges는 경로 점과 라벨 자리
  */
-async function layoutGraph(figure, sizes, layoutWidth = layoutWidthOf(figure)) {
+async function layoutGraph(figure, sizes, layoutWidth) {
   engine ??= new ELK();
   try {
     return await place(figure, sizes, layoutWidth);
@@ -71,9 +72,11 @@ async function layoutGraph(figure, sizes, layoutWidth = layoutWidthOf(figure)) {
 // 배치 한 번. 안전 배치(safeLayout)는 자동 접기와 방향 돌리기를 하지 않는다.
 async function place(figure, sizes, layoutWidth) {
   let best = await arrange(figure, sizes);
+  if (layoutWidth === undefined && figure.aspect === undefined && !figure.safeLayout && !figure.naturalPlacement && figure.groups.length > 1) best = await compactNatural(figure, sizes, best);
   const canAdapt = figure.aspect === undefined || layoutWidth < layoutWidthOf(figure);
-  if (best.laid.width > layoutWidth && canAdapt && !figure.safeLayout) best = await fitCanvas({ ...figure, aspect: undefined }, sizes, { flat: best, canvas: layoutWidth, cap: Math.max(layoutWidth, canvasOf(figure)) });
-  const scene = readElk(best.laid, best.model);
+  if (layoutWidth !== undefined && best.laid.width > layoutWidth && canAdapt && !figure.safeLayout) best = await fitCanvas({ ...figure, aspect: undefined }, sizes, { flat: best, canvas: layoutWidth, cap: Math.max(layoutWidth, canvasOf(figure)) });
+  let scene = readElk(best.laid, best.model);
+  if (layoutWidth === undefined && !figure.safeLayout && figure.aspect === undefined) scene = shortcutScene(scene, best.model, figure.isSound, figure);
   if (best.isReordered) {
     const indices = new Map([...best.model.nodes.keys()].map((id, i) => [id, i]));
     scene.items.sort((a, b) => indices.get(a.id) - indices.get(b.id));
@@ -81,6 +84,47 @@ async function place(figure, sizes, layoutWidth) {
   // 제목이 선을 비킬 자리가 없는 그룹은 너비를 넓혀 한 번 더 배치한다(그림 검사 13번).
   const blocked = scene.groups.filter((g) => g.isTitleBlocked).map((g) => g.id);
   return blocked.length && !figure.wideGroups ? place({ ...figure, wideGroups: new Set(blocked) }, sizes, layoutWidth) : scene;
+}
+
+// cost: time O(3·(elk + check + p²)), heap O(s + p), stack O(d)
+// vars: elk = 배치 시간, check = 기하 검사 시간, s = 도형 수, p = 전체 경로 점 수, d = 그룹 깊이
+// basis: estimate
+// 자연 배치의 후보는 화면 폭으로 접지 않는다. 같은 방향과 도형을 유지하고 경로·꺾임·교차·빈 면적으로 비교하며 유효한 기하만 채택한다.
+async function compactNatural(figure, sizes, original) {
+  let best = original;
+  const baseline = naturalMetrics(readElk(original.laid, original.model));
+  const costOf = scene => Object.entries(naturalMetrics(scene)).reduce((sum, [key, value]) => sum + value / Math.max(1, baseline[key]), 0);
+  let rank = costOf(readElk(original.laid, original.model));
+  for (const naturalPlacement of ['NETWORK_SIMPLEX', 'SIMPLE']) {
+    try {
+      const candidate = await arrange({ ...figure, naturalPlacement }, sizes);
+      const scene = shortcutScene(readElk(candidate.laid, candidate.model), candidate.model, figure.isSound, figure);
+      if (!figure.isSound(figure, scene)) continue;
+      const cost = costOf(scene);
+      if (cost < rank) { best = candidate; rank = cost; }
+    } catch (error) {
+      if (!(error instanceof LayoutError)) throw error;
+    }
+  }
+  return best;
+}
+
+function naturalMetrics(scene) {
+  let length = 0, bends = 0, crossings = 0;
+  const segments = scene.edges.flatMap(edge => {
+    bends += Math.max(0, edge.points.length - 2);
+    return edge.points.slice(1).map((b, i) => {
+      const a = edge.points[i];
+      length += Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+      return { edge: edge.index, a, b };
+    });
+  });
+  const horizontal = segments.filter(s => s.a.y === s.b.y);
+  for (const v of segments.filter(s => s.a.x === s.b.x)) for (const h of horizontal) {
+    if (v.edge !== h.edge && v.a.x > Math.min(h.a.x, h.b.x) && v.a.x < Math.max(h.a.x, h.b.x) && h.a.y > Math.min(v.a.y, v.b.y) && h.a.y < Math.max(v.a.y, v.b.y)) crossings++;
+  }
+  const empty = Math.max(0, scene.width * scene.height - scene.items.reduce((sum, it) => sum + it.w * it.h, 0));
+  return { length, bends, crossings, empty };
 }
 
 // cost: time O(elk(s + e) + e·d), heap O(s + e·d), stack O(d)

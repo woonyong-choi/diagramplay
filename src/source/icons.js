@@ -3,6 +3,7 @@ import { DEFAULT_SET, ICON_NAMES, USER_ICON_PATTERN, splitIconRef } from '../ico
 import { checkId } from './names.js';
 import { unknownName } from './problems.js';
 import { ID_PATTERN } from './words.js';
+import { readOptions } from './options.js';
 
 // cost: time O(s), heap O(1), stack O(1)
 // vars: s = 등록한 세트 수
@@ -12,14 +13,15 @@ export function readIcons({ tokens, line }, ctx) {
   const [, name, path, ...extra] = tokens;
   const { problems, figure } = ctx;
   if (!checkId(name, { line, ctx }, ID_PATTERN)) return;
-  if (path?.type !== 'text' || extra.length) {
+  if (path?.type !== 'text') {
     problems.error(line, `write icons as: icons ${name.value} "folder"`);
     return;
   }
+  const { paint = 'mono' } = readOptions(extra, { scopes: ['icons'], what: 'an icon set', line, ctx });
   const known = figure.iconSets.find((s) => s.name === name.value);
   if (name.value === DEFAULT_SET) problems.error(line, `"${DEFAULT_SET}" is the built-in icon set. Pick another name for your set`);
   else if (known) problems.error(line, `the icon set "${name.value}" is already registered (line ${known.line})`);
-  else figure.iconSets.push({ name: name.value, path: path.value, line });
+  else figure.iconSets.push({ name: name.value, path: path.value, paint, line });
 }
 
 // cost: time O(n + g), heap O(1), stack O(1)

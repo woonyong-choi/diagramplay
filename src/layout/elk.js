@@ -202,6 +202,7 @@ function rootOptions(c, { figure, model, isSafe }) {
   const gridsOnly = c.children.length > 0 && c.children.every((id) => model.nodes.get(id)?.shape === 'grid');
   return {
     'elk.padding': `[top=${pad},left=${pad},bottom=${pad},right=${pad}]`,
+    ...(figure.naturalPlacement ? { 'elk.layered.nodePlacement.strategy': figure.naturalPlacement } : {}),
     // 격자끼리의 대응 관계는 선 높이보다 열의 중심을 맞춘다. 혼합 도형과 안전 배치는 기존 전략을 유지한다.
     ...(!isSafe && gridsOnly ? { 'elk.layered.nodePlacement.strategy': 'SIMPLE' } : {}),
     ...(figure.aspect !== undefined ? wrapOptions(figure.aspect) : {}),

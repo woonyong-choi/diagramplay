@@ -16,7 +16,7 @@ export interface BuildOptions {
   strict?: boolean;
   /** 이름별 한도를 양의 안전한 정수로 지정한다. 생략한 이름은 기본 한도다. */
   budget?: Partial<Record<BudgetName, number>>;
-  /** 그래프 보기의 배치 목표 폭(px). 양의 유한수여야 한다. */
+  /** 명시적으로 그래프를 접거나 돌릴 배치 목표 폭(px). 생략하면 자연 배치를 유지한다. 양의 유한수여야 한다. */
   layoutWidth?: number;
   /** 원본이 지정한 외부 JSON과 아이콘 파일을 읽을 수 있다. 기본값은 true다. */
   allowFileAccess?: boolean;

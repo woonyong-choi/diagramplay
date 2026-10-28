@@ -4,13 +4,11 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { chromium } from 'playwright-core';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 import { buildFigure, toHtml } from '../../src/index.js';
 
-// #394: 같은 글 역할은 그림 크기와 관계없이 같은 화면 크기다. 넓은 화면에서는 모든 그림이 자연 크기이고, 좁은 화면에서도 가장 작은 글 토큰 밑으로 줄지 않으며 페이지는 가로로 넘치지 않는다.
+// 자연 배치를 표시 폭에 맞출 때 그림 전체가 같은 배율을 따른다. 본문 표시에서는 자연 글자 크기보다 커지지 않고 같은 배율을 지키며 페이지는 가로로 넘치지 않는다.
 const EXAMPLES = new URL('../../examples/', import.meta.url);
-const SMALLEST = Math.min(...Object.values(values.text.figure));
 // 글 크기 반올림 여유
 const SLACK = 0.05;
 
@@ -39,7 +37,7 @@ function measureText() {
   };
 }
 
-test('every example shows each text role at one size on desktop and stays readable on mobile', async () => {
+test('every example scales text uniformly within the natural figure and fits narrow viewports', async () => {
   const ids = (await readdir(EXAMPLES)).filter(name => name.endsWith('.diagramplay')).map(name => name.replace(/\.diagramplay$/, '')).sort();
   const documents = [];
   for (const id of ids) {
@@ -50,7 +48,6 @@ test('every example shows each text role at one size on desktop and stays readab
   try {
     for (const width of [1280, 390]) {
       const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
-      const sizes = new Map();
       const problems = [];
       try {
         const page = await context.newPage();
@@ -59,22 +56,16 @@ test('every example shows each text role at one size on desktop and stays readab
           await page.evaluate(() => document.fonts.ready);
           const { texts, pageOverflow } = await page.evaluate(measureText);
           if (pageOverflow > 0) problems.push(`${id}: page overflows by ${pageOverflow}px`);
+          const scales = texts.map(({ role, shown }) => shown / role);
+          if (Math.max(...scales) - Math.min(...scales) > SLACK) problems.push(`${id}: text roles use different scales`);
           for (const { role, shown } of texts) {
-            if (shown < SMALLEST - SLACK) problems.push(`${id}: ${role}px text shows at ${shown.toFixed(2)}px`);
-            if (!sizes.has(role)) sizes.set(role, new Map());
-            const shownSizes = sizes.get(role);
-            const key = shown.toFixed(1);
-            if (!shownSizes.has(key)) shownSizes.set(key, id);
+            if (shown > role + SLACK) problems.push(`${id}: ${role}px text exceeds its natural size`);
+            if (shown <= 0) problems.push(`${id}: text has no display size`);
+
           }
         }
       } finally {
         await context.close();
-      }
-      if (width === 1280) {
-        for (const [role, shownSizes] of sizes) {
-          const shown = [...shownSizes.keys()].map(Number);
-          if (Math.max(...shown) - Math.min(...shown) > SLACK * 2) problems.push(`${role}px role shows at ${[...shownSizes].map(([size, id]) => `${size}px (${id})`).join(', ')}`);
-        }
       }
       assert.deepEqual(problems, [], `${width}px`);
     }

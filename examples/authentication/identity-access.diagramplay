@@ -1,0 +1,34 @@
+diagramplay
+pace 900ms
+title "01 · 인증과 인가"
+subtitle "설명용 모형 · 신원 확인과 접근 권한 확인은 서로 다른 판단이다"
+icons story "icons" paint=source
+person user "사용자"
+box identity "인증" "누구인가" icon=story:identity tone=blue
+box access "인가" "무엇을 할 수 있나" icon=story:lock tone=yellow
+box profile "내 프로필" icon=story:browser
+box admin "관리 화면" icon=story:shield
+user -> identity "신원 증명" no=1
+identity -> access "확인된 사용자" no=2
+access -> profile "본인 정보" no=3
+access -> admin "관리자 권한" dashed
+view graph right
+scene "일반 사용자" mode=loop
+  user -> identity
+  show identity "민수" tag="identity"
+  identity -> access
+  show access "일반 사용자" tag="role"
+  access -> profile
+  show profile "접근 허용" tone=green appearance=filled
+  wait 700ms
+  light admin
+  show admin "403 · 권한 없음" tone=red appearance=filled
+  wait 1500ms
+scene "관리자" mode=loop
+  user -> identity
+  show identity "지수" tag="identity"
+  identity -> access
+  show access "관리자" tag="role"
+  access -> admin
+  show admin "접근 허용" tone=green appearance=filled
+  wait 1500ms

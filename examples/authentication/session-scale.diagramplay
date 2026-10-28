@@ -1,0 +1,28 @@
+diagramplay
+pace 900ms
+title "02 · 서버가 여러 대라면"
+subtitle "설명용 모형 · 로컬 세션은 다른 서버에 없고 공유 저장소는 같은 세션을 조회하게 한다"
+icons story "icons" paint=source
+box browser "브라우저" shape=symbol icon=story:browser
+box first "서버 A" icon=story:server
+box second "서버 B" icon=story:server
+store shared "공유 세션" icon=story:session
+browser -> first "로그인" no=1
+browser -> second "다음 요청" no=2
+first -> shared "세션 저장" no=3
+second -> shared "세션 조회" no=4
+view graph right
+scene "서버별 세션" mode=loop
+  browser -> first
+  show first "sid 7 보관" tag="local"
+  browser -> second
+  show second "sid 7을 찾을 수 없음" tone=red appearance=filled
+  wait 1800ms
+scene "공유 저장소" mode=loop
+  browser -> first
+  first -> shared
+  show shared "sid 7 → 민수" mono
+  browser -> second
+  second -> shared
+  show second "같은 사용자 확인" tone=green appearance=filled
+  wait 1800ms

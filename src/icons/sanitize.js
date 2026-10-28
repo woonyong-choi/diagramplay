@@ -1,9 +1,11 @@
-// 아이콘 SVG 파일을 그림에 넣어도 안전한 모양만 남긴다. 허용한 요소와 속성만 다시 쓰고, 색은 모두 currentColor로 바꾼다(색은 그림이 역할 토큰으로 칠한다).
+// 아이콘 SVG 파일을 그림에 넣어도 안전한 모양만 남긴다. 기본은 단색이며 paint=source일 때만 검증된 원본 색을 보존한다.
 // 허용 밖의 요소(script, image, style, use, 그라디언트 같은 것)나 글자는 오류다. 사용자가 등록한 세트의 파일이 그림 안에서 코드나 외부 자원을 부르지 못하게 하기 위해서다.
 
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const ICON_GRID = values.icon['size-small'];
+const COLOR_TOKENS = new Set(JSON.stringify(tokens.color).match(/var\(--[a-z0-9-]+\)/g));
+const SOURCE_COLOR = /^(?:#[\da-f]{3}|#[\da-f]{4}|#[\da-f]{6}|#[\da-f]{8}|black|white)$/i;
 const SHAPE_ATTRS = {
   g: [],
   path: ['d'],
@@ -14,7 +16,7 @@ const SHAPE_ATTRS = {
   polyline: ['points'],
   polygon: ['points'],
 };
-// 색은 값을 옮기지 않고 none인지 아닌지만 본다.
+// 칠과 윤곽은 같은 색 검증을 거친다.
 const PAINT_ATTRS = ['fill', 'stroke'];
 const NUMBER_ATTRS = ['stroke-width', 'stroke-miterlimit', 'opacity', 'fill-opacity', 'stroke-opacity'];
 const WORD_ATTRS = { 'stroke-linecap': ['butt', 'round', 'square'], 'stroke-linejoin': ['miter', 'round', 'bevel'], 'fill-rule': ['nonzero', 'evenodd'], 'clip-rule': ['nonzero', 'evenodd'] };
@@ -36,7 +38,7 @@ const SKIPPED = /<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<!DOCTYPE[^>]*>|<(title|desc|met
  * SVG 글을 { body }로 줄인다. body는 허용한 요소만 다시 쓴 `<g>` 하나이고, 틀(viewBox)을 등록부의 24 격자(ICON_GRID)에 가운데 맞추는 변환까지 이 안에 있어 그리는 쪽은 언제나 격자 하나만 본다.
  * @throws Error 허용 밖의 요소, 속성, 글자가 있거나 크기를 알 수 없거나 격자에 맞출 수 없을 때. 메시지는 고칠 방법을 말한다
  */
-export function sanitizeIcon(text) {
+export function sanitizeIcon(text, { paint = 'mono' } = {}) {
   if (text.length > SIZE_MAX) throw new Error(`the icon file is over ${SIZE_MAX} characters`);
   const rest = text.replace(SKIPPED, '');
   const tags = [...rest.matchAll(TAG_PATTERN)];
@@ -46,7 +48,7 @@ export function sanitizeIcon(text) {
   const [root, ...inner] = tags;
   if (root?.[2] !== 'svg' || root[1]) throw new Error('the icon file must start with an <svg> element');
   const rootAttrs = readAttrs(root[3]);
-  return { body: `<g${gridFit(viewBoxOf(rootAttrs))}${paintOf(rootAttrs, { isRoot: true })}>${shapes(inner)}</g>` };
+  return { body: `<g${gridFit(viewBoxOf(rootAttrs))}${paintOf(rootAttrs, { isRoot: true, paint })}>${shapes(inner, paint)}</g>` };
 }
 
 // cost: time O(1), heap O(1), stack O(1)
@@ -63,7 +65,7 @@ function gridFit([x, y, w, h]) {
 // vars: t = 요소 수
 // basis: estimate
 // 요소 목록(여는 태그와 닫는 태그)을 허용한 모양만 다시 쓴 글로.
-function shapes(tags) {
+function shapes(tags, paint) {
   const out = [];
   const open = [];
   for (const [, closing, name, rawAttrs, selfClosing] of tags) {
@@ -75,7 +77,7 @@ function shapes(tags) {
       continue;
     }
     const attrs = readAttrs(rawAttrs);
-    out.push(`<${name}${shapeAttrs(name, attrs)}${paintOf(attrs, { isRoot: false })}${selfClosing ? '/>' : '>'}`);
+    out.push(`<${name}${shapeAttrs(name, attrs)}${paintOf(attrs, { isRoot: false, paint })}${selfClosing ? '/>' : '>'}`);
     if (!selfClosing) open.push(name);
   }
   if (open.length) throw new Error(`the icon does not close <${open.at(-1)}>`);
@@ -113,14 +115,22 @@ function safe(key, value) {
 // vars: a = 속성 수
 // basis: estimate
 // 칠하기 속성. 색은 none이 아니면 currentColor다. 뿌리 요소(isRoot)는 fill이 없으면 currentColor로 칠하고, 안쪽 요소는 적은 것만 쓴다.
-function paintOf(attrs, { isRoot }) {
+function paintOf(attrs, { isRoot, paint }) {
   const paints = PAINT_ATTRS.filter((key) => key in attrs || (isRoot && key === 'fill')).map((key) => {
-    const value = (attrs[key] ?? 'currentColor').trim().toLowerCase();
-    return ` ${key}="${value === 'none' || value === 'transparent' ? 'none' : 'currentColor'}"`;
+    const value = (attrs[key] ?? 'currentColor').trim();
+    return ` ${key}="${safePaint(value, paint)}"`;
   });
   const numbers = NUMBER_ATTRS.filter((key) => key in attrs).map((key) => ` ${key}="${safe(key, attrs[key])}"`);
   const words = Object.entries(WORD_ATTRS).filter(([key, list]) => key in attrs && list.includes(attrs[key])).map(([key]) => ` ${key}="${attrs[key]}"`);
   return `${paints.join('')}${numbers.join('')}${words.join('')}`;
+}
+
+// 원색 보존도 자원 참조와 임의 CSS는 받지 않는다. 알려진 색 토큰만 테마를 따라간다.
+function safePaint(value, paint) {
+  if (/^(none|transparent)$/i.test(value)) return 'none';
+  if (paint === 'mono' || /^currentcolor$/i.test(value)) return 'currentColor';
+  if (SOURCE_COLOR.test(value) || COLOR_TOKENS.has(value)) return value;
+  throw new Error(`the icon has an unsupported paint; use a hex color, black, white, currentColor, or a design color token`);
 }
 
 // cost: time O(1), heap O(1), stack O(1)

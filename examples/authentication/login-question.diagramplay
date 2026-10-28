@@ -1,0 +1,25 @@
+diagramplay
+pace 900ms
+title "00 · 비밀번호 다음의 요청"
+subtitle "설명용 모형 · 처음 로그인한 뒤 서버는 다음 요청의 사용자를 어떻게 알아볼까"
+icons story "icons" paint=source
+box user "사용자" shape=symbol icon=user
+box browser "브라우저" shape=symbol icon=story:browser
+box server "서버" shape=symbol icon=story:server
+view sequence {
+  user browser server
+}
+scene "로그인과 다음 요청" mode=loop
+  user -> browser "로그인 입력"
+  browser -> server "이메일 + 비밀번호"
+  server -> browser "로그인 성공" dashed
+  wait 700ms
+  user -> browser "내 페이지 열기"
+  browser -> server "다음 요청의 증명은?"
+  note server "HTTP 요청마다 사용자를 식별할 근거가 필요하다"
+  wait 1200ms
+scene "전체 순서" mode=static
+  user -> browser "로그인 입력"
+  browser -> server "이메일 + 비밀번호"
+  server -> browser "로그인 성공" dashed
+  browser -> server "다음 요청"

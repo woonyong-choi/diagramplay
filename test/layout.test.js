@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { buildFigure, toSvg } from '../src/index.js';
 import { reflowFigure } from '../src/compile/figure.js';
@@ -8,6 +9,7 @@ import { isSoundGraph } from '../src/check/figure.js';
 import { buildModel } from '../src/layout/model.js';
 import { compactOrderVariants, orderCompactGroups } from '../src/layout/order.js';
 import { viewFigure } from '../src/compile/views.js';
+import { checkDocs } from '../src/compile/docs-check.js';
 
 // #390: 두 분기가 같은 목적지를 공유하는 실제 문서 구조. 카드와 라벨은 줄이지 않는다.
 const SOURCE = String.raw`diagramplay
@@ -39,6 +41,42 @@ scene "공유 루트" mode=loop
 function routeLength(edge) {
   return edge.points.slice(1).reduce((sum, point, i) => sum + Math.abs(point.x - edge.points[i].x) + Math.abs(point.y - edge.points[i].y), 0);
 }
+
+test('buildFigure_complex_groups_keep_the_entry_handoff_aligned_without_dropping_connections', async () => {
+  const source = new URL('../examples/authentication/commerce-system.diagramplay', import.meta.url);
+  const result = await buildFigure(readFileSync(source, 'utf8'), { baseDir: fileURLToPath(new URL('.', source)), strict: true });
+  assert.equal(result.scene.items.length, 36);
+  assert.equal(result.scene.groups.length, 9);
+  assert.deepEqual(result.scene.edges.map(({ from, to }) => [from, to]), result.figure.edges.map(({ from, to }) => [from, to]));
+  const clients = result.scene.groups.find(group => group.id === 'clients');
+  const entry = result.scene.groups.find(group => group.id === 'edge');
+  assert.ok(Math.abs(clients.y + clients.h / 2 - entry.y - entry.h / 2) < 1, 'entry groups share a centre instead of forming a staircase');
+  assert.ok(result.scene.width * result.scene.height < 4000000, 'the same graph avoids the previous 4.9 million square-unit frame');
+});
+
+test('buildFigure_default_graph_keeps_a_wide_chain_straight_and_leaves_display_diagnostics_to_docs', async () => {
+  const names = ['header', 'payload', 'signature', 'issuer', 'audience', 'expiry', 'subject', 'issued'];
+  const source = `diagramplay\n${names.map(id => `box ${id} "${id}"`).join('\n')}\n${names.slice(1).map((id, i) => `${names[i]} -> ${id}`).join('\n')}\nview graph right\n`;
+  const result = await buildFigure(source, { strict: true });
+  assert.ok(result.scene.width > 960, 'the natural layout can exceed a document canvas');
+  assert.ok(result.scene.items.every((item, i, items) => i === 0 || item.x > items[i - 1].x));
+  assert.ok(result.scene.edges.every(edge => edge.points.length === 2), 'a plain chain has no wraparound route');
+  assert.deepEqual(result.warnings, []);
+  assert.ok((await checkDocs(result)).some(problem => problem.code === 'check-10'), 'small text at a fixed document width remains an explicit diagnostic');
+});
+
+test('buildFigure_store_reply_uses_the_face_toward_the_requester_in_both_directions', async () => {
+  for (const direction of ['right', 'down']) {
+    const result = await buildFigure(`diagramplay\nbox server "Server"\nstore db "Database"\nserver -> db "Request"\ndb -> server "Reply" dashed\nview graph ${direction}\n`, { strict: true });
+    const db = result.scene.items.find(item => item.id === 'db');
+    const reply = result.scene.edges.find(edge => edge.from === 'db');
+    const start = reply.points[0];
+    assert.ok(direction === 'right' ? Math.abs(start.x - db.x) < 0.5 : start.y <= db.y, `${direction}: the reply leaves the near face`);
+    const end = reply.points.at(-1);
+    const distance = Math.abs(start.x - end.x) + Math.abs(start.y - end.y);
+    assert.ok(routeLength(reply) < distance + 2 * Math.min(db.w, db.h), `${direction}: the reply does not wrap around the database`);
+  }
+});
 
 test('buildFigure_narrow_disconnected_workers_preserves_cards_in_one_column', async () => {
   const source = `diagramplay

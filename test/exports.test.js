@@ -369,8 +369,15 @@ test('X9d the narrow-screen layout is shipped only when it hides no more moving 
   };
   // 좁은 폭의 구조 배치는 이동 글 4개를 가리므로 쓰지 않고, 넓은 배치의 자연 크기를 유지한다.
   assert.equal(await narrowOf('flow.diagramplay'), undefined);
-  // 이동 글을 가리지 않는 좁은 배치는 그대로 쓴다.
+  // 그래프와 함께 둔 차트·시간축은 좁힌 후보를 실을 수 있다.
   assert.ok(await narrowOf('metric.diagramplay'));
+});
+
+test('toHtml_graph_only_ships_one_geometry_for_all_viewport_widths', async () => {
+  const names = ['a', 'b', 'c', 'd', 'e', 'f'];
+  const source = diagramplay(`${names.map(id => `box ${id} "Service ${id}"`).join('\n')}\n${names.slice(1).map((id, i) => `${names[i]} -> ${id}`).join('\n')}\n`);
+  const html = await toHtml(await build(source), 'graph');
+  assert.ok(!descendants(parseMarkup(html, { html: true })).some(node => node.tag === 'template' && /\bfl-narrow\b/.test(node.attrs.class ?? '')));
 });
 
 test('X9c the shared viewer has no viewport-height cap in the document, and keeps the fixed full-screen frame', async () => {

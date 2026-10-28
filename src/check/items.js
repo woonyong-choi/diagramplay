@@ -11,7 +11,7 @@ import { checkAspect, checkReadable } from './proportion.js';
 /**
  * 항목마다 { number, code, severity, title, criterion, judge?, judgeChart?, stage }.
  * severity는 이 항목이 내는 등급 목록('error', 'warning')이다.
- * stage는 판정하는 때다. 'scene'은 배치가 끝난 장면(judge, 순서대로 돈다), 'source'는 원본을 읽는 때(src/source/validate.js)다.
+ * stage는 판정하는 때다. 'scene'은 배치가 끝난 장면, 'source'는 원본을 읽는 때, 'docs'는 문서 폭을 가정하는 --docs 검사다.
  * judgeChart는 차트에 쓰는 판정이다. 문서의 보기 구성에 맞지 않는 판정은 judge 안에서 건너뛴다.
  * judge는 (context, problems)를 받는다. context는 { figure, scene, timeline, boxes, edges, pills, titles, family }다.
  */
@@ -24,8 +24,8 @@ export const CHECKS = [
   { number: 6, code: 'check-6', severity: ['error'], stage: 'scene', judge: checkNodes, title: '도형끼리 겹치지 않는다', criterion: '도형과 그룹 사각형끼리 겹친 넓이 0. 그룹과 그 안의 도형, 그룹과 그 안의 그룹은 제외' },
   { number: 7, code: 'check-7', severity: ['error', 'warning'], stage: 'scene', judge: checkChips, title: '글 상자가 그림 안에 있고 이름을 가리지 않는다', criterion: '이동의 계획 지점(2프레임 간격)마다 정한 글 상자([재생](playback.md) 자리 규칙)가 그림 경계 안이면 통과한다. 점 위아래 어디에도 들어가지 않으면 오류. 글 상자가 그림보다 넓은 경우는 [배치](layout.md)가 그림을 넓혀서 생기지 않는다. 글자, 아이콘, 선 라벨과 상태 알약, 카드와 큐 안쪽은 어느 자리에서도 가리지 않고(하드), 도형 윤곽은 박자 이동의 둘째 계획에서만 덮일 수 있다. 박자 이동은 글 상자가 보이는 시간이 점이 보이는 시간의 60%(`scale.chip-visible-share`) 미만이면 경고(배치가 층 간격과 선 옆 폭을 늘려 다시 배치한 뒤에도 남을 때만). 흐름의 글 상자는 점 위, 아래, 옆으로 비켜도 도형 이름, 부제, 테이블 열, 그룹 제목을 가려 점이 보이는 시간(도형 안을 지나는 구간 제외)의 25% 넘게 숨으면 경고(선 틈보다 넓은 글 상자. 배치가 그 선의 간격을 늘려 다시 배치한 뒤에도 남을 때만). 보이는 글 상자끼리 겹쳐도 경고(흐름과 `&` 동시 이동은 나중에 출발한 점의 글 상자가 숨어 겹치지 않는다)' },
   { number: 8, code: 'check-8', severity: ['warning'], stage: 'source', title: '같은 글이 두 번 보이지 않는다', criterion: '이동 글 상자 글과 그 선 라벨이 같은 경우' },
-  { number: 9, code: 'check-9', severity: ['warning'], stage: 'scene', judge: checkAspect, title: '그림 비율', criterion: '보이는 가로세로 비율(가로는 내용 폭과 캔버스 폭 중 큰 쪽)이 3 초과 또는 1/3 미만. 가로세로가 모두 캔버스 폭 이하인 그림은 제외' },
-  { number: 10, code: 'check-10', severity: ['warning'], stage: 'scene', judge: checkReadable, title: '문서 폭에서 읽힘', criterion: '그림을 캔버스 폭(표준 `spacing.figure.figure-canvas`, `width wide`면 `spacing.figure.figure-canvas-wide`)으로 줄였을 때 가장 작은 글이 가장 작은 글 토큰(`text.figure`의 최솟값, 9px) 미만. 내용이 캔버스보다 넓으면 줄이는 비율이 곧 글자 비율이다' },
+  { number: 9, code: 'check-9', severity: ['warning'], stage: 'docs', judge: checkAspect, title: '그림 비율', criterion: '`--docs`에서 보이는 가로세로 비율(가로는 내용 폭과 캔버스 폭 중 큰 쪽)이 3 초과 또는 1/3 미만. 가로세로가 모두 캔버스 폭 이하인 그림은 제외' },
+  { number: 10, code: 'check-10', severity: ['warning'], stage: 'docs', judge: checkReadable, title: '문서 폭에서 읽힘', criterion: '`--docs`에서 그림을 캔버스 폭(표준 `spacing.figure.figure-canvas`, `width wide`면 `spacing.figure.figure-canvas-wide`)으로 줄였을 때 가장 작은 글이 가장 작은 글 토큰(`text.figure`의 최솟값, 9px) 미만. 내용이 캔버스보다 넓으면 줄이는 비율이 곧 글자 비율이다' },
   { number: 11, code: 'check-11', severity: ['warning'], stage: 'source', title: '쓰지 않는 조용한 선', criterion: '시간 흐름에서 한 번도 지나지 않는 `quiet` 선' },
   { number: 12, code: 'check-12', severity: ['error', 'warning'], stage: 'scene', judge: checkNotes, title: '순서 그림 메모가 겹치지 않는다', criterion: '메모가 그림 안에 있고 같은 행 메시지의 화살표와 라벨을 가리지 않으면 통과한다(오류). 다른 참여자의 생명선에 걸치면 경고' },
   { number: 13, code: 'check-13', severity: ['error'], stage: 'scene', judge: checkTitleLines, title: '선이 그룹 제목 줄을 지나지 않는다', criterion: '경로 선분이 그룹 제목 줄(제목 글, 아이콘, 배지를 감싼 사각형) 안쪽을 지나지 않는다' },

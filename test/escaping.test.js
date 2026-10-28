@@ -134,6 +134,26 @@ test('I2 a user icon keeps its shapes but never its colors: every paint becomes 
   assert.ok(shapes.every((n) => !/#[0-9a-f]{3,6}\b/i.test(`${n.attrs.fill ?? ''} ${n.attrs.stroke ?? ''}`)), 'no literal color on shapes');
 });
 
+test('buildFigure_source_icon_paint_preserves_safe_colors_without_changing_mono_sets', async (t) => {
+  const dir = workspace(t, { 'icons/mine.svg': ICON('<rect width="12" height="12" fill="#123abc"/><circle cx="16" cy="16" r="5" fill="var(--color-state-success)"/>') });
+  const source = diagramplay('icons color "icons" paint=source\nicons mono "icons"\nbox a "Color" icon=color:mine\nbox b "Mono" icon=mono:mine\na -> b\n');
+  const result = await build(source, { baseDir: dir });
+
+  for (const output of [await toSvg(result), await toHtml(result, 'source-paint')]) {
+    assert.match(output, /fill="#123abc"/);
+    assert.match(output, /fill="var\(--color-state-success\)"/);
+    assert.match(output, /fill="currentColor"/);
+  }
+  for (const paint of ['url(https://example.com/x)', 'url(#gradient)', 'var(--unknown)', 'red;stroke:white', '#12']) {
+    const hostile = workspace(t, { 'icons/mine.svg': ICON(`<path d="M0 0h8v8z" fill="${paint}"/>`) });
+    const problems = await reject(diagramplay('icons color "icons" paint=source\nbox a "A" icon=color:mine\n'), { baseDir: hostile });
+    assert.ok(problems.some((problem) => /unsupported paint/.test(problem.message)), paint);
+  }
+  for (const option of ['paint=unknown', 'paint=source paint=mono', 'fill=source']) {
+    assert.ok((await reject(diagramplay(`icons color "icons" ${option}\nbox a "A"\n`), { baseDir: dir })).some((problem) => problem.line === 2), option);
+  }
+});
+
 test('I2 an icon file with code, outside resources or unknown content is rejected at its line, or stripped so none of it reaches the picture', async (t) => {
   const hostile = {
     script: ICON('<script>alert(1)</script>'),

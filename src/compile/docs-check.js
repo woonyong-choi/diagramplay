@@ -3,6 +3,7 @@ import { createProblems } from '../source/problems.js';
 import { toSvg } from '../svg/output.js';
 import { graphViews, STRUCTURE_JUDGES } from '../check/docs.js';
 import { checkColumn, checkRequires, checkWrappedChain, visibleTexts } from '../check/docs-text.js';
+import { CHECKS } from '../check/items.js';
 
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 원본 글자 수
@@ -26,6 +27,7 @@ export function withAspect(figure, aspect) {
 export async function checkDocs(result, { rebuild } = {}) {
   const problems = createProblems(result.figure.source);
   const context = { ...result, views: graphViews(result) };
+  for (const { judge, stage } of CHECKS) if (stage === 'docs') judge?.(context, problems);
   for (const judge of STRUCTURE_JUDGES) judge(context, problems);
   if (rebuild) await checkWrappedChain(result, rebuild, problems);
   // 보이는 글은 모든 장면의 글이 든 움직이는 SVG에서 읽는다. 요구 항목이 없으면 만들지 않는다.

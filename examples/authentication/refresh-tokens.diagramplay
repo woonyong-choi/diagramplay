@@ -1,0 +1,33 @@
+diagramplay
+pace 900ms
+title "04 · 액세스 토큰과 리프레시 토큰"
+subtitle "설명용 모형 · 짧은 접근 수명과 갱신 권한을 나눈다 · 숫자는 시연용이며 보안 권장값이 아니다"
+icons story "icons" paint=source
+box browser "브라우저" icon=story:browser
+box access "Access" "API 접근용" icon=story:key tone=yellow {
+  value ttl "남은 분" from=5
+}
+box api "API 서버" icon=story:server
+box refresh "Refresh" "재발급용" icon=story:refresh tone=blue
+box auth "인가 서버" icon=story:provider
+browser -> access "토큰 선택" no=1
+access -> api "Bearer" no=2
+browser -> refresh "만료 후 갱신" no=3
+refresh -> auth "재발급 요청" no=4
+ auth -> access "새 토큰" dashed
+view graph right
+scene "접근 후 갱신" mode=loop
+  browser -> access
+  access -> api set="ttl=0"
+  show api "401 · 만료됨" tone=red appearance=filled
+  browser -> refresh
+  refresh -> auth
+  show auth "갱신 권한 확인" tone=green appearance=filled
+  auth -> access set="ttl=5"
+  show access "새 액세스 토큰" tone=green appearance=filled
+  access -> api
+  show api "요청 허용" tone=green appearance=filled
+  wait 1800ms
+scene "각 토큰의 역할" mode=static
+  show access "짧은 수명으로 피해 시간 제한" tone=yellow appearance=filled
+  show refresh "보호·회전·폐기로 장기 접근 통제" tone=blue appearance=filled

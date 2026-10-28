@@ -1,0 +1,133 @@
+diagramplay
+title "09 · 주문 플랫폼 전체 설계"
+subtitle "설계 모형 · 다중 진입점, 권한 검증, 도메인 서비스, Outbox, 이벤트 처리, 재시도와 관측"
+pace 700ms
+width wide
+icons story "icons" paint=source
+
+group clients "클라이언트" direction=down badge="진입" {
+  box web "고객 웹" shape=symbol icon=story:browser
+  box mobile "모바일 앱" shape=symbol icon=story:identity
+  box seller "판매자 콘솔" shape=symbol icon=story:browser
+}
+group edge "진입 계층" direction=down badge="보호" {
+  box waf "WAF · Rate Limit" icon=story:shield
+  box gateway "API Gateway" icon=story:server count=2
+  box bff "고객 BFF" icon=story:server count=2
+}
+group access "신원과 권한" direction=down badge="인증" {
+  box auth "토큰 검증" icon=story:jwt
+  box policy "접근 정책" icon=story:lock
+  store jwks "JWKS 캐시" icon=story:key
+}
+group domains "도메인 서비스" direction=down badge="API" {
+  box catalog "상품 조회" icon=story:photos count=3
+  box checkout "주문 접수" icon=story:server count=3
+  box orders "주문 상태" icon=story:server count=2
+  box inventory "재고 예약" icon=story:lock count=2
+  box payments "결제 처리" icon=story:key count=2
+}
+group data "저장 계층" direction=down badge="데이터" {
+  store search "검색 색인" icon=story:drive
+  store cache "상품 캐시" icon=story:session
+  store orderdb "주문 DB" icon=story:drive
+  store stockdb "재고 DB" icon=story:drive
+  store paydb "결제 DB" icon=story:drive
+  store outbox "Outbox" icon=story:mail
+  box relay "이벤트 발행기" icon=story:refresh
+}
+group events "이벤트 전달" direction=down badge="비동기" {
+  queue ordertopic "주문 이벤트" slots=4 from=1
+  queue paymenttopic "결제 이벤트" slots=4
+  queue shipmenttopic "배송 이벤트" slots=4
+  queue retry "지연 재시도" slots=4 from=1
+  queue dlq "실패 격리" slots=4
+}
+group workers "이벤트 소비자" direction=down badge="워커" {
+  box reserve "재고 처리자" icon=story:server count=2
+  box charge "결제 처리자" icon=story:server count=2
+  box fulfill "배송 처리자" icon=story:server count=2
+  box notify "알림 처리자" icon=story:mail count=2
+}
+group integrations "외부 연동" direction=down badge="외부" dashed {
+  external pg "결제사" icon=story:key
+  external carrier "배송사" icon=story:drive
+  external mail "메일 서비스" icon=story:mail
+}
+group operations "운영 관측" direction=down badge="운영" {
+  box collector "추적 수집기" icon=story:session
+  store telemetry "메트릭 · 로그" icon=story:drive
+  box alert "장애 알림" icon=story:shield
+}
+
+web -> waf
+mobile -> waf
+seller -> waf
+waf -> gateway
+gateway -> auth "JWT 검증" dashed
+auth -> jwks "서명 키"
+auth -> policy "권한 판정"
+gateway -> bff
+gateway -> orders "판매자 API"
+bff -> catalog "상품 조회"
+bff -> checkout "주문 생성"
+catalog -> cache "캐시 조회"
+catalog -> search "검색"
+checkout -> orders "주문 접수"
+checkout -> inventory "예약 요청"
+orders -> orderdb "주문 트랜잭션"
+orders -> outbox "같은 트랜잭션" dashed
+inventory -> stockdb "수량·버전"
+payments -> paydb "멱등 키"
+outbox -> relay "미발행 행"
+relay -> ordertopic "OrderCreated"
+ordertopic -> reserve "재고 예약"
+ordertopic -> charge "결제 요청"
+reserve -> inventory "멱등 처리"
+charge -> payments "승인 요청"
+payments -> pg "결제 승인"
+payments -> paymenttopic "PaymentApproved"
+paymenttopic -> fulfill "배송 생성"
+paymenttopic -> notify "결제 알림"
+fulfill -> carrier "배송 접수"
+fulfill -> shipmenttopic "ShipmentCreated"
+shipmenttopic -> notify "배송 알림"
+notify -> mail "발송"
+charge -> retry "일시 실패" dashed
+retry -> charge "지연 후 재시도" dashed
+charge -> dlq "횟수 초과" dashed
+reserve -> dlq "처리 불가" dashed
+gateway -> collector "요청 추적" dashed
+orders -> collector "도메인 추적" dashed
+charge -> collector "소비 추적" dashed
+dlq -> alert "격리 경보" dashed
+collector -> telemetry
+telemetry -> alert "오류율·지연"
+
+view graph right
+
+scene "전체 구조" mode=static
+
+scene "동시 요청과 이벤트" mode=loop for=12s
+  track web, mobile -> waf -> gateway -> bff -> checkout -> orders -> outbox -> relay -> ordertopic at=0s every=3s time=7s tone=blue
+  track gateway -> auth -> jwks at=500ms every=3s time=1800ms tone=cyan
+  track bff -> catalog -> cache at=1s every=3s time=2200ms tone=cyan
+  track ordertopic -> reserve -> inventory -> stockdb at=2s every=3s time=3s tone=green
+  track ordertopic -> charge -> payments -> pg at=3s every=3s time=3s tone=orange
+  track payments -> paymenttopic -> fulfill -> carrier at=5s every=3s time=3s tone=green
+  track fulfill -> shipmenttopic -> notify -> mail at=6s every=3s time=3s tone=cyan
+
+scene "결제사 지연" mode=loop status="pg=fail, retry=wait" for=10s
+  track ordertopic -> charge -> payments -> pg at=0s every=3s time=3s tone=orange lost=85%
+  track charge -> retry at=3s every=3s time=1200ms tone=yellow
+  track retry -> charge -> payments at=5s every=3s time=2400ms tone=blue
+  track charge -> collector -> telemetry -> alert at=1s every=3s time=3s tone=red
+
+scene "실패 격리" mode=loop status="dlq=warn, alert=warn" for=8s
+  track charge -> dlq -> alert at=0s every=2400ms time=2s tone=red
+  track ordertopic -> reserve -> inventory -> stockdb at=500ms every=2400ms time=3s tone=green
+
+scene "운영 추적" mode=loop for=8s
+  track gateway -> collector -> telemetry -> alert at=0s every=2400ms time=3s tone=cyan
+  track orders -> collector -> telemetry at=600ms every=2400ms time=2400ms tone=blue
+  track charge -> collector -> telemetry at=1200ms every=2400ms time=2400ms tone=orange

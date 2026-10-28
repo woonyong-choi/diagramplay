@@ -25,7 +25,7 @@ export function checkAspect({ figure, scene }, problems) {
   let fix;
   if (group) fix = `Set direction=${isWide ? 'down' : 'right'} on group "${group.id}"`;
   else if (figure.aspect !== undefined) fix = `Use a ${isWide ? 'smaller' : 'larger'} aspect than ${figure.aspect}`;
-  else fix = 'Add "aspect 1.6"';
+  else fix = 'Use a wider display, or split the figure into an overview and details';
   problems.warn(figure.line, `[check 9] figure aspect ${ratio.toFixed(1)} is outside 1/3 to 3. ${fix}`);
 }
 
@@ -47,9 +47,8 @@ export function checkReadable({ figure, scene }, problems) {
   problems.warn(figure.line, `[check 10] at canvas width the smallest text is ${smallest.toFixed(1)}px. ${readableFix({ figure, scene })}`);
 }
 
-// 10번 경고의 고치는 방법. aspect를 적으면 자동 맞춤(방향 돌리기, 접기)을 하지 않으므로 먼저 aspect를 지우라고 알린다.
+// 문서 폭에서 글자가 작아질 때의 안내. 화면 맞춤을 위해 자동으로 선을 접지 않는다.
 function readableFix({ figure, scene }) {
   if (figure.views.every((view) => view.strategy === 'sequence')) return 'Use fewer participants or shorter messages';
-  if (figure.aspect !== undefined) return 'Remove the aspect line so the tool can turn or fold the figure to fit, or set a smaller aspect';
-  return scene.groups.length ? 'Make the figure narrower with group directions, shorten the labels, or split it into an overview and a detail figure' : 'Shorten the labels, or split it into an overview and a detail figure';
+  return 'Use a wider display, zoom in, or split it into an overview and a detail figure';
 }

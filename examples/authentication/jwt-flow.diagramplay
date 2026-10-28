@@ -1,0 +1,29 @@
+diagramplay
+pace 900ms
+title "03 · JWT 발급과 검증"
+subtitle "설명용 모형 · 로그인 때 발급한 토큰의 서명·발급자·대상·만료를 다음 요청에서 확인한다"
+icons story "icons" paint=source
+box user "사용자" shape=symbol icon=user
+box browser "브라우저" shape=symbol icon=story:browser
+box server "서버" shape=symbol icon=story:server
+view sequence {
+  user browser server
+}
+scene "발급" mode=loop
+  user -> browser "로그인"
+  browser -> server "이메일 + 비밀번호"
+  server -> server "서명한 JWT 생성"
+  server -> browser "토큰 반환" dashed
+  note browser "이후 요청에 사용할 토큰 보관"
+  wait 1400ms
+scene "정상 토큰" mode=loop
+  user -> browser "보호 페이지"
+  browser -> server "Bearer 토큰"
+  server -> server "서명·iss·aud·exp 검증"
+  server -> browser "접근 허용" dashed
+  wait 1400ms
+scene "변조된 토큰" mode=loop
+  browser -> server "변조된 Payload"
+  server -> server "서명 불일치"
+  server -> browser "401 · 토큰 거부" dashed
+  wait 1400ms

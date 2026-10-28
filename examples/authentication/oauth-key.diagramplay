@@ -1,0 +1,21 @@
+diagramplay
+pace 900ms
+title "06 · 접근 범위는 열쇠처럼"
+subtitle "설명용 모형 · OAuth의 액세스 토큰은 허용한 작업을 전달하고 사용자 신원 증명을 대신하지 않는다"
+icons story "icons" paint=source
+box consent "사용자 동의" icon=story:lock
+box key "제한된 열쇠" icon=story:key tone=yellow
+box photos "사진 읽기" icon=story:photos
+box delete "사진 삭제" icon=story:lock
+consent -> key "scope 부여" no=1
+key -> photos "photos.read" no=2
+key -> delete "권한 없음" dashed
+view graph right
+scene "허용된 범위" mode=loop
+  consent -> key
+  show key "scope: photos.read" mono
+  key -> photos
+  show photos "읽기 허용" tone=green appearance=filled
+  light delete
+  show delete "삭제는 거부" tone=red appearance=filled
+  wait 1800ms

@@ -1,0 +1,31 @@
+diagramplay
+pace 900ms
+title "03 · JWT의 세 부분"
+subtitle "설명용 모형 · Header.Payload.Signature · 인코딩된 내용은 읽을 수 있으며 서명은 변조를 검증한다"
+icons story "icons" paint=source
+box header "Header" icon=story:jwt tone=red
+box payload "Payload" icon=story:identity tone=cyan
+box signature "Signature" icon=story:signature tone=green
+header -> payload "인코딩된 부분" head=none
+payload -> signature "서명으로 검증" head=none
+view graph right
+scene "토큰 분해" mode=loop
+  light header
+  show header "alg: HS256" mono
+  show header "typ: JWT" mono
+  wait 1100ms
+  light payload
+  show payload "sub: user-7" mono
+  show payload "exp: 1800000000" mono
+  show payload "암호화된 비밀이 아님" tone=yellow appearance=filled
+  wait 1300ms
+  light signature
+  show signature "서명 키로 생성" tone=green appearance=filled
+  show signature "Header + Payload 검증" mono
+  wait 1800ms
+scene "완성된 토큰" mode=static
+  show header "alg: HS256" mono
+  show header "typ: JWT" mono
+  show payload "sub: user-7" mono
+  show payload "exp: 1800000000" mono
+  show signature "서명 검증용 바이트" mono

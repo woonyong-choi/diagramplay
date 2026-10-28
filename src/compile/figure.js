@@ -25,7 +25,7 @@ const LABEL_KEY = { bar: 'label', stacked: 'label', percent: 'label', dumbbell: 
  * @param baseDir 차트 카드 `data` 경로의 기준 폴더
  * @param strict 경고도 오류로 올린다
  * @param budget 올린 예산 { 이름: 값 }. 이름 없는 예산은 기본 한도다(src/compile/budget.js)
- * @param layoutWidth 그래프 보기의 배치 목표 폭. 들어가지 못하면 경고하고 글자·도형 크기는 유지한다
+ * @param layoutWidth 명시적인 그래프 배치 목표 폭. 생략하면 자연 배치하고 화면 맞춤은 뷰어가 맡는다
  * @returns { figure, scene, timeline, warnings, valueTexts }. figure.source는 받은 원본 글 그대로(CRLF 포함)이고 reflowFigure도 같은 figure를 쓴다. scene은 보기마다의 판을 합친 장면(scene.panels, scene.plots, scene.times, scene.chartFrames)이고 timeline은 문서 하나의 시간표다
  * @throws FigureError 원본 오류나 그림 검사 오류가 있을 때. 모든 문제를 담는다
  */

@@ -37,7 +37,7 @@ function createContext(figure, scene, timeline) {
 /** 장면({ figure, scene, timeline })을 검사해 오류와 경고를 problems에 넣는다. 항목 목록 순서대로 판정하고 오류 메시지 앞에 검사 번호를 붙인다. 끝나지 않는 대기(`stalls`)는 경고 `wait-stalled`로 알린다. */
 export function checkFigure({ figure, scene, timeline }, problems) {
   const context = createContext(figure, scene, timeline);
-  for (const { judge } of CHECKS) judge?.(context, problems);
+  for (const { judge, stage } of CHECKS) if (stage === 'scene') judge?.(context, problems);
   warnStalls(figure, timeline, problems);
   return { hiddenChipWarnings: context.hiddenChipWarnings };
 }

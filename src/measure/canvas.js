@@ -1,4 +1,4 @@
-// 그림 폭 규칙. viewBox는 내용 폭이고 SVG와 HTML은 자연 크기(viewBox 한 단위가 1px)보다 커지지 않는다. 캔버스는 배치 후보를 고르는 표시 상한이자 HTML 틀의 최대 폭이다. 배치는 본문 단 폭에 맞춘다(docs/design/layout.md 그림 비율).
+// 그림 폭 규칙. viewBox는 내용 폭이고 SVG와 HTML은 자연 크기(viewBox 한 단위가 1px)보다 커지지 않는다. 캔버스는 HTML 틀의 최대 폭이다. 그래프는 자연 배치하며 명시적인 layoutWidth만 배치를 제한한다(docs/design/layout.md 그림 비율).
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 /** 구조, 순서, 상태, 데이터 그림의 표시 상한. 배치 후보를 고를 때와 그림 검사 9·10번이 이 폭으로 잰다. */
@@ -7,7 +7,7 @@ export const CANVAS = values.spacing.figure["figure-canvas"];
 const CANVAS_WIDE = values.spacing.figure["figure-canvas-wide"];
 /**
  * 본문 단 폭. 기술 블로그 본문 단과 차트 그림 폭(`spacing.figure.chart.width`)이 같은 값이다.
- * 구조 그림의 배치는 이 폭 안에 들도록 방향을 돌리거나 접는다. 그 안에 든 그림은 본문 단에서 줄지 않아 가장 작은 글 토큰이 그대로 보인다.
+ * 명시적인 배치 목표 폭을 처리하는 기존 후보 비교에서 단 폭 기준으로 쓴다. 그 안에 든 그림은 본문 단에서 줄지 않아 가장 작은 글 토큰이 그대로 보인다.
  */
 const COLUMN = values.spacing.figure.chart.width;
 /** 그림 둘레 안쪽 여백. 배치와 차트가 내용 둘레에 같은 값을 둔다. 그림 폭이 내용 폭이라 이 여백이 캔버스의 빈 테두리 전부다. */
@@ -38,7 +38,7 @@ export const canvasOf = (figure) => (figure?.width === 'wide' ? CANVAS_WIDE : CA
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-/** 구조 그림 배치가 들어갈 목표 폭. `width wide`면 넓은 폭(넓어도 된다는 뜻)이고 생략하면 본문 단 폭이다. */
+/** 명시적인 배치 목표 폭의 후보 비교 기준. 자연 배치에는 적용하지 않는다. `width wide`면 넓은 폭(넓어도 된다는 뜻)이고 생략하면 본문 단 폭이다. */
 export const layoutWidthOf = (figure) => (figure?.width === 'wide' ? CANVAS_WIDE : COLUMN);
 
 // cost: time O(1), heap O(1), stack O(1)

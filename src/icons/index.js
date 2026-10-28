@@ -55,7 +55,7 @@ export function attachIcons(figure, baseDir, problems) {
     // 이름이 틀린 참조는 원본 읽기(source/icons.js checkIcons)가 그 줄에 이미 알렸다. 같은 원인을 두 번 알리지 않는다.
     if (!isNamed(ref, figure.iconSets) || (ref.set !== DEFAULT_SET && !folders.has(ref.set))) continue;
     try {
-      item.iconData = loadIcon(ref, { folders, baseDir });
+      item.iconData = loadIcon(ref, { folders, baseDir, paint: figure.iconSets.find((set) => set.name === ref.set)?.paint });
     } catch (error) {
       problems.error(item.line, `cannot use icon "${item.icon}": ${error.code === 'ENOENT' ? 'the file does not exist' : error.message}`);
     }
@@ -81,18 +81,19 @@ function isNamed({ set, name }, sets) {
  * @param baseDir 기준 폴더. 아이콘 파일이 링크로 그 밖을 가리키면 읽지 않는다
  * @throws Error 파일이 없거나, 기준 폴더 밖이거나, SVG를 정리할 수 없을 때
  */
-function loadIcon(ref, { folders, baseDir }) {
+function loadIcon(ref, { folders, baseDir, paint }) {
   if (ref.set === DEFAULT_SET) return { svg: readIcon(ref.name), role: ICON_NAMES[ref.name] };
   const file = insideBase(baseDir, join(folders.get(ref.set), `${ref.name}.svg`));
   if (file === undefined) throw new Error(OUTSIDE);
-  return { ...readSvg(file), role: 'custom' };
+  return { ...readSvg(file, paint), role: 'custom' };
 }
 
 // cost: time O(n), heap O(n), stack O(1), io 1
 // vars: n = 파일 글자 수
 // basis: estimate
 // 파일 하나를 정리해 읽는다. 같은 파일은 한 번만 읽는다.
-function readSvg(file) {
-  if (!cache.has(file)) cache.set(file, sanitizeIcon(readFileSync(file, 'utf8')));
-  return cache.get(file);
+function readSvg(file, paint) {
+  const key = `${file}:${paint}`;
+  if (!cache.has(key)) cache.set(key, sanitizeIcon(readFileSync(file, 'utf8'), { paint }));
+  return cache.get(key);
 }

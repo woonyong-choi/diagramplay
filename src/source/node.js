@@ -38,14 +38,14 @@ export function readNode(statement, ctx) {
   const sub = first?.type === 'text' ? first : undefined;
   if (sub && !takesSub) ctx.problems.error(line, `${shape} takes no subtitle`, { column: sub.column });
   const found = readOptions(tail.filter((t) => t !== sub), { scopes, what: `a ${shape}`, line, ctx });
-  const isTile = found.shape === 'tile';
+  const isTile = found.shape === 'tile' || found.shape === 'symbol';
   const form = found.shape === 'rect' || isTile ? undefined : found.shape;
   checkNodeOptions({ found, form, sub, line }, ctx);
   const { badge, count } = found;
   const look = readLook(found);
   const icon = found.icon ?? (shape === 'person' ? PERSON_ICON : undefined);
   const queue = shape === 'queue' ? readQueue({ found, id: id.value, label: label.value, line }, ctx) : undefined;
-  const card = { id: id.value, shape: form ?? shape, label: label.value, sub: takesSub ? sub?.value : undefined, badge, icon, count, ...look, tile: isTile || undefined, ...queue, parent: parentFor(id, ctx), line };
+  const card = { id: id.value, shape: form ?? shape, label: label.value, sub: takesSub ? sub?.value : undefined, badge, icon, count, ...look, tile: isTile || undefined, symbol: found.shape === 'symbol' || undefined, ...queue, parent: parentFor(id, ctx), line };
   ctx.figure.nodes.push(card);
   if (!hasBody) return;
   if (!CARD_SHAPES.includes(card.shape)) {
@@ -76,5 +76,5 @@ function checkNodeOptions({ found, form, sub, line }, ctx) {
   const { problems } = ctx;
   if (form === 'circle' && sub) problems.error(line, 'a circle takes a name only. Remove the subtitle or shape=circle');
   if (form === 'circle' && (found.badge !== undefined || found.icon !== undefined)) problems.error(line, 'a circle takes a name only. Remove the badge or icon, or use a rectangle');
-  if (found.shape === 'tile' && found.icon === undefined) problems.error(line, 'a tile is an icon card. Add icon=name or use a rectangle');
+  if (['tile', 'symbol'].includes(found.shape) && found.icon === undefined) problems.error(line, `a ${found.shape} needs an icon. Add icon=name or use a rectangle`);
 }

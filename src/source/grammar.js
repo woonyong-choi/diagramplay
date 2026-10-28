@@ -54,6 +54,7 @@ export const STATUS_SHAPES = ['box', 'circle', 'external', 'store', 'person', 'q
  * 차트 종류의 firstRole은 계열을 보이는 순서에서 먼저 오는 역할이다(기본 main). 계열이 하나나 둘이면 role을 생략한 계열은 선언 순서대로 main, compare를 받고(firstRole이 먼저), 셋 이상이면 생략한 계열은 역할이 없다. main과 compare는 각각 하나 이하이고 reference는 기대값 계열(계획, 목표)이다.
  */
 export const VALUES = {
+  iconPaint: { default: 'mono', items: table({ mono: {}, source: {} }) },
   fragmentType: { items: table({ alt: {}, loop: {}, par: {}, opt: {} }) },
   histogramMeasure: { default: 'count', items: table({ count: {}, probability: {}, density: {} }) },
   fragmentRun: { items: table({ on: {}, off: {} }) },
@@ -94,7 +95,7 @@ export const VALUES = {
   appearance: { default: 'plain', items: table({ plain: {}, filled: {}, outline: {} }) },
   role: { items: table({ main: {}, compare: {}, reference: {} }) },
   head: { default: 'end', items: table({ end: {}, both: {}, none: {} }) },
-  shape: { default: 'rect', items: table({ rect: {}, circle: {}, tile: {} }) },
+  shape: { default: 'rect', items: table({ rect: {}, circle: {}, tile: {}, symbol: {} }) },
   width: { default: 'standard', items: table({ standard: {}, wide: {} }) },
   status: { items: table({ ok: {}, warn: {}, fail: {}, wait: {} }) },
   deleteAction: { items: table({ restrict: {}, cascade: {}, 'set-null': {}, 'no-action': {} }) },
@@ -189,6 +190,7 @@ export const BLOCK_WORDS = table({ table: 'table', api: 'api', class: 'class', i
  * values는 값 목록 이름, format은 값 목록이 없는 낱말 값의 문서용 이름, maxLength는 글자 수 상한, min은 정수만 받는 숫자 선택 사항의 가장 작은 값이다.
  */
 export const OPTIONS = table({
+  'icons.paint': { type: 'word', values: 'iconPaint' },
   'fragment.choose': TEXT,
   'fragment.times': COUNT,
   'fragment.run': { type: 'word', values: 'fragmentRun' },

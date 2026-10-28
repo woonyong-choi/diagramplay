@@ -1,0 +1,33 @@
+diagramplay
+pace 900ms
+title "06 · OAuth로 사진 접근 위임"
+subtitle "설명용 모형 · 사진 인쇄 앱에 비밀번호를 넘기지 않고 승인한 범위의 접근만 위임한다"
+icons story "icons" paint=source
+box user "사용자" shape=symbol icon=user
+box app "사진 인쇄" shape=symbol icon=story:browser
+box auth "인가 서버" shape=symbol icon=story:provider
+box photos "사진 API" shape=symbol icon=story:photos
+view sequence {
+  user app auth photos
+}
+scene "사용자 동의" mode=loop
+  user -> app "사진 연결"
+  app -> auth "인가 요청 + PKCE"
+  auth -> user "로그인·범위 동의"
+  user -> auth "사진 읽기 승인"
+  auth -> app "인가 코드" dashed
+  wait 1500ms
+scene "코드와 토큰" mode=loop
+  app -> auth "코드 + verifier"
+  auth -> app "액세스 토큰" dashed
+  app -> photos "토큰으로 사진 요청"
+  photos -> photos "토큰과 scope 확인"
+  photos -> app "허용된 사진" dashed
+  wait 1500ms
+scene "검증 방식" mode=loop
+  app -> photos "사진 요청"
+  photos -> auth "불투명 토큰 조회"
+  auth -> photos "활성 상태·scope" dashed
+  note photos "서명 토큰은 검증 키로 로컬 검증할 수도 있다"
+  photos -> app "사진 응답" dashed
+  wait 1500ms
