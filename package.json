@@ -59,7 +59,7 @@
   "dependencies": {
     "@expo-google-fonts/noto-sans": "^0.4.2",
     "@expo-google-fonts/noto-sans-math": "^0.4.2",
-    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/0a7eb85757d58389771c83c46632f10ecef50b5c/artifacts/diagram.tgz",
+    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/bc95c30d8cf25742dc793046174893d7267db8a4/artifacts/diagram.tgz",
     "elkjs": "^0.9.3",
     "fontkit": "^2.0.4",
     "jetbrains-mono": "^1.0.6",
