@@ -11,7 +11,7 @@ decision stocked "재고 있음?"
 box lock "재고 잠금"
 store db "재고 DB"
 box pay "결제"
-box notice "대기 안내" tone=yellow appearance=filled
+box notice "대기 안내" tone=orange appearance=filled
 
 value stock "재고" on=db from=120
 value shown "앱에 보이는 재고" on=app ref=stock
@@ -48,7 +48,7 @@ scene "두 채널의 주문"
 
 scene "동시 주문" mode=loop speed=1.5 for=8s
   track web, app, partner -> api -> stocked -> lock -> db "주문" every=2s time=2400ms
-  track partner -> api -> pay at=1s every=3s time=2s tone=red lost=60%
+  track partner -> api -> pay at=1s every=3s time=2s tone=orange lost=60%
 
 scene "재고 확인 뒤 차감" keep="stock" set="holder=none"
   web -> api "주문"

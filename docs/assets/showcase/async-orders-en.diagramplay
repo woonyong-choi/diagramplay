@@ -41,4 +41,4 @@ scene "Events in flight" mode=loop
   track q -> stock at=0s every=1500ms time=2200ms set="q-1@q"
   track q -> pay at=150ms every=3s time=2800ms tone=orange set="q-1@q"
   track q -> notify at=300ms every=5s time=2500ms tone=gray set="q-1@q"
-  track q -> notify "Mail lost" at=450ms every=7s time=3s tone=red lost=60% set="q-1@q"
+  track q -> notify "Mail lost" at=450ms every=7s time=3s tone=silver lost=60% set="q-1@q"
