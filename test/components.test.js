@@ -326,6 +326,7 @@ test('U7 교차는 둥근 모서리까지 같은 규칙으로 끊고 선 끝의 
   assert.equal(crossingCuts([across, { points: [{ x: 200, y: 0 }, { x: 200, y: 200 }] }]).size, 0);
   assert.equal(crossingCuts([across, { points: [{ x: 100, y: 98 }, { x: 100, y: 300 }] }]).size, 0);
   assert.equal(crossingCuts([across, { ...down, si: 0 }]).size, 0);
+  assert.equal(crossingCuts([across, { ...down, quiet: true }]).size, 0, 'a hidden progressive relation must not punch a gap in an always visible line');
   const curved = { points: [{ x: 100, y: 0 }, { x: 100, y: 100 }, { x: 200, y: 100 }] };
   assert.equal(crossingCuts([{ points: [{ x: 0, y: 99 }, { x: 220, y: 99 }] }, curved]).size, 1, 'a crossing near the rounded corner uses the same gap');
   const nearby = crossingCuts([across, { points: [{ x: 0, y: 103 }, { x: 200, y: 103 }] }, down]);

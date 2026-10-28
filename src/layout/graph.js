@@ -72,7 +72,7 @@ async function layoutGraph(figure, sizes, layoutWidth) {
 // 배치 한 번. 안전 배치(safeLayout)는 자동 접기와 방향 돌리기를 하지 않는다.
 async function place(figure, sizes, layoutWidth) {
   let best = await arrange(figure, sizes);
-  if (layoutWidth === undefined && figure.aspect === undefined && !figure.safeLayout && !figure.naturalPlacement && figure.groups.length > 1) best = await compactNatural(figure, sizes, best);
+  if (layoutWidth === undefined && figure.aspect === undefined && !figure.safeLayout && !figure.naturalPlacement && (figure.groups.length > 1 || isRelationGraph(figure))) best = await compactNatural(figure, sizes, best);
   const canAdapt = figure.aspect === undefined || layoutWidth < layoutWidthOf(figure);
   if (layoutWidth !== undefined && best.laid.width > layoutWidth && canAdapt && !figure.safeLayout) best = await fitCanvas({ ...figure, aspect: undefined }, sizes, { flat: best, canvas: layoutWidth, cap: Math.max(layoutWidth, canvasOf(figure)) });
   let scene = readElk(best.laid, best.model);
@@ -86,18 +86,23 @@ async function place(figure, sizes, layoutWidth) {
   return blocked.length && !figure.wideGroups ? place({ ...figure, wideGroups: new Set(blocked) }, sizes, layoutWidth) : scene;
 }
 
-// cost: time O(3·(elk + check + p²)), heap O(s + p), stack O(d)
+// cost: time O(6·(elk + check + p²)), heap O(s + p), stack O(d)
 // vars: elk = 배치 시간, check = 기하 검사 시간, s = 도형 수, p = 전체 경로 점 수, d = 그룹 깊이
 // basis: estimate
-// 자연 배치의 후보는 화면 폭으로 접지 않는다. 같은 방향과 도형을 유지하고 경로·꺾임·교차·빈 면적으로 비교하며 유효한 기하만 채택한다.
+// 자연 배치는 같은 방향·도형을 유지하고 경로·꺾임·교차·빈 면적으로 비교한다. 관계형은 그룹 수와 무관하게 참조 루트를 앞에 놓는 후보와 최장선도 비교한다.
 async function compactNatural(figure, sizes, original) {
   let best = original;
-  const baseline = naturalMetrics(readElk(original.laid, original.model));
-  const costOf = scene => Object.entries(naturalMetrics(scene)).reduce((sum, [key, value]) => sum + value / Math.max(1, baseline[key]), 0);
+  const relational = isRelationGraph(figure);
+  const baseline = naturalMetrics(readElk(original.laid, original.model), relational);
+  const costOf = scene => Object.entries(naturalMetrics(scene, relational)).reduce((sum, [key, value]) => sum + value / Math.max(1, baseline[key]), 0);
   let rank = costOf(readElk(original.laid, original.model));
-  for (const naturalPlacement of ['NETWORK_SIMPLEX', 'SIMPLE']) {
+  const choices = [
+    ...['NETWORK_SIMPLEX', 'SIMPLE'].map(naturalPlacement => ({ naturalPlacement })),
+    ...(relational ? [undefined, 'NETWORK_SIMPLEX', 'SIMPLE'].map(naturalPlacement => ({ naturalPlacement, referenceFirst: true })) : []),
+  ];
+  for (const choice of choices) {
     try {
-      const candidate = await arrange({ ...figure, naturalPlacement }, sizes);
+      const candidate = await arrange({ ...figure, ...choice }, sizes);
       const scene = shortcutScene(readElk(candidate.laid, candidate.model), candidate.model, figure.isSound, figure);
       if (!figure.isSound(figure, scene)) continue;
       const cost = costOf(scene);
@@ -109,22 +114,30 @@ async function compactNatural(figure, sizes, original) {
   return best;
 }
 
-function naturalMetrics(scene) {
-  let length = 0, bends = 0, crossings = 0;
+function isRelationGraph(figure) {
+  return figure.nodes.length > 1 && figure.edges.length > 0 && figure.nodes.every(node => node.shape === 'table' || node.shape === 'classifier');
+}
+
+function naturalMetrics(scene, relational = false) {
+  let length = 0, bends = 0, crossings = 0, longest = 0;
   const segments = scene.edges.flatMap(edge => {
     bends += Math.max(0, edge.points.length - 2);
-    return edge.points.slice(1).map((b, i) => {
+    let edgeLength = 0;
+    const runs = edge.points.slice(1).map((b, i) => {
       const a = edge.points[i];
-      length += Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+      edgeLength += Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
       return { edge: edge.index, a, b };
     });
+    length += edgeLength;
+    longest = Math.max(longest, edgeLength);
+    return runs;
   });
   const horizontal = segments.filter(s => s.a.y === s.b.y);
   for (const v of segments.filter(s => s.a.x === s.b.x)) for (const h of horizontal) {
     if (v.edge !== h.edge && v.a.x > Math.min(h.a.x, h.b.x) && v.a.x < Math.max(h.a.x, h.b.x) && h.a.y > Math.min(v.a.y, v.b.y) && h.a.y < Math.max(v.a.y, v.b.y)) crossings++;
   }
   const empty = Math.max(0, scene.width * scene.height - scene.items.reduce((sum, it) => sum + it.w * it.h, 0));
-  return { length, bends, crossings, empty };
+  return { length, bends, crossings, empty, ...(relational ? { longest } : {}) };
 }
 
 // cost: time O(elk(s + e) + e·d), heap O(s + e·d), stack O(d)

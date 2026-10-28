@@ -32,7 +32,7 @@ api -> cache no=7 head=both
 api -> db no=8
 db -> replica no=9 dashed
 api -> pg "결제" no=10 dashed
-api -> replica no=11 quiet
+api -> replica no=11
 
 view graph down
 

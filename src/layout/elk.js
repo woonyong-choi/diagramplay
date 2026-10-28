@@ -35,7 +35,10 @@ const ROOM_OPTIONS = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placeme
 export function toElk(model, figure) {
   const byContainer = edgesByContainer(model, figure);
   const selfLoops = new Set(model.edges.filter((e) => e.from === e.to).map((e) => e.from));
-  const ctx = { model, figure, byContainer, selfLoops, alignRight: figure.aspect !== undefined && figure.groups.length > 0, isSafe: figure.safeLayout === true };
+  const references = model.edges.filter(edge => edge.from !== edge.to && (edge.isForeignKey || edge.relation === 'inheritance' || edge.relation === 'realization'));
+  const referenceSources = new Set(references.map(edge => edge.from));
+  const referenceRoots = new Set(figure.referenceFirst ? references.map(edge => edge.to).filter(id => !referenceSources.has(id)) : []);
+  const ctx = { model, figure, byContainer, selfLoops, referenceRoots, alignRight: figure.aspect !== undefined && figure.groups.length > 0, isSafe: figure.safeLayout === true };
   return containerToElk(model.containers.get(ROOT), ctx);
 }
 
@@ -133,7 +136,7 @@ function nodeToElk(n, ctx, partition = {}) {
     width: outer.w,
     height: outer.h,
     ports,
-    layoutOptions: { 'elk.portConstraints': portConstraint(ports, isFirstPass), ...alignOf(n.parent, ctx), ...partition },
+    layoutOptions: { 'elk.portConstraints': portConstraint(ports, isFirstPass), ...alignOf(n.parent, ctx), ...partition, ...(ctx.referenceRoots.has(n.id) ? { 'elk.layered.layering.layerConstraint': 'FIRST' } : {}) },
     ...selfLoopSpacing(n, ctx),
   };
 }

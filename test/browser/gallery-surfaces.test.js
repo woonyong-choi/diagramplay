@@ -8,7 +8,7 @@ import { COMPARISON_EXAMPLES } from '../../scripts/lib/comparison-examples.mjs';
 import { toComparison } from '../../src/html/listing.js';
 import { buildFigure, toHtml, toSvg } from '../../src/index.js';
 
-test('comparison_gallery_surfaces_remain_visible_when_diagram_paper_is_white', async () => {
+test('comparison_gallery_and_diagram_surfaces_keep_white_content_cards_distinct', async () => {
   const documents = new Map([['/index.html', toComparison(COMPARISON_EXAMPLES)]]);
   for (const example of COMPARISON_EXAMPLES) {
     const result = await buildFigure(example.source, { strict: true });
@@ -50,14 +50,18 @@ test('comparison_gallery_surfaces_remain_visible_when_diagram_paper_is_white', a
             assert.notEqual(face, surfaces.page, `${width}/${mode}: the gallery card remains distinct from the page`);
             assert.equal(face, surfaces.cards[0], 'overview and detail use one gallery surface');
           }
-          const player = await context.newPage();
-          try {
-            await player.goto(`${origin}/sequence.html`);
-            await player.evaluate(() => document.fonts.ready);
-            assert.equal(await player.locator('html').getAttribute('data-theme'), mode);
-            const paper = await player.locator('.fl-canvas').evaluate(element => getComputedStyle(element).backgroundColor);
-            if (mode === 'light') assert.notEqual(paper, surfaces.cards[0], 'white diagram paper does not replace the gallery surface');
-          } finally { await player.close(); }
+          for (const example of COMPARISON_EXAMPLES) {
+            const player = await context.newPage();
+            try {
+              await player.goto(`${origin}/${example.id}.html`);
+              await player.evaluate(() => document.fonts.ready);
+              assert.equal(await player.locator('html').getAttribute('data-theme'), mode);
+              const paper = await player.locator('.fl-canvas').evaluate(element => getComputedStyle(element).backgroundColor);
+              const card = await player.locator('.fl-node > .fl-stroke').first().evaluate(element => getComputedStyle(element).fill);
+              assert.equal(paper, surfaces.cards[0], `${example.id}: diagram and gallery backgrounds share the neutral surface`);
+              assert.notEqual(paper, card, `${example.id}: content cards stay distinct from the diagram background`);
+            } finally { await player.close(); }
+          }
         }
         assert.deepEqual(errors, []);
       } finally { await context.close(); }

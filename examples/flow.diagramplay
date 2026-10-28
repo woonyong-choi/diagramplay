@@ -26,11 +26,11 @@ app -> api
 partner -> api
 api -> stocked "확인"
 stocked -> lock "예"
-stocked -> notice "품절" quiet
+stocked -> notice "품절"
 lock -> db
 api -> pay
-web -> notice quiet
-app -> notice quiet
+web -> notice
+app -> notice
 
 view graph down
 

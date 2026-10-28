@@ -7,11 +7,11 @@
 /* tokens/tokens.json: 생성물, 손으로 고치지 않음 */
 :root {
   --color-gray-0: #ffffff;
+  --color-gray-43: #f4f4f4;
   --color-gray-59: #f0f0f0;
   --color-gray-94: #e7e7e7;
   --color-gray-212: #c9c9c9;
   --color-gray-282: #b7b7b7;
-  --color-gray-467: #888888;
   --color-gray-529: #787878;
   --color-gray-910: #171717;
   --color-gray-933: #111111;
@@ -25,12 +25,12 @@
   --color-data-grid: var(--color-gray-212);
   --color-data-category-1: var(--color-category-blue-solid);
   --color-figure-icon: var(--color-category-blue-light-border);
-  --color-figure-queue-empty: var(--color-gray-59);
+  --color-figure-queue-empty: var(--color-gray-94);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
-  --color-figure-outline: var(--color-gray-467);
+  --color-figure-outline: var(--color-outline);
   --color-figure-selection-fill: var(--color-category-blue-light-tint-3);
-  --color-figure-canvas: var(--color-control-paper);
+  --color-figure-canvas: var(--color-gray-43);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-figure-label-fill: var(--color-gray-94);
@@ -41,7 +41,6 @@
   --color-ui-muted: var(--primitive-muted);
   --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
-  --color-control-paper: var(--color-gray-0);
   --color-action-link: var(--primitive-link);
   --color-category-blue-anchor: #1e6bd6;
   --color-category-blue-fill: var(--color-category-blue-anchor);
@@ -150,12 +149,12 @@
   --color-state-on-active: var(--color-gray-0);
   --color-data-grid: var(--color-gray-212);
   --color-figure-icon: var(--color-category-blue-light-border);
-  --color-figure-queue-empty: var(--color-gray-59);
+  --color-figure-queue-empty: var(--color-gray-94);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
-  --color-figure-outline: var(--color-gray-467);
+  --color-figure-outline: var(--color-outline);
   --color-figure-selection-fill: var(--color-category-blue-light-tint-3);
-  --color-figure-canvas: var(--color-control-paper);
+  --color-figure-canvas: var(--color-gray-43);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-figure-label-fill: var(--color-gray-94);
@@ -292,13 +291,11 @@
 
 .fl .fl-queue-slot {
   fill: var(--color-figure-queue-empty);
-  stroke: var(--color-outline);
-  stroke-width: var(--border-width-thin);
+  stroke: none;
 }
 
 .fl .queue-fill .fl-queue-slot {
   fill: var(--color-data-category-1);
-  stroke: var(--color-data-category-1);
 }
 
 .fl .fl-shape-external > :is(.fl-stroke, .fl-pulse),

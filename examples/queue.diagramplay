@@ -17,7 +17,7 @@ on dlq held+1
 
 prod -> jobs
 jobs -> worker
-prod -> dlq quiet
+prod -> dlq
 worker -> admin dashed
 
 view graph down

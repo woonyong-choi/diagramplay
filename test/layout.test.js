@@ -505,3 +505,21 @@ test('composite_fk_multiplicities_stay_beside_their_endpoint_route_without_cross
     }
   }
 });
+
+test('relational_layout_shortens_complex_class_and_schema_routes_without_dropping_content', async () => {
+  const metrics = scene => {
+    const routes = scene.edges.map(edge => edge.points.slice(1).reduce((sum, point, index) => sum + Math.abs(point.x - edge.points[index].x) + Math.abs(point.y - edge.points[index].y), 0));
+    return { area: scene.width * scene.height, length: routes.reduce((sum, length) => sum + length, 0), longest: Math.max(...routes) };
+  };
+  for (const id of ['class', 'schema']) {
+    const source = COMPARISON_EXAMPLES.find(example => example.id === id).source;
+    const original = await buildFigure(source, { strict: true, layoutWidth: Number.MAX_SAFE_INTEGER });
+    const compact = await buildFigure(source, { strict: true });
+    assert.deepEqual(compact.figure.nodes, original.figure.nodes, `${id}: keep every field and member`);
+    assert.deepEqual(compact.figure.edges, original.figure.edges, `${id}: keep every relationship and endpoint`);
+    assert.deepEqual(compact.timeline.steps, original.timeline.steps, `${id}: keep every playback scene`);
+    assert.deepEqual(compact.scene.items.map(item => item.id).sort(), original.scene.items.map(item => item.id).sort());
+    const before = metrics(original.scene), after = metrics(compact.scene);
+    for (const key of ['area', 'length', 'longest']) assert.ok(after[key] < before[key], `${id}/${key}: ${after[key]} < ${before[key]}`);
+  }
+});

@@ -1,6 +1,6 @@
 // 실제로 그리는 둥근 경로의 교차를 같은 규칙으로 끊는다. 더 세로에 가까운 경로가 아래로 지나간다.
 // 경로 점은 그대로이고, 세로 구간을 가진 선의 path에 구멍 난 clipPath를 걸 뿐이다. 그룹과 판은 면이 없어(draw/figure.js drawGroup) 구멍으로 바탕이 그대로 보인다.
-// 장면마다 나타나는 선(순서 보기의 메시지처럼 장면 번호가 있는 선)은 늘 보이지 않으므로 끊지 않는다. 그 선이 숨은 장면에서 빈 구멍이 남기 때문이다.
+// 장면 메시지와 quiet처럼 조건부로 나타나는 선은 끊지 않는다. 그 선이 숨었을 때 항상 보이는 관계선에 빈 구멍이 남지 않게 한다.
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { roundCoord as r } from '../format/text.js';
 import { flattenRoute } from '../math/route.js';
@@ -14,7 +14,7 @@ const END_REACH = 1;
 // basis: estimate
 // 실제로 그리는 둥근 경로끼리 교차하는 자리. 더 세로에 가까운 선을 끊고 같은 기울기는 선언 순서로 결정한다. 연결점 근처의 합류는 끊지 않는다.
 export function crossingCuts(edges) {
-  const routes = edges.map((edge, j) => ({ j, points: edge.points, segments: edge.si === undefined && !edge.isMark ? runs(flattenRoute(edge.points)) : [] }));
+  const routes = edges.map((edge, j) => ({ j, points: edge.points, segments: edge.si === undefined && !edge.isMark && !edge.quiet ? runs(flattenRoute(edge.points)) : [] }));
   const cuts = new Map();
   for (let i = 0; i < routes.length; i++) for (let j = i + 1; j < routes.length; j++) {
     const first = routes[i], second = routes[j];
