@@ -31,7 +31,7 @@ export function shortcutScene(scene, model, isSound, figure) {
       const candidate = { ...best, groups: best.groups.map(group => ({ ...group })), edges: best.edges.map((other, i) => ({ ...other, points: i === index ? points : other.points, labelAt: other.labelAt && { ...other.labelAt } })) };
       settleLabels(candidate.edges, candidate.items, candidate, candidate.groups);
       placeTitles(candidate.groups, candidate.edges, { sweep: model.sweep });
-      if (isSound(figure, candidate)) { best = candidate; break; }
+      if (isSound(figure, candidate, best)) { best = candidate; break; }
     }
   }
   return best;

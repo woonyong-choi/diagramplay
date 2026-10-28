@@ -53,10 +53,19 @@ export function checkChartFigure(chart, problems) {
 // cost: time O(check), heap O(s + e), stack O(1)
 // vars: check = 그림 검사 시간, s = 도형 수, e = 선 수
 // basis: estimate
-/** 그래프 배치 후보가 선·라벨·상태 알약의 기하 검사를 통과하는지. 실제 사건 처리와 이동 글 검사는 선택 뒤 build-scene.js의 검사가 맡는다. 배치(layout/graph.js)가 받는 판정이다. */
-export function isSoundGraph(figure, scene) {
+/** 그래프 후보의 기하 검사. reference가 있으면 기존 오류 외의 새 오류가 없는지 비교한다. 실제 사건과 이동 글, 최종 그림의 전체 검사는 선택 뒤 compile/scene.js가 맡는다. */
+export function isSoundGraph(figure, scene, reference) {
+  const errors = graphErrors(figure, scene);
+  if (!reference) return !errors.length;
+  const existing = new Set(graphErrors(figure, reference).map(error => `${error.code}:${error.line}:${error.message}`));
+  return errors.every(error => existing.has(`${error.code}:${error.line}:${error.message}`));
+}
+
+// 후보의 국소 경로 단축은 기존의 다른 오류를 늘리지 않는지 비교한다. 최종 그림 검사는 모든 오류를 그대로 판정한다.
+function graphErrors(figure, scene) {
   const problems = createProblems();
   const timeline = { segs: figure.steps.map((step) => ({ hops: [], status: step.status })) };
-  checkFigure({ figure: { ...figure, views: [{ strategy: 'graph' }] }, scene: composePanels([{ strategy: 'graph', scene }]), timeline }, problems);
-  return !problems.errors.length;
+  const copy = { ...scene, items: scene.items.map(item => ({ ...item })), groups: scene.groups.map(group => ({ ...group })), edges: scene.edges.map(edge => ({ ...edge, points: edge.points.map(point => ({ ...point })), labelAt: edge.labelAt && { ...edge.labelAt }, endpointLabels: edge.endpointLabels?.map(label => ({ ...label })) })) };
+  checkFigure({ figure: { ...figure, views: [{ strategy: 'graph' }] }, scene: composePanels([{ strategy: 'graph', scene: copy }]), timeline }, problems);
+  return problems.errors;
 }

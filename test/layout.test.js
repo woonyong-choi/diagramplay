@@ -52,6 +52,18 @@ test('buildFigure_complex_groups_keep_the_entry_handoff_aligned_without_dropping
   const entry = result.scene.groups.find(group => group.id === 'edge');
   assert.ok(Math.abs(clients.y + clients.h / 2 - entry.y - entry.h / 2) < 1, 'entry groups share a centre instead of forming a staircase');
   assert.ok(result.scene.width * result.scene.height < 4000000, 'the same graph avoids the previous 4.9 million square-unit frame');
+  for (const edge of result.scene.edges.filter(edge => edge.to === 'waf')) assert.ok(edge.points.length <= 4, `${edge.from}: an unrelated label error must not retain the six-turn group detour`);
+});
+
+test('isSoundGraph_reference_allows_existing_errors_but_rejects_new_collisions', async () => {
+  const built = await buildFigure('diagramplay\nbox a "A"\nbox b "B"\nbox c "C"\n');
+  const reference = { ...built.scene, items: built.scene.items.map(item => ({ ...item })) };
+  Object.assign(reference.items[1], { x: reference.items[0].x, y: reference.items[0].y });
+  assert.equal(isSoundGraph(built.figure, reference), false, 'final validation retains the existing collision');
+  assert.equal(isSoundGraph(built.figure, reference, reference), true, 'a local candidate may preserve an unrelated error');
+  const candidate = { ...reference, items: reference.items.map(item => ({ ...item })) };
+  Object.assign(candidate.items[2], { x: candidate.items[0].x, y: candidate.items[0].y });
+  assert.equal(isSoundGraph(built.figure, candidate, reference), false, 'a new collision is not hidden by the baseline');
 });
 
 test('buildFigure_default_graph_keeps_a_wide_chain_straight_and_leaves_display_diagnostics_to_docs', async () => {
