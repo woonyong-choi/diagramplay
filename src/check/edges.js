@@ -34,7 +34,7 @@ export function checkEnds({ edges, scene }, problems) {
       const id = end.split('.')[0];
       const it = rects.get(id);
       const isSelf = e.from.split('.')[0] === e.to.split('.')[0];
-      if (it && !isPortPlace(point, it, { way, isSelf, ...part })) problems.error(e.line, `[check 4] internal: edge ${e.from} -> ${e.to} does not touch "${id}" at its connection point. Please report this`);
+      if (it && !isPortPlace(point, it, { way, isSelf, index: e.index, ...part })) problems.error(e.line, `[check 4] internal: edge ${e.from} -> ${e.to} does not touch "${id}" at its connection point. Please report this`);
     }
   }
 }
@@ -42,11 +42,16 @@ export function checkEnds({ edges, scene }, problems) {
 // cost: time O(c), heap O(1), stack O(1)
 // vars: c = 테이블 열 수와 칸 수
 // basis: estimate
-// 도형별 연결점. 나가는 선은 오른쪽(세로 그룹 안 원통은 아래나 오른쪽), 들어오는 선은 왼쪽(세로 그룹 안 원통은 위나 왼쪽)이다. 갈림길은 마름모 꼭짓점 넷 가운데 하나다(갈래마다 다른 꼭짓점, layout/ports.js). 격자 칸의 선은 그 칸의 테두리다. 묶음 배치한 테이블 열은 들어오는 선도 오른쪽이다. 그 밖의 도형과 그룹은 경계 어디나다.
-function isPortPlace(p, it, { way, isSelf, columns }) {
+// 컬럼의 면과 벌어진 행 연결점은 배치가 정한 실제 포트를 따른다(docs/design/layout.md).
+function isPortPlace(p, it, { way, isSelf, columns, index }) {
   const side = way === 'out' ? it.x + it.w : it.x;
   // 묶음 배치와 자기 참조 외래 키는 들어오는 선도 오른쪽 면이다(layout/ports.js columnPort). 같은 줄 같은 면의 연결점은 줄 높이 안에서 벌어진다(fanColumnPorts).
-  if ((it.shape === 'table' || it.shape === 'api') && columns) return near(p.x, it.isBracket || isSelf ? it.x + it.w : side) && Math.abs(p.y - (it.y + columnAnchorY(it.tableRows, columns))) <= it.tableRows[0].h / 2;
+  if ((it.shape === 'table' || it.shape === 'api') && columns) {
+    const port = it.ports?.find(port => port.id === `${it.id}::${way}::${index}`);
+    const x = port?.position ? it.x + port.position.x : it.isBracket || isSelf ? it.x + it.w : side;
+    const y = it.y + (port?.position?.y ?? columnAnchorY(it.tableRows, columns));
+    return near(p.x, x) && near(p.y, y);
+  }
   if (it.shape === 'decision') return isVertex(p, it);
   // 원통은 뚜껑 윤곽까지가 선이 닿는 면이라 그린 사각형으로 본다.
   if (it.shape === 'store') {

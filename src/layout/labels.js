@@ -32,7 +32,7 @@ export function settleLabels(edges, items, bounds, groups = []) {
   const runs = edges.flatMap((e) => e.points.slice(1).map((q, k) => ({ p: e.points[k], q, edge: e.index })));
   const ends = edges.flatMap(edge => (edge.endpointLabels ?? []).map(label => boxAt(label, label)));
   const headers = groups.filter(group => group.label).map(group => headBox(group, group.iconData?.library === 'nhn-cloud' ? 0 : values.spacing["4-5"]));
-  const placed = [];
+  const placed = [...bounds.obstacles ?? []];
   for (const e of edges) {
     if (!e.labelAt) continue;
     const size = sizePill(e.label, e.no);

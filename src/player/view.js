@@ -9,7 +9,7 @@
  */
 function figureView(root, data) {
   // 보는 상태 한 덩어리. zoom은 전체 화면의 확대 배수(1이면 그림 전체가 보임), drag는 끄는 중인 손짓이다.
-  const viewer = { root, canvas: root.querySelector('.fl-canvas'), panels: root.querySelector('.dp-panels'), metrics: data.metrics, data, zoom: 1, drag: undefined, fullButton: root.querySelector('.fl-full') };
+  const viewer = { root, canvas: root.querySelector('.fl-canvas'), panels: root.querySelector('.dp-panels'), metrics: data.metrics, data, zoom: 1, isReading: false, drag: undefined, fullButton: root.querySelector('.fl-full') };
   bindResponsiveView(viewer);
   bindExport(root);
   bindFull(viewer);
@@ -18,13 +18,10 @@ function figureView(root, data) {
   showFull(viewer, false);
 }
 
-// 좁은 배치가 있는 그림은 화면 폭에 맞춰 배치를 고른다.
-// 좁은 배치로 바꾸는 기준은 가장 넓은 판의 상자 폭(box.w)이다. 확대 중(전체 화면)에는 하지 않는다.
 function bindResponsiveView(viewer) {
   const { root } = viewer;
-  // 판정은 처음(넓은) 배치의 판으로 한 번만 정한다. 좁은 배치로 바꾼 뒤의 판 폭으로 다시 정하면 같은 폭에서 두 배치를 오간다.
   viewer.fit = () => {
-    if (root.classList.contains('full')) return;
+    if (root.classList.contains('full')) return layoutFull(viewer);
     updateCanvasFocus(viewer);
   };
   new ResizeObserver(viewer.fit).observe(root);
@@ -87,7 +84,8 @@ function showFull(viewer, isFull) {
   fullButton.setAttribute('aria-label', label);
   fullButton.title = label;
   viewer.zoom = 1;
-  if (isFull) layoutFull(viewer, true);
+  viewer.isReading = isFull;
+  if (isFull) layoutFull(viewer);
   else {
     clearFull(viewer);
     viewer.fit?.();
@@ -108,11 +106,11 @@ function bundleBox(panels) {
 
 // 전체 화면에서 판 묶음의 폭. 그림 전체가 그림 영역에 들어가는 폭(맞춤)에 확대 배수를 곱한다. 그림이 영역보다 넓어지면 영역이 스크롤된다.
 // 맞춤은 문서 안의 보기 폭(--view-w, 가장 넓은 판의 폭)과 같은 값이며 판 묶음의 실제 좌표 크기로 잰다. 같은 폭을 판 비율의 분모(--bundle-w)로 써서 판의 상대 크기는 문서 안과 같고 줄어드는 비율은 한 번뿐이다.
-function layoutFull(viewer, isReading = false) {
+function layoutFull(viewer) {
   const { canvas, panels } = viewer;
   const bundle = bundleBox(panels);
   const fit = Math.min(bundle.w, canvas.clientWidth, (canvas.clientHeight * bundle.w) / bundle.h);
-  if (isReading) viewer.zoom = Math.min(viewer.metrics.zoomMax, Math.max(1, bundle.w / fit));
+  if (viewer.isReading) viewer.zoom = Math.min(viewer.metrics.zoomMax, Math.max(1, bundle.w / fit));
   panels.style.setProperty('--bundle-w', bundle.w);
   panels.style.setProperty('--fit-w', `${fit}px`);
   panels.style.setProperty('--zoom', viewer.zoom);
@@ -161,6 +159,7 @@ function zoomAt(viewer, factor, center) {
   const at = center ?? { x: box.left + box.width / 2, y: box.top + box.height / 2 };
   const before = panels.getBoundingClientRect();
   const fraction = { x: (at.x - before.left) / before.width, y: (at.y - before.top) / before.height };
+  viewer.isReading = false;
   viewer.zoom = next;
   layoutFull(viewer);
   const after = panels.getBoundingClientRect();

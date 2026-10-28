@@ -505,12 +505,17 @@ test('composite_fk_multiplicities_stay_beside_their_endpoint_route_without_cross
       assert.equal(crosses, false, `${label.text}: ${edge.from} -> ${edge.to}`);
     }
   }
+  const distance = (point, item) => Math.hypot(Math.max(item.x - point.x, 0, point.x - item.x - item.w), Math.max(item.y - point.y, 0, point.y - item.y - item.h));
+  for (const edge of scene.edges) for (const label of edge.endpointLabels ?? []) {
+    const owner = scene.items.find(item => item.id === edge[label.end]);
+    for (const other of scene.items.filter(item => item !== owner)) assert.ok(distance(label, owner) <= distance(label, other), `${label.text}: the endpoint's card stays closer than ${other.id}`);
+  }
 });
 
 test('relational_layout_shortens_complex_class_and_schema_routes_without_dropping_content', async () => {
   const metrics = scene => {
     const routes = scene.edges.map(edge => edge.points.slice(1).reduce((sum, point, index) => sum + Math.abs(point.x - edge.points[index].x) + Math.abs(point.y - edge.points[index].y), 0));
-    return { area: scene.width * scene.height, length: routes.reduce((sum, length) => sum + length, 0), longest: Math.max(...routes) };
+    return { area: scene.width * scene.height, length: routes.reduce((sum, length) => sum + length, 0), longest: Math.max(...routes), bends: scene.edges.reduce((sum, edge) => sum + Math.max(0, edge.points.length - 2), 0) };
   };
   for (const id of ['class', 'schema']) {
     const source = COMPARISON_EXAMPLES.find(example => example.id === id).source;
@@ -522,5 +527,9 @@ test('relational_layout_shortens_complex_class_and_schema_routes_without_droppin
     assert.deepEqual(compact.scene.items.map(item => item.id).sort(), original.scene.items.map(item => item.id).sort());
     const before = metrics(original.scene), after = metrics(compact.scene);
     for (const key of ['area', 'length', 'longest']) assert.ok(after[key] < before[key], `${id}/${key}: ${after[key]} < ${before[key]}`);
+    if (id === 'schema') {
+      assert.ok(after.area < 1076 * 1370, 'the previous compact ERD used 1076×1370 before hub placement');
+      assert.ok(after.length < 9007 && after.bends < 46, 'reduce both route length and bends from the reported compact ERD');
+    }
   }
 });

@@ -79,3 +79,18 @@ test('inline overflow keeps the canvas keyboard reachable before and after fulls
   h.showFull(h.viewer, false);
   assert.equal(h.viewer.canvas.tabIndex, undefined);
 });
+
+test('fullscreen_reading_keeps_natural_text_scale_when_the_native_window_resizes_after_entry', () => {
+  const h = harness({ native: true });
+  const properties = new Map();
+  h.viewer.panels.querySelectorAll = () => [{ viewBox: { baseVal: { width: 1600, height: 900 } } }];
+  h.viewer.panels.style.setProperty = (name, value) => properties.set(name, value);
+  const width = () => parseFloat(properties.get('--fit-w')) * properties.get('--zoom');
+
+  h.showFull(h.viewer, true);
+  assert.equal(width(), 1600);
+  h.viewer.canvas.clientWidth = 1200;
+  h.viewer.canvas.clientHeight = 900;
+  h.layoutFull(h.viewer);
+  assert.equal(width(), 1600, 'a late native resize keeps the same natural text size');
+});

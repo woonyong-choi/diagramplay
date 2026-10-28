@@ -86,10 +86,10 @@ async function place(figure, sizes, layoutWidth) {
   return blocked.length && !figure.wideGroups ? place({ ...figure, wideGroups: new Set(blocked) }, sizes, layoutWidth) : scene;
 }
 
-// cost: time O(9·(elk + check + p²)), heap O(s + p), stack O(d)
-// vars: elk = 배치 시간, check = 기하 검사 시간, s = 도형 수, p = 전체 경로 점 수, d = 그룹 깊이
+// cost: time O(k·(elk + check + p²)), heap O(s + p), stack O(d)
+// vars: k = 배치 수(최대 11), elk = 배치 시간, check = 기하 검사 시간, s = 도형 수, p = 전체 경로 점 수, d = 그룹 깊이
 // basis: estimate
-// 자연 배치는 같은 방향·도형을 유지하고 경로·꺾임·교차·빈 면적으로 비교한다. 관계형은 그룹 수와 무관하게 참조 루트를 앞에 놓는 후보와 최장선도 비교한다.
+// ERD의 허브 후보는 행의 좌우 면으로 연결할 수 있게 배치 축도 비교한다(docs/design/layout.md).
 async function compactNatural(figure, sizes, original) {
   let best = original;
   const relational = isRelationGraph(figure);
@@ -98,9 +98,11 @@ async function compactNatural(figure, sizes, original) {
   let rank = costOf(readElk(original.laid, original.model));
   const choices = [
     ...['NETWORK_SIMPLEX', 'SIMPLE'].map(naturalPlacement => ({ naturalPlacement })),
+    ...(figure.groups.length > 1 ? [{ compactRelations: true, naturalPlacement: 'SIMPLE' }, { compactRelations: true, naturalPlacement: 'SIMPLE', relaxOrder: true }] : []),
     ...(relational ? [undefined, 'NETWORK_SIMPLEX', 'SIMPLE'].map(naturalPlacement => ({ naturalPlacement, referenceFirst: true })) : []),
     ...(relational ? [{ compactRelations: true, referenceFirst: true }, { compactRelations: true, naturalPlacement: 'NETWORK_SIMPLEX' }] : []),
     ...(relational && hasColumnEdges(figure) ? [{ isBracket: true, naturalPlacement: 'NETWORK_SIMPLEX' }] : []),
+    ...(relational && hasColumnEdges(figure) && !figure.groups.length ? [{ relationHubs: true, direction: 'right', compactRelations: true, naturalPlacement: 'NETWORK_SIMPLEX' }] : []),
   ];
   for (const choice of choices) {
     try {
@@ -139,7 +141,21 @@ function naturalMetrics(scene, relational = false) {
     if (v.edge !== h.edge && v.a.x > Math.min(h.a.x, h.b.x) && v.a.x < Math.max(h.a.x, h.b.x) && h.a.y > Math.min(v.a.y, v.b.y) && h.a.y < Math.max(v.a.y, v.b.y)) crossings++;
   }
   const empty = Math.max(0, scene.width * scene.height - scene.items.reduce((sum, it) => sum + it.w * it.h, 0));
-  return { length, bends, crossings, empty, ...(relational ? { longest, breadth: scene.width, extent: Math.max(scene.width, scene.height) } : {}) };
+  return { length, bends, crossings, parallel: parallelLength(segments), longest, empty, ...(relational ? { breadth: scene.width, extent: Math.max(scene.width, scene.height) } : {}) };
+}
+
+function parallelLength(segments) {
+  let length = 0;
+  for (let i = 0; i < segments.length; i++) for (const other of segments.slice(i + 1)) {
+    const run = segments[i];
+    if (run.edge === other.edge) continue;
+    const isVertical = run.a.x === run.b.x;
+    if (isVertical !== (other.a.x === other.b.x)) continue;
+    const axis = isVertical ? 'y' : 'x', across = isVertical ? 'x' : 'y';
+    if (Math.abs(run.a[across] - other.a[across]) >= values.spacing['8']) continue;
+    length += Math.max(0, Math.min(Math.max(run.a[axis], run.b[axis]), Math.max(other.a[axis], other.b[axis])) - Math.max(Math.min(run.a[axis], run.b[axis]), Math.min(other.a[axis], other.b[axis])));
+  }
+  return length;
 }
 
 // cost: time O(elk(s + e) + e·d), heap O(s + e·d), stack O(d)

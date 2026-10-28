@@ -91,7 +91,7 @@ npm run check:package -- /absolute/new-consumer-path
 - 문법 표(`figure-syntax.md`)와 검사 표(`figure-check.md`, `figure-quality.md`)는 생성물이다. `src/source/grammar.js`나 `src/check/items.js`, `src/check/docs-items.js`를 고친 뒤 `npm run grammar`, `npm run checkdoc`으로 다시 만들고 표를 손으로 고치지 않는다.
 - 새 문서는 `docs/README.md` 문서 목록 안에서만 추가
 - 배치에 넘긴 도형 크기와 연결점은 그리는 도형과 동일
-- elkjs 경로 점 수정 금지. 예외는 `docs/design/layout.md` 선 그리기 절의 선 끝 계단 펴기 하나
+- elkjs 경로의 임의 좌표 보정 금지. 예외는 `docs/design/layout.md` 선 그리기 절의 선 끝 계단 펴기와 연결점을 고정한 검사 기반 경로 단축뿐
 - 오류가 있으면 결과 파일을 쓰지 않음
 - `src/player/`는 시간표를 읽기만 하고 상태를 다시 계산하지 않음
 - 화면 값·공통 스타일·아이콘·탭·도구 막대는 design-tokens의 단일 정본에서 가져온다. 설치된 `@woonyong-choi/design-tokens`를 직접 수정하거나 DiagramPlay 토큰 사본을 따로 만들지 않는다. 제품 차이만 공통 역할 속성으로 재정의한다.

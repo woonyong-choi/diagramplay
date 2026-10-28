@@ -6,6 +6,7 @@ import { LayoutError } from './error.js';
 import { ALONG_SPOTS, settleLabels, spotsAlong } from './labels.js';
 import { CROWD, ROOT, SAME_POINT, decorOf } from './model.js';
 import { placeTitles } from './titles.js';
+import { statusBoxes } from './status.js';
 
 const SETTLE = values.spacing["2"];
 
@@ -29,8 +30,9 @@ export function readElk(laid, model) {
     const points = dropCollinear(settleEnd(start.reverse(), freeRect(edge.to, rects), crowd.get(edge.to)?.filter(near('end'))).reverse());
     return { ...edge, points, endpointLabels: readEndLabels(edge, labels, points), labelAt: labels.get(`label::${edge.index}`) ?? (model.isSafe ? undefined : numberOnlyLabel(edge, points, items)) };
   });
-  settleLabels(edges, items, { width: laid.width, height: laid.height, sweep: model.sweep, preserveLabelPlacement: model.preserveLabelPlacement }, groups);
-  clearEndLabels(edges, { items, sweep: model.sweep });
+  const obstacles = statusBoxes({ items }, { segs: [{ status: model.status }] });
+  settleLabels(edges, items, { width: laid.width, height: laid.height, sweep: model.sweep, obstacles, preserveLabelPlacement: model.preserveLabelPlacement }, groups);
+  settleEndLabels(edges, { items, sweep: model.sweep });
   placeTitles(groups, edges, { sweep: model.sweep, labels: labelBoxes(edges) });
   return { items, groups, edges, width: laid.width, height: laid.height };
 }
@@ -40,7 +42,7 @@ export function readElk(laid, model) {
 // basis: estimate
 // 끝 라벨이 다른 선의 이동 통로, 선, 라벨과 겹치면 자기 끝 구간 반대쪽과 첫 꺾임 주변의 빈자리를 찾는다.
 // 복합 외래 키가 이웃 열 사이에서 출발하면 반대쪽도 다른 열의 선에 걸린다. 경로 끝의 두 구간 안에서만 찾아 어느 관계의 다중성인지 유지한다. 빈자리가 없으면 기존 자리를 보존한다.
-function clearEndLabels(edges, { items, sweep }) {
+export function settleEndLabels(edges, { items, sweep }) {
   const lanes = edges.filter((e) => sweep.has(e.index)).flatMap((e) => e.points.slice(1).map((p, i) => laneOf(e.points[i], p, sweep.get(e.index), e.index)));
   const lines = edges.flatMap((o) => o.points.slice(1).map((p, i) => laneOf(o.points[i], p, { x: 0, y: 0 }, o.index)));
   const labels = edges.flatMap((e) => (e.endpointLabels ?? []).map((label) => ({ e, label })));
@@ -50,14 +52,18 @@ function clearEndLabels(edges, { items, sweep }) {
     // 선 위 알약(삭제 정책)은 옮기지 않으므로 순서와 상관없이 모두 피한다.
     const earlier = labels.filter((o, i) => i < k || o.label.isPill).filter((o) => o.label !== label).map((o) => labelBox(o.label));
     const onOther = (box) => lines.some((l) => l.edge !== e.index && meets(box, l));
-    if (!inLane(labelBox(label)) && !onOther(labelBox(label)) && !earlier.some((o) => meets(labelBox(label), o))) return;
+    const owner = label.end === 'from' ? e.from : e.to;
+    const nearOtherCard = box => items.some(it => it.id !== owner && meets(box, { x: it.x - label.h / 2, y: it.y - label.h / 2, w: it.w + label.h, h: it.h + label.h }));
+    const blocked = inLane(labelBox(label)) || onOther(labelBox(label)) || earlier.some(o => meets(labelBox(label), o));
+    if (!blocked && !nearOtherCard(labelBox(label))) return;
     const [a, b] = label.end === 'from' ? [e.points[0], e.points[1]] : [e.points.at(-1), e.points.at(-2)];
     const others = labels.filter((o) => o.label !== label).map((o) => labelBox(o.label));
     const reflected = a.x === b.x ? { x: 2 * a.x - label.x, y: label.y } : { x: label.x, y: 2 * a.y - label.y };
     const route = label.end === 'from' ? e.points : [...e.points].reverse();
     const moved = [reflected, ...spotsAlong(route.slice(0, 3), label, true)].find((at) => {
       const box = labelBox({ ...label, ...at });
-      return !inLane(box) && !items.some((it) => meets(box, it)) && !others.some((o) => meets(box, o)) && !lines.some((l) => meets(box, l));
+      const occupied = inLane(box) || nearOtherCard(box) || items.some(it => meets(box, it));
+      return !occupied && !others.some(o => meets(box, o)) && !lines.some(l => meets(box, l));
     });
     if (moved) Object.assign(label, moved);
   });
@@ -178,7 +184,11 @@ function readEdges(laid, model, offsets) {
     for (const e of node.edges ?? []) {
       const base = offsets.get(e.container ?? node.id) ?? { x: ox, y: oy };
       const s = e.sections?.[0];
-      if (s) sections.set(e.id, [s.startPoint, ...(s.bendPoints ?? []), s.endPoint].map((p) => ({ x: base.x + p.x, y: base.y + p.y })));
+      if (s) {
+        const points = [s.startPoint, ...(s.bendPoints ?? []), s.endPoint].map((p) => ({ x: base.x + p.x, y: base.y + p.y }));
+        const [index, piece] = e.id.split('::').map(Number);
+        sections.set(e.id, model.pieces.get(index)[piece].layoutReversed ? points.reverse() : points);
+      }
       for (const l of e.labels ?? []) labels.set(l.id, { x: base.x + l.x + l.width / 2, y: base.y + l.y + l.height / 2 });
     }
     for (const child of node.children ?? []) if (model.containers.has(child.id)) collect(child, ox + node.x + child.x, oy + node.y + child.y);

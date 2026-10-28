@@ -3,16 +3,18 @@ import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { settleLabels } from './labels.js';
 import { CROWD, SAME_POINT } from './model.js';
 import { headBox, placeTitles } from './titles.js';
+import { statusBoxes } from './status.js';
+import { settleEndLabels } from './read.js';
 
-// cost: time O(e·p²·(s + g + e·p) + e·check), heap O(s + g + e·p), stack O(1)
-// vars: e = 선 수, p = 경로 점 수, s = 도형 수, g = 그룹 수, check = 기하 검사 시간
+// cost: time O(e·q·(s + g + e·p + check + log q)), heap O(q + s + g + e·p), stack O(1)
+// vars: e = 선 수, p = 경로 점 수, q = 경로 후보 수, s = 도형 수, g = 그룹 수, check = 기하 검사 시간
 // basis: estimate
 // 짧아진 경로마다 공통 검사를 다시 받아 라벨·그룹 제목·다른 선과의 간격이 유효한 변경만 채택한다.
 export function shortcutScene(scene, model, isSound, figure) {
   let best = scene;
   for (let index = 0; index < best.edges.length; index++) {
     const edge = best.edges[index];
-    if (edge.from === edge.to || edge.endpointLabels?.length || edge.fromColumns || edge.toColumns || edge.points.length < 4) continue;
+    if (edge.from === edge.to || edge.points.length < 4) continue;
     const allowed = new Set();
     for (const end of [edge.from, edge.to]) {
       let parent = model.nodes.get(end)?.parent;
@@ -25,20 +27,23 @@ export function shortcutScene(scene, model, isSound, figure) {
     ];
     // 같은 출발·도착 도형의 끝 구간은 공통 검사에서 합류로 판정한다. 여기서 먼저 막으면 불필요한 U자 우회가 남는다.
     const others = best.edges.filter(other => other !== edge && other.from !== edge.from && other.to !== edge.to).flatMap(other => runs(other.points));
-    const alternatives = [shorten(edge.points, boxes, others), ...nearRoutes(edge, best.items)].filter(points => cost(points) < cost(edge.points)).sort((a, b) => cost(a) - cost(b));
+    const alternatives = [shorten(edge.points, boxes, others), ...nearRoutes(edge, best.items, boxes)].filter(points => canReplace(points, edge)).sort((a, b) => cost(a) - cost(b));
     for (const points of alternatives) {
       if (points.some(p => p.x < 0 || p.y < 0 || p.x > best.width || p.y > best.height) || runs(points).some(run => boxes.some(box => hits(run, box)) || others.some(other => crowds(run, other)))) continue;
-      const candidate = { ...best, groups: best.groups.map(group => ({ ...group })), edges: best.edges.map((other, i) => ({ ...other, points: i === index ? points : other.points, labelAt: other.labelAt && { ...other.labelAt } })) };
-      settleLabels(candidate.edges, candidate.items, candidate, candidate.groups);
+      const candidate = { ...best, groups: best.groups.map(group => ({ ...group })), edges: best.edges.map((other, i) => ({ ...other, points: i === index ? points : other.points, labelAt: other.labelAt && { ...other.labelAt }, endpointLabels: other.endpointLabels?.map(label => ({ ...label })) })) };
+      settleEndLabels(candidate.edges, { items: candidate.items, sweep: model.sweep });
+      settleLabels(candidate.edges, candidate.items, { ...candidate, obstacles: statusBoxes(candidate, { segs: [{ status: model.status }] }) }, candidate.groups);
       placeTitles(candidate.groups, candidate.edges, { sweep: model.sweep });
-      if (isSound(figure, candidate, best)) { best = candidate; break; }
+      const next = candidate.edges[index];
+      const improves = cost(points) < cost(edge.points) || endDistance(next) < endDistance(edge);
+      if (improves && isSound(figure, candidate, best)) { best = candidate; break; }
     }
   }
   return best;
 }
 
 // 그룹 경계의 우회를 거치지 않고 카드 바깥쪽에서 같은 연결점으로 드나드는 후보.
-function nearRoutes(edge, items) {
+function nearRoutes(edge, items, boxes) {
   const start = edge.points[0], end = edge.points.at(-1);
   const normal = (p, id) => {
     const it = items.find(item => item.id === id);
@@ -48,10 +53,18 @@ function nearRoutes(edge, items) {
   const from = normal(start, edge.from), to = normal(end, edge.to);
   if (!from || !to) return [];
   const gaps = ['2', '4', '6', '8'].map(key => values.spacing[key]);
+  const clearance = values.spacing['4'];
+  const xs = [...new Set(boxes.flatMap(box => [box.x - clearance, box.x + box.w + clearance]))];
+  const ys = [...new Set(boxes.flatMap(box => [box.y - clearance, box.y + box.h + clearance]))];
   return gaps.flatMap(aGap => gaps.flatMap(bGap => {
     const a = { x: start.x + from.x * aGap, y: start.y + from.y * aGap };
     const b = { x: end.x + to.x * bGap, y: end.y + to.y * bGap };
-    return [compact([start, a, { x: a.x, y: b.y }, b, end]), compact([start, a, { x: b.x, y: a.y }, b, end])].filter(points => {
+    return [
+      compact([start, a, { x: a.x, y: b.y }, b, end]),
+      compact([start, a, { x: b.x, y: a.y }, b, end]),
+      ...xs.map(x => compact([start, a, { x, y: a.y }, { x, y: b.y }, b, end])),
+      ...ys.map(y => compact([start, a, { x: a.x, y }, { x: b.x, y }, b, end])),
+    ].filter(points => {
       const first = points[1], last = points.at(-2);
       return (first.x - start.x) * from.x + (first.y - start.y) * from.y > 0 && (last.x - end.x) * to.x + (last.y - end.y) * to.y > 0;
     });
@@ -84,11 +97,22 @@ function compact(points) {
 }
 
 function runs(points) { return points.slice(1).map((b, i) => ({ a: points[i], b })); }
+function canReplace(points, edge) {
+  if (points.length > edge.points.length) return false;
+  const difference = cost(points) - cost(edge.points);
+  return difference < 0 || (difference === 0 && edge.endpointLabels?.length > 0);
+}
 function sameHeading(points, original) {
   const direction = (a, b) => `${Math.sign(b.x - a.x)},${Math.sign(b.y - a.y)}`;
   return direction(points[0], points[1]) === direction(original[0], original[1]) && direction(points.at(-2), points.at(-1)) === direction(original.at(-2), original.at(-1));
 }
 function cost(points) { return runs(points).reduce((sum, { a, b }) => sum + Math.abs(a.x - b.x) + Math.abs(a.y - b.y), 0) + Math.max(0, points.length - 2) * values.spacing['4']; }
+function endDistance(edge) {
+  return (edge.endpointLabels ?? []).reduce((sum, label) => {
+    const point = label.end === 'from' ? edge.points[0] : edge.points.at(-1);
+    return sum + Math.hypot(label.x - point.x, label.y - point.y);
+  }, 0);
+}
 function hits({ a, b }, box) {
   // ELK 연결점의 반올림 여유는 연결점 검사와 같다. 경계 안쪽 0.5px까지 허용된 끝을 도형 침범으로 다시 거절하지 않는다.
   return Math.min(a.x, b.x) < box.x + box.w - SAME_POINT && box.x + SAME_POINT < Math.max(a.x, b.x) && Math.min(a.y, b.y) < box.y + box.h - SAME_POINT && box.y + SAME_POINT < Math.max(a.y, b.y);

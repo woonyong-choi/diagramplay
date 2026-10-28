@@ -21,6 +21,7 @@ const SINGLE_LAYER_OPTIONS = Object.freeze({ 'elk.layered.layering.strategy': 'C
 // 옆면 연결점(테이블 열, 격자 칸)에서 나가는 선은 꼬리 라벨이 층 사이가 아닌 도형 옆을 넓히므로 가운데 라벨을 쓴다.
 const TAIL_LABEL = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement': 'TAIL' };
 const CENTER_LABEL = { 'elk.edgeLabels.inline': 'true', 'elk.edgeLabels.placement': 'CENTER' };
+const OPPOSITE_LABEL = Object.freeze({ TAIL: 'HEAD', HEAD: 'TAIL' });
 const FLOW_SIDE = { right: 'EAST', down: 'SOUTH' };
 // 칸·열에 선 끝이 닿는 도형. 칸마다 연결점이 따로라 꼬리 라벨이 칸 옆에 쌓여 칸 열의 정렬을 흐트러뜨린다.
 const CELL_SHAPES = new Set(['table', 'api']);
@@ -53,10 +54,10 @@ function edgesByContainer({ containers, nodes, pieces, edges, isSafe }, figure) 
       // 번호만 있는 알약은 선을 다 그린 뒤 얹으므로(read.js) 자리를 요구하지 않는다. 안전 배치는 얹을 자리가 없을 때의 대비라 알약도 자리를 받는다.
       const container = containers.get(p.container);
       const labels = p.hasLabel && (edge.label !== undefined || (hasPill(edge) && (isSafe || !isOnLinePill(edge)))) ? [{ id: `label::${index}`, text: edge.label ?? String(edge.no), ...sizeOf(sizePill(edge.label, edge.no)), layoutOptions: labelOptions(p.from, container, nodes) }] : [];
-      labels.push(...endLabels(edge, k, list.length));
+      labels.push(...endLabels(edge, k, list.length, p.layoutReversed));
       const room = figure.chipRoom?.get(index);
       if (room !== undefined) labels.push(roomLabel(`room::${index}::${k}`, room, containers.get(p.container).direction));
-      byContainer.get(p.container).push({ id: `${index}::${k}`, sources: [p.from], targets: [p.to], labels });
+      byContainer.get(p.container).push({ id: `${index}::${k}`, sources: [p.layoutReversed ? p.to : p.from], targets: [p.layoutReversed ? p.from : p.to], labels });
     });
   }
   return byContainer;
@@ -77,12 +78,12 @@ function labelOptions(from, container, nodes) {
 // vars: n = 선 끝 표시 글자 수
 // basis: estimate
 // 선 끝 표시(다중성 글, 삭제 정책 알약, end-marks.js)는 첫 조각의 꼬리와 마지막 조각의 머리에 자리를 받는다. 알약도 선을 따라 그 폭만큼 자리를 받는다.
-function endLabels(edge, index, count) {
+function endLabels(edge, index, count, isReversed) {
   return [['from', index === 0, 'TAIL'], ['to', index === count - 1, 'HEAD']].flatMap(([end, isEnd, placement]) => {
     if (!isEnd) return [];
     return endMarks(edge, end).map((mark) => ({
       id: mark.id, text: mark.text, ...sizeOf(mark),
-      layoutOptions: { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement': placement },
+      layoutOptions: { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement': isReversed ? OPPOSITE_LABEL[placement] : placement },
     }));
   });
 }
@@ -163,7 +164,7 @@ function containerOptions(c, ctx) {
     'elk.hierarchyHandling': 'SEPARATE_CHILDREN',
     'elk.edgeRouting': 'ORTHOGONAL',
     'elk.randomSeed': '1',
-    'elk.layered.considerModelOrder.strategy': ctx.isSafe ? 'NONE' : 'NODES_AND_EDGES',
+    'elk.layered.considerModelOrder.strategy': ctx.isSafe || ctx.figure.relaxOrder ? 'NONE' : 'NODES_AND_EDGES',
     // 순환이 있으면 자식 순서(order.js)를 거스르는 선, 곧 순환을 끊는 선만 거꾸로 놓아 먼저 적은 도형이 앞(왼쪽, 위)에 오게 한다.
     // 순환이 없는 그룹은 MODEL_ORDER로 바꾸면 선 높이가 달라지는 그림이 있어(memory 예제) 처음 설정을 지킨다.
     // 안전 배치(처음 배치가 실패한 뒤의 두 번째 시도)는 모델 순서를 쓰지 않는 기본 순환 처리로 한다.

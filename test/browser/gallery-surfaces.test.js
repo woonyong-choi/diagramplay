@@ -84,6 +84,10 @@ test('comparison_gallery_and_diagram_surfaces_keep_white_content_cards_distinct'
                 await player.waitForFunction(() => document.querySelector('.fl-figure.full'));
                 const scale = await player.locator('svg.fl').first().evaluate(svg => svg.getScreenCTM().a);
                 assert.ok(scale >= 0.99, 'reading opens at the natural text size without repeated zoom clicks');
+                await player.setViewportSize({ width: 1024, height: 768 });
+                await player.waitForFunction(() => Math.abs(document.querySelector('svg.fl').getScreenCTM().a - 1) < 0.01);
+                await player.setViewportSize({ width: 1280, height: 900 });
+                await player.waitForFunction(() => Math.abs(document.querySelector('svg.fl').getScreenCTM().a - 1) < 0.01);
                 await player.getByRole('button', { name: '전체 보기', exact: true }).click();
                 const fitted = await player.locator('svg.fl').first().evaluate(svg => svg.getScreenCTM().a);
                 assert.ok(fitted < scale, 'the existing fit action still shows the whole structure');
