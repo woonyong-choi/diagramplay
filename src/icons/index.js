@@ -9,8 +9,8 @@ import { getIconCatalog, readIcon } from '@woonyong-choi/design-tokens/ui/build/
 const CATALOG = getIconCatalog();
 export const DEFAULT_SET = 'builtin';
 export const ICON_NAMES = Object.freeze(Object.fromEntries([
-  ...Object.entries(CATALOG.icons).map(([name, icon]) => [name, icon.category === 'brands' ? 'brand' : 'concept']),
-  ...Object.entries(CATALOG.aliases).map(([name, target]) => [name, CATALOG.icons[target].category === 'brands' ? 'brand' : 'concept']),
+  ...Object.entries(CATALOG.icons).map(([name, icon]) => [name, icon.category === 'brands' && CATALOG.brands[name]?.type !== 'general' ? 'brand' : 'concept']),
+  ...Object.entries(CATALOG.aliases).map(([name, target]) => [name, CATALOG.icons[target].category === 'brands' && CATALOG.brands[target]?.type !== 'general' ? 'brand' : 'concept']),
 ]));
 /** 사용자 세트 안의 아이콘 이름 형식. 폴더 밖으로 나가는 경로를 막는다. */
 export const USER_ICON_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
@@ -56,6 +56,13 @@ export function attachIcons(figure, baseDir, problems) {
     if (!isNamed(ref, figure.iconSets) || (ref.set !== DEFAULT_SET && !folders.has(ref.set))) continue;
     try {
       item.iconData = loadIcon(ref, { folders, baseDir, paint: figure.iconSets.find((set) => set.name === ref.set)?.paint });
+      if (item.iconData.library === 'nhn-cloud') {
+        const isGroup = figure.groups.includes(item);
+        if (isGroup && item.iconData.type !== 'group') problems.error(item.line, 'NHN group headings require a box-type group icon');
+        if (isGroup && !item.label?.trim()) problems.error(item.line, 'NHN groups require an explicit label');
+        if (!isGroup && item.iconData.type === 'group') problems.error(item.line, 'NHN box-type icons belong on group boundaries, not inside nodes');
+        if (!isGroup && ['service', 'resource'].includes(item.iconData.type) && !item.tile) problems.error(item.line, 'NHN service and resource icons use shape=tile or shape=symbol; use a box-type icon on a group for a service boundary');
+      }
     } catch (error) {
       problems.error(item.line, `cannot use icon "${item.icon}": ${error.code === 'ENOENT' ? 'the file does not exist' : error.message}`);
     }
@@ -82,7 +89,11 @@ function isNamed({ set, name }, sets) {
  * @throws Error 파일이 없거나, 기준 폴더 밖이거나, SVG를 정리할 수 없을 때
  */
 function loadIcon(ref, { folders, baseDir, paint }) {
-  if (ref.set === DEFAULT_SET) return { svg: readIcon(ref.name), role: ICON_NAMES[ref.name] };
+  if (ref.set === DEFAULT_SET) {
+    const canonical = Object.hasOwn(CATALOG.icons, ref.name) ? ref.name : CATALOG.aliases[ref.name];
+    const asset = CATALOG.brands[canonical];
+    return { svg: readIcon(ref.name), role: ICON_NAMES[ref.name], library: asset?.library, type: asset?.type, monochrome: CATALOG.libraries.find(library => library.name === asset?.library)?.presentation?.[asset?.type] === 'monochrome' };
+  }
   const file = insideBase(baseDir, join(folders.get(ref.set), `${ref.name}.svg`));
   if (file === undefined) throw new Error(OUTSIDE);
   return { ...readSvg(file, paint), role: 'custom' };

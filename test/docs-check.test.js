@@ -137,3 +137,14 @@ test('D8 gallery and import refuse --docs; with --strict a document warning fail
   assert.equal(cli(['render', 'f.diagramplay', '--docs'], { cwd: dir }).status, 0);
   assert.equal(cli(['render', 'f.diagramplay', '--strict'], { cwd: dir }).status, 0);
 });
+
+
+test('NHN architecture keeps required content checks without arbitrary badge or element caps', async () => {
+  const { buildFigure } = await import('../src/index.js');
+  const { checkDocs } = await import('../src/compile/docs-check.js');
+  const nodes = Array.from({ length: 13 }, (_, i) => `box a${i} "Action ${i}"`).join('\n');
+  const result = await buildFigure(`diagramplay\nrequire "Missing requirement"\ngroup g "NKS" icon=nhn-group-nks {\n${nodes}\n}\n`);
+  const diagnostics = await checkDocs(result);
+  assert.ok(diagnostics.some(problem => problem.code === 'docs-15'));
+  assert.ok(diagnostics.every(problem => !['docs-1', 'docs-2', 'docs-3', 'docs-6', 'docs-9'].includes(problem.code)));
+});

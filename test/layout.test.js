@@ -53,6 +53,8 @@ test('buildFigure_complex_groups_keep_the_entry_handoff_aligned_without_dropping
   assert.ok(Math.abs(clients.y + clients.h / 2 - entry.y - entry.h / 2) < 1, 'entry groups share a centre instead of forming a staircase');
   assert.ok(result.scene.width * result.scene.height < 4000000, 'the same graph avoids the previous 4.9 million square-unit frame');
   for (const edge of result.scene.edges.filter(edge => edge.to === 'waf')) assert.ok(edge.points.length <= 4, `${edge.from}: an unrelated label error must not retain the six-turn group detour`);
+  const published = result.scene.edges.find(edge => edge.from === 'relay' && edge.to === 'ordertopic');
+  assert.ok(published.points.length <= 4, 'a rounded ELK port must not block the short path into the queue');
 });
 
 test('isSoundGraph_reference_allows_existing_errors_but_rejects_new_collisions', async () => {

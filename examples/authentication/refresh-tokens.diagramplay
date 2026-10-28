@@ -2,14 +2,13 @@ diagramplay
 pace 900ms
 title "04 · 액세스 토큰과 리프레시 토큰"
 subtitle "설명용 모형 · 짧은 접근 수명과 갱신 권한을 나눈다 · 숫자는 시연용이며 보안 권장값이 아니다"
-icons story "icons" paint=source
-box browser "브라우저" icon=story:browser
-box access "Access" "API 접근용" icon=story:key tone=yellow {
+box browser "브라우저"
+box access "Access" "API 접근용" tone=yellow {
   value ttl "남은 분" from=5
 }
-box api "API 서버" icon=story:server
-box refresh "Refresh" "재발급용" icon=story:refresh tone=blue
-box auth "인가 서버" icon=story:provider
+box api "API 서버"
+box refresh "Refresh" "재발급용" tone=blue
+box auth "인가 서버"
 browser -> access "토큰 선택" no=1
 access -> api "Bearer" no=2
 browser -> refresh "만료 후 갱신" no=3

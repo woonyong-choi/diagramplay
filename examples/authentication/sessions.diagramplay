@@ -2,13 +2,12 @@ diagramplay
 pace 900ms
 title "02 · 세션과 쿠키"
 subtitle "설명용 모형 · 쿠키는 세션 ID를 보내고 서버 저장소는 로그인 상태를 보관한다"
-icons story "icons" paint=source
-box browser "브라우저" icon=story:browser
-box server "서버" icon=story:server
-store sessions "세션 저장소" icon=story:session {
+box browser "브라우저"
+box server "서버"
+store sessions "세션 저장소" {
   value rows "세션 수" from=0
 }
-box cookie "쿠키" icon=story:cookie
+box cookie "쿠키"
 browser -> server "로그인" no=1
 server -> sessions "세션 저장·조회" no=2
 server -> cookie "Set-Cookie" no=3

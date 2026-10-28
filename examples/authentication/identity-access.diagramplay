@@ -2,12 +2,11 @@ diagramplay
 pace 900ms
 title "01 · 인증과 인가"
 subtitle "설명용 모형 · 신원 확인과 접근 권한 확인은 서로 다른 판단이다"
-icons story "icons" paint=source
 person user "사용자"
-box identity "인증" "누구인가" icon=story:identity tone=blue
-box access "인가" "무엇을 할 수 있나" icon=story:lock tone=yellow
-box profile "내 프로필" icon=story:browser
-box admin "관리 화면" icon=story:shield
+box identity "인증" "누구인가" tone=blue
+box access "인가" "무엇을 할 수 있나" tone=yellow
+box profile "내 프로필"
+box admin "관리 화면"
 user -> identity "신원 증명" no=1
 identity -> access "확인된 사용자" no=2
 access -> profile "본인 정보" no=3

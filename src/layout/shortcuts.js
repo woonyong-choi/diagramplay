@@ -2,7 +2,7 @@
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { headBox, placeTitles } from './titles.js';
 import { settleLabels } from './labels.js';
-import { CROWD } from './model.js';
+import { CROWD, SAME_POINT } from './model.js';
 
 // cost: time O(e·p²·(s + g + e·p) + e·check), heap O(s + g + e·p), stack O(1)
 // vars: e = 선 수, p = 경로 점 수, s = 도형 수, g = 그룹 수, check = 기하 검사 시간
@@ -90,7 +90,8 @@ function sameHeading(points, original) {
 }
 function cost(points) { return runs(points).reduce((sum, { a, b }) => sum + Math.abs(a.x - b.x) + Math.abs(a.y - b.y), 0) + Math.max(0, points.length - 2) * values.spacing['4']; }
 function hits({ a, b }, box) {
-  return Math.min(a.x, b.x) < box.x + box.w && box.x < Math.max(a.x, b.x) && Math.min(a.y, b.y) < box.y + box.h && box.y < Math.max(a.y, b.y);
+  // ELK 연결점의 반올림 여유는 연결점 검사와 같다. 경계 안쪽 0.5px까지 허용된 끝을 도형 침범으로 다시 거절하지 않는다.
+  return Math.min(a.x, b.x) < box.x + box.w - SAME_POINT && box.x + SAME_POINT < Math.max(a.x, b.x) && Math.min(a.y, b.y) < box.y + box.h - SAME_POINT && box.y + SAME_POINT < Math.max(a.y, b.y);
 }
 function crowds(a, b) {
   if (a.a.x === a.b.x && b.a.x === b.b.x) return Math.abs(a.a.x - b.a.x) < CROWD && Math.max(Math.min(a.a.y, a.b.y), Math.min(b.a.y, b.b.y)) < Math.min(Math.max(a.a.y, a.b.y), Math.max(b.a.y, b.b.y));

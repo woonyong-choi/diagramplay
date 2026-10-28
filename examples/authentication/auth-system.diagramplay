@@ -2,15 +2,14 @@ diagramplay
 pace 900ms
 title "08 · 일곱 개념이 만나는 곳"
 subtitle "설명용 모형 · 신원·권한·로그인 유지·토큰 형식·갱신·앱 간 로그인·위임은 함께 동작한다"
-icons story "icons" paint=source
-box system "인증 체계" shape=symbol icon=story:shield
-box identity "인증·인가" shape=symbol icon=story:identity
-box session "세션·쿠키" shape=symbol icon=story:cookie
-box jwt "JWT" shape=symbol icon=story:jwt
-box tokens "접근·갱신" shape=symbol icon=story:refresh
-box sso "SSO" shape=symbol icon=story:provider
-box oauth "OAuth" shape=symbol icon=story:key
-box oidc "OIDC" shape=symbol icon=story:signature
+box system "인증 체계"
+box identity "인증·인가"
+box session "세션·쿠키"
+box jwt "JWT"
+box tokens "접근·갱신"
+box sso "SSO"
+box oauth "OAuth"
+box oidc "OIDC"
 system -> identity "신원과 권한"
 system -> session "로그인 유지"
 system -> jwt "서명한 클레임"

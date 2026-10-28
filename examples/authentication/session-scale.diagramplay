@@ -2,11 +2,10 @@ diagramplay
 pace 900ms
 title "02 · 서버가 여러 대라면"
 subtitle "설명용 모형 · 로컬 세션은 다른 서버에 없고 공유 저장소는 같은 세션을 조회하게 한다"
-icons story "icons" paint=source
-box browser "브라우저" shape=symbol icon=story:browser
-box first "서버 A" icon=story:server
-box second "서버 B" icon=story:server
-store shared "공유 세션" icon=story:session
+box browser "브라우저"
+box first "서버 A"
+box second "서버 B"
+store shared "공유 세션"
 browser -> first "로그인" no=1
 browser -> second "다음 요청" no=2
 first -> shared "세션 저장" no=3

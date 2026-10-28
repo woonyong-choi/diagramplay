@@ -2,10 +2,9 @@ diagramplay
 pace 900ms
 title "00 · 비밀번호 다음의 요청"
 subtitle "설명용 모형 · 처음 로그인한 뒤 서버는 다음 요청의 사용자를 어떻게 알아볼까"
-icons story "icons" paint=source
-box user "사용자" shape=symbol icon=user
-box browser "브라우저" shape=symbol icon=story:browser
-box server "서버" shape=symbol icon=story:server
+box user "사용자"
+box browser "브라우저"
+box server "서버"
 view sequence {
   user browser server
 }

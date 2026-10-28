@@ -306,15 +306,15 @@ test('I2 #397 an icon set folder outside the source folder is one error on the i
 test('I2 built-in icons: concept names and technology brands draw shapes; an unknown name is an error', async () => {
   const plain = await toSvg(await build(diagramplay('box a "A"\n')), { isStatic: true });
   const drawn = new Map();
-  for (const name of ['admin', 'user', 'git', 'github', 'redis', 'postgresql']) {
-    const svg = await toSvg(await build(diagramplay(`box a "A" icon=${name}\n`)), { isStatic: true });
+  for (const name of ['admin', 'user', 'nhn-general-desktop', 'nhn-nks', 'nhn-service-storage-object-storage']) {
+    const svg = await toSvg(await build(diagramplay(`box a "A" shape=symbol icon=${name}\n`)), { isStatic: true });
     drawn.set(name, svg);
     assert.notEqual(svg, plain, `${name} changes the picture`);
     parseMarkup(svg);
   }
   assert.notEqual(drawn.get('admin'), drawn.get('user'), 'the administrator keeps its manager marker');
   for (const name of ['not-an-icon', 'admi']) {
-    const unknown = diagramplay(`box a "A" icon=${name}\n`);
+    const unknown = diagramplay(`box a "A" shape=symbol icon=${name}\n`);
     const problem = (await reject(unknown)).find(p => p.line === lineOf(unknown, 'icon='));
     assert.ok(problem);
     assert.match(problem.message, /assets\/icons\/catalog\.json/);

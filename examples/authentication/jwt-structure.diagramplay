@@ -2,10 +2,9 @@ diagramplay
 pace 900ms
 title "03 · JWT의 세 부분"
 subtitle "설명용 모형 · Header.Payload.Signature · 인코딩된 내용은 읽을 수 있으며 서명은 변조를 검증한다"
-icons story "icons" paint=source
-box header "Header" icon=story:jwt tone=red
-box payload "Payload" icon=story:identity tone=cyan
-box signature "Signature" icon=story:signature tone=green
+box header "Header" tone=red
+box payload "Payload" tone=cyan
+box signature "Signature" tone=green
 header -> payload "인코딩된 부분" head=none
 payload -> signature "서명으로 검증" head=none
 view graph right

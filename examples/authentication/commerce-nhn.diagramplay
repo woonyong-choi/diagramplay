@@ -1,0 +1,132 @@
+diagramplay
+title "10 · 주문 플랫폼 · NHN 서비스 경계"
+subtitle "설명용 모형 · 서비스 경계와 업무 흐름 · 실제 망 배치는 생략"
+pace 700ms
+width wide
+
+group clients "클라이언트" direction=down badge="진입" {
+  box web "고객 웹"
+  box mobile "모바일 앱"
+  box seller "판매자 콘솔"
+}
+group edge "진입 계층" direction=down badge="보호" {
+  box waf "WAF · Rate Limit"
+  box gateway "NHN API Gateway" count=2
+  box bff "고객 BFF · NCS" count=2
+}
+group access "신원과 권한" direction=down badge="인증" {
+  box auth "토큰 검증 · Cloud Functions"
+  box policy "접근 정책"
+  store jwks "JWKS · Redis"
+}
+group domains "NHN Kubernetes Service" direction=down badge="API" icon=nhn-group-nks {
+  box catalog "상품 조회" count=3
+  box checkout "주문 접수" count=3
+  box orders "주문 상태" count=2
+  box inventory "재고 예약" count=2
+  box payments "결제 처리" count=2
+}
+group data "저장 계층" direction=down badge="데이터" {
+  store search "검색 색인"
+  store cache "상품 · Redis"
+  store orderdb "주문 · PostgreSQL"
+  store stockdb "재고 · PostgreSQL"
+  store paydb "결제 · PostgreSQL"
+  store outbox "Outbox"
+  box relay "이벤트 발행기"
+}
+group events "Kafka Instance" direction=down badge="비동기" icon=nhn-group-kafka {
+  queue ordertopic "주문 이벤트" slots=4 from=1
+  queue paymenttopic "결제 이벤트" slots=4
+  queue shipmenttopic "배송 이벤트" slots=4
+  queue retry "지연 재시도" slots=4 from=1
+  queue dlq "실패 격리" slots=4
+}
+group workers "이벤트 소비자" direction=down badge="워커" {
+  box reserve "재고 처리자" count=2
+  box charge "결제 처리자" count=2
+  box fulfill "배송 처리자" count=2
+  box notify "알림 처리자" count=2
+}
+group integrations "외부 연동" direction=down badge="외부" dashed {
+  external pg "결제사"
+  external carrier "배송사"
+  external mail "메일 서비스"
+}
+group operations "Cloud Monitoring" direction=down badge="운영" icon=nhn-group-monitoring {
+  box collector "추적 수집기"
+  store telemetry "메트릭"
+  box alert "장애 알림"
+}
+
+web -> waf
+mobile -> waf
+seller -> waf
+waf -> gateway
+gateway -> auth "JWT 검증" dashed
+auth -> jwks "서명 키"
+auth -> policy "권한 판정"
+gateway -> bff
+gateway -> orders "판매자 API"
+bff -> catalog "상품 조회"
+bff -> checkout "주문 생성"
+catalog -> cache "캐시 조회"
+catalog -> search "검색"
+checkout -> orders "주문 접수"
+checkout -> inventory "예약 요청"
+orders -> orderdb "주문 트랜잭션"
+orders -> outbox "같은 트랜잭션" dashed
+inventory -> stockdb "수량·버전"
+payments -> paydb "멱등 키"
+outbox -> relay "미발행 행"
+relay -> ordertopic "OrderCreated"
+ordertopic -> reserve "재고 예약"
+ordertopic -> charge "결제 요청"
+reserve -> inventory "멱등 처리"
+charge -> payments "승인 요청"
+payments -> pg "결제 승인"
+payments -> paymenttopic "PaymentApproved"
+paymenttopic -> fulfill "배송 생성"
+paymenttopic -> notify "결제 알림"
+fulfill -> carrier "배송 접수"
+fulfill -> shipmenttopic "ShipmentCreated"
+shipmenttopic -> notify "배송 알림"
+notify -> mail "발송"
+charge -> retry "일시 실패" dashed
+retry -> charge "지연 후 재시도" dashed
+charge -> dlq "횟수 초과" dashed
+reserve -> dlq "처리 불가" dashed
+gateway -> collector "요청 추적" dashed
+orders -> collector "도메인 추적" dashed
+charge -> collector "소비 추적" dashed
+dlq -> alert "격리 경보" dashed
+collector -> telemetry
+telemetry -> alert "오류율·지연"
+
+view graph right
+
+scene "전체 구조" mode=static
+
+scene "동시 요청과 이벤트" mode=loop for=12s
+  track web, mobile -> waf -> gateway -> bff -> checkout -> orders -> outbox -> relay -> ordertopic at=0s every=3s time=7s tone=blue
+  track gateway -> auth -> jwks at=500ms every=3s time=1800ms tone=cyan
+  track bff -> catalog -> cache at=1s every=3s time=2200ms tone=cyan
+  track ordertopic -> reserve -> inventory -> stockdb at=2s every=3s time=3s tone=green
+  track ordertopic -> charge -> payments -> pg at=3s every=3s time=3s tone=orange
+  track payments -> paymenttopic -> fulfill -> carrier at=5s every=3s time=3s tone=green
+  track fulfill -> shipmenttopic -> notify -> mail at=6s every=3s time=3s tone=cyan
+
+scene "결제사 지연" mode=loop status="pg=fail, retry=wait" for=10s
+  track ordertopic -> charge -> payments -> pg at=0s every=3s time=3s tone=orange lost=85%
+  track charge -> retry at=3s every=3s time=1200ms tone=yellow
+  track retry -> charge -> payments at=5s every=3s time=2400ms tone=blue
+  track charge -> collector -> telemetry -> alert at=1s every=3s time=3s tone=red
+
+scene "실패 격리" mode=loop status="dlq=warn, alert=warn" for=8s
+  track charge -> dlq -> alert at=0s every=2400ms time=2s tone=red
+  track ordertopic -> reserve -> inventory -> stockdb at=500ms every=2400ms time=3s tone=green
+
+scene "운영 추적" mode=loop for=8s
+  track gateway -> collector -> telemetry -> alert at=0s every=2400ms time=3s tone=cyan
+  track orders -> collector -> telemetry at=600ms every=2400ms time=2400ms tone=blue
+  track charge -> collector -> telemetry at=1200ms every=2400ms time=2400ms tone=orange

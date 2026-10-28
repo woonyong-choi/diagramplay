@@ -37,7 +37,7 @@ function drawSymbol(iconData, { x, y, size, prefix }) {
 
 // 내장 SVG의 격자 맞춤과 mask ID 분리는 공통 렌더러가 맡고, 사용자 SVG는 검증할 때 맞춘 격자를 쓴다.
 function iconAt(iconData, { x, y, size, prefix }) {
-  const body = iconData.svg ? iconBody(iconData.svg, { size: ICON_GRID, prefix }) : iconData.body;
+  const body = iconData.svg ? iconBody(iconData.svg, { size: ICON_GRID, prefix, monochrome: iconData.monochrome }) : iconData.body;
   return `<g class="fl-icon" transform="translate(${r(x)} ${r(y)}) scale(${ratio(size / ICON_GRID)})">${body}</g>`;
 }
 

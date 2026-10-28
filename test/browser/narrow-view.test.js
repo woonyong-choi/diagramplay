@@ -27,7 +27,7 @@ async function launchBrowser() {
 // #272, #394: 실제 CSS·SVG와 홈페이지가 쓰는 iframe 호스트 계약을 함께 확인한다. 판은 자연 크기를 상한으로 가용 폭에 맞춰 줄고 가로로 넘치지 않는다.
 test('HTML figures fit available width in standalone and embedded views without horizontal scrolling', async () => {
   const documents = new Map();
-  for (const id of ['architecture', 'sequence', 'authentication/commerce-system']) {
+  for (const id of ['architecture', 'sequence', 'authentication/commerce-system', 'authentication/commerce-nhn', 'authentication/nhn-architecture']) {
     const source = new URL(`../../examples/${id}.diagramplay`, import.meta.url);
     const built = await buildFigure(await readFile(source, 'utf8'), { baseDir: fileURLToPath(new URL('.', source)) });
     documents.set(`/${id}`, await toHtml(built, id));
@@ -49,7 +49,7 @@ test('HTML figures fit available width in standalone and embedded views without 
         const page = await context.newPage();
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
-        for (const id of ['architecture', 'sequence', 'authentication/commerce-system']) {
+        for (const id of ['architecture', 'sequence', 'authentication/commerce-system', 'authentication/commerce-nhn', 'authentication/nhn-architecture']) {
           await page.goto(`${origin}/${embedded ? 'embed-' : ''}${id}`);
           const frame = embedded ? page.frames().find(frame => frame !== page.mainFrame()) : page.mainFrame();
           await frame.evaluate(() => document.fonts.ready);
@@ -64,6 +64,7 @@ test('HTML figures fit available width in standalone and embedded views without 
           const tabs = frame.getByRole('tab');
           for (let scene = 0; scene < await tabs.count(); scene++) {
             await tabs.nth(scene).click();
+            if (id === 'authentication/nhn-architecture') await checkResourceTiles(frame);
             const current = await frame.evaluate(measure);
             assert(current.scale <= 1 + 1e-3, `${id}: figure grows beyond its natural size`);
             assert(current.scale > 0, `${id}: figure has a positive display scale`);
@@ -182,4 +183,22 @@ async function checkFullscreen(frame) {
   assert.equal(restored.minTextSize, before.minTextSize);
   assert.equal(restored.scene, before.scene);
   assert(await trigger.evaluate(node => node === document.activeElement));
+}
+
+async function checkResourceTiles(frame) {
+  const tiles = await frame.evaluate(() => [...document.querySelectorAll('.fl-node')]
+    .filter(node => ['api', 'worker', 'primary', 'candidate'].includes(node.dataset.id) && node.getBoundingClientRect().height > 0)
+    .map(node => {
+      const surface = node.querySelector(':scope > .fl-stroke');
+      const label = node.querySelector('text.label');
+      const face = surface.getBBox();
+      const text = label.getBBox();
+      const style = getComputedStyle(surface);
+      return { id: node.dataset.id, opacity: Number(style.opacity), fill: style.fill, stroke: style.stroke, left: text.x - face.x, right: face.x + face.width - text.x - text.width };
+    }));
+  assert(tiles.length >= 4, 'all independent resources are visible');
+  for (const tile of tiles) {
+    assert(tile.opacity > 0 && tile.fill !== 'none' && tile.stroke !== 'none', `${tile.id}: resource card stays visible`);
+    assert(tile.left > 0 && tile.right > 0, `${tile.id}: label keeps padding on both sides`);
+  }
 }

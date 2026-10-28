@@ -2,11 +2,10 @@ diagramplay
 pace 900ms
 title "05 · 한 번 로그인하고 다른 앱으로"
 subtitle "설명용 모형 · 앱은 각각 자기 세션을 만들고 계정 제공자는 기존 로그인 상태를 재사용한다"
-icons story "icons" paint=source
-box user "사용자" shape=symbol icon=user
-box mail "메일 앱" shape=symbol icon=story:mail
-box provider "계정 제공자" shape=symbol icon=story:provider
-box drive "드라이브" shape=symbol icon=story:drive
+box user "사용자"
+box mail "메일 앱"
+box provider "계정 제공자"
+box drive "드라이브"
 view sequence {
   user mail provider drive
 }

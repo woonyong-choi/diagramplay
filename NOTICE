@@ -9,6 +9,11 @@ categories, aliases, library notices and brand provenance.
 Full notices are included in that package's dist/assets/icons/licenses/.
 Marks identify their technologies and retain their owners' trademarks.
 
+Architecture icons use the NHN Cloud official library for NHN Cloud architecture diagrams.
+The upstream README states this purpose but specifies no general open-source license.
+Vendor artwork and trademarks are not relicensed under this product MIT license.
+Source, fixed revision, original/result hashes and the notice are in the shared catalog.
+
 Pretendard (body and number font)
   Source:    https://github.com/orioncactus/pretendard (npm package pretendard 1.3.9, dist/public/static/Pretendard-{Regular,SemiBold}.otf)
   Copyright: 2021 Kil Hyung-jin, with Reserved Font Name Pretendard.

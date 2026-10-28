@@ -3,38 +3,37 @@ title "09 · 주문 플랫폼 전체 설계"
 subtitle "설계 모형 · 다중 진입점, 권한 검증, 도메인 서비스, Outbox, 이벤트 처리, 재시도와 관측"
 pace 700ms
 width wide
-icons story "icons" paint=source
 
 group clients "클라이언트" direction=down badge="진입" {
-  box web "고객 웹" shape=symbol icon=story:browser
-  box mobile "모바일 앱" shape=symbol icon=story:identity
-  box seller "판매자 콘솔" shape=symbol icon=story:browser
+  box web "고객 웹"
+  box mobile "모바일 앱"
+  box seller "판매자 콘솔"
 }
 group edge "진입 계층" direction=down badge="보호" {
-  box waf "WAF · Rate Limit" icon=story:shield
-  box gateway "API Gateway" icon=story:server count=2
-  box bff "고객 BFF" icon=story:server count=2
+  box waf "WAF · Rate Limit"
+  box gateway "API Gateway" count=2
+  box bff "고객 BFF" count=2
 }
 group access "신원과 권한" direction=down badge="인증" {
-  box auth "토큰 검증" icon=story:jwt
-  box policy "접근 정책" icon=story:lock
-  store jwks "JWKS 캐시" icon=story:key
+  box auth "토큰 검증"
+  box policy "접근 정책"
+  store jwks "JWKS 캐시"
 }
 group domains "도메인 서비스" direction=down badge="API" {
-  box catalog "상품 조회" icon=story:photos count=3
-  box checkout "주문 접수" icon=story:server count=3
-  box orders "주문 상태" icon=story:server count=2
-  box inventory "재고 예약" icon=story:lock count=2
-  box payments "결제 처리" icon=story:key count=2
+  box catalog "상품 조회" count=3
+  box checkout "주문 접수" count=3
+  box orders "주문 상태" count=2
+  box inventory "재고 예약" count=2
+  box payments "결제 처리" count=2
 }
 group data "저장 계층" direction=down badge="데이터" {
-  store search "검색 색인" icon=story:drive
-  store cache "상품 캐시" icon=story:session
-  store orderdb "주문 DB" icon=story:drive
-  store stockdb "재고 DB" icon=story:drive
-  store paydb "결제 DB" icon=story:drive
-  store outbox "Outbox" icon=story:mail
-  box relay "이벤트 발행기" icon=story:refresh
+  store search "검색 색인"
+  store cache "상품 캐시"
+  store orderdb "주문 DB"
+  store stockdb "재고 DB"
+  store paydb "결제 DB"
+  store outbox "Outbox"
+  box relay "이벤트 발행기"
 }
 group events "이벤트 전달" direction=down badge="비동기" {
   queue ordertopic "주문 이벤트" slots=4 from=1
@@ -44,20 +43,20 @@ group events "이벤트 전달" direction=down badge="비동기" {
   queue dlq "실패 격리" slots=4
 }
 group workers "이벤트 소비자" direction=down badge="워커" {
-  box reserve "재고 처리자" icon=story:server count=2
-  box charge "결제 처리자" icon=story:server count=2
-  box fulfill "배송 처리자" icon=story:server count=2
-  box notify "알림 처리자" icon=story:mail count=2
+  box reserve "재고 처리자" count=2
+  box charge "결제 처리자" count=2
+  box fulfill "배송 처리자" count=2
+  box notify "알림 처리자" count=2
 }
 group integrations "외부 연동" direction=down badge="외부" dashed {
-  external pg "결제사" icon=story:key
-  external carrier "배송사" icon=story:drive
-  external mail "메일 서비스" icon=story:mail
+  external pg "결제사"
+  external carrier "배송사"
+  external mail "메일 서비스"
 }
 group operations "운영 관측" direction=down badge="운영" {
-  box collector "추적 수집기" icon=story:session
-  store telemetry "메트릭 · 로그" icon=story:drive
-  box alert "장애 알림" icon=story:shield
+  box collector "추적 수집기"
+  store telemetry "메트릭 · 로그"
+  box alert "장애 알림"
 }
 
 web -> waf

@@ -2,13 +2,12 @@ diagramplay
 pace 900ms
 title "04 · 토큰 탈취의 영향"
 subtitle "설명용 모형 · 짧은 만료는 피해 시간을 제한하며 탈취 위험 자체를 없애지는 않는다"
-icons story "icons" paint=source
-box browser "브라우저" icon=story:browser
-box thief "공격자" icon=story:attacker tone=red
-box api "API 서버" icon=story:server {
+box browser "브라우저"
+box thief "공격자" tone=red
+box api "API 서버" {
   value ttl "남은 분" from=2
 }
-box auth "인가 서버" icon=story:refresh
+box auth "인가 서버"
 browser -> thief "탈취된 토큰" dashed
 thief -> api "Bearer 요청" no=1
 thief -> auth "갱신 요청" dashed

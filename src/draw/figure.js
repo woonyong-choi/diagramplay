@@ -54,11 +54,16 @@ export function drawScene(scene, decorate, glyphs) {
 // 그리는 데 함께 쓰는 것: toneOf(카드 태그 색), decorate(움직이는 SVG의 class), glyphs(쓴 글자 모음), scene(후광이 바깥 바탕을 찾는 데 쓴다)
 function drawGroup(g, j, { decorate, glyphs }) {
   const head = placeGroupHead(g);
+  const corner = CORNER.outer;
   const decor = head.decor ? drawDecor(head.decor, { x: g.x + head.decor.x, y: g.y + head.decor.y, iconData: g.iconData, prefix: `icon-g-${j}` }, glyphs) : '';
+  const clipId = `group-icon-${j}`;
+  const clippedDecor = g.iconData?.library === 'nhn-cloud'
+    ? `<defs><clipPath id="${clipId}"><rect x="${r(g.x)}" y="${r(g.y)}" width="${r(g.w)}" height="${r(g.h)}" rx="${corner}"/></clipPath></defs><g clip-path="url(#${clipId})">${decor}</g>`
+    : decor;
   // 그룹은 면이 없다(투명). 경계와 제목만 있고, 중첩 깊이로 면을 바꾸지 않는다. 고른 색은 제목과 아이콘, 표현에 따라 옅은 면이나 경계에만 쓴다(look.js).
   return (
-    `<g id="g-${j}" class="fl-group${g.iconData ? ' tabbed' : ''}${lookClass(lookOf(g))}" data-id="${escapeXml(g.id)}"><rect x="${r(g.x)}" y="${r(g.y)}" width="${r(g.w)}" height="${r(g.h)}" rx="${CORNER.outer}" class="frame-box fl-stroke${g.dashed ? ' dashed' : ''} ${decorate('group', j)}"/>` +
-    `${drawText(head.text, g, glyphs)}${decor}</g>`
+    `<g id="g-${j}" class="fl-group${g.iconData ? ' tabbed' : ''}${lookClass(lookOf(g))}" data-id="${escapeXml(g.id)}"><rect x="${r(g.x)}" y="${r(g.y)}" width="${r(g.w)}" height="${r(g.h)}" rx="${corner}" class="frame-box fl-stroke${g.dashed ? ' dashed' : ''} ${decorate('group', j)}"/>` +
+    `${drawText(head.text, g, glyphs)}${clippedDecor}</g>`
   );
 }
 

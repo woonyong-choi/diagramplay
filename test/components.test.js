@@ -339,78 +339,58 @@ test('drawCard_symbol_keeps_the_shared_icon_and_label_with_an_invisible_connecti
   assert.ok(result.scene.edges[0].points[0].x >= item.x + item.w - EPS, 'the edge attaches to the same measured card');
 });
 
-test('U8 a brand has the same measured and drawn size in a card, tile, store and group title while a person tile keeps its role size', async () => {
+test('U8 NHN group and resource glyphs use their measured roles and explicit boundaries', async () => {
   const { groupHead } = await import('../src/measure/sizes.js');
   const result = await build(diagramplay(`
-    group g "G" icon=redis {
-      box a "A" icon=redis
-      box t "T" shape=tile icon=redis
-      store s "S" icon=redis
-      box p "P" shape=tile icon=user
+    group g "NKS" icon=nhn-group-nks {
+      box a "NKS" shape=symbol icon=nhn-nks
+      box r "Container" shape=tile icon=nhn-resource-container-nks-container
+      box p "User" shape=symbol icon=user
     }
   `));
   const dom = parseMarkup(await toSvg(result, { isStatic: true }));
-  const brandDecor = [groupHead(result.scene.groups[0]).decor, ...result.scene.items.slice(0, 3).map(item => item.decor)];
-  const measured = brandDecor.map(decor => decor.items.find(item => item.kind === 'icon'));
+  const measured = [groupHead(result.scene.groups[0]).decor, ...result.scene.items.slice(0, 2).map(item => item.decor)].map(decor => decor.items.find(item => item.kind === 'icon'));
   const drawn = findAll(dom, node => hasClass(node, 'fl-symbol-brand'));
   assert.equal(drawn.length, measured.length);
   for (const [index, symbol] of drawn.entries()) {
-    const icon = measured[index];
-    const transform = findOne(symbol, node => hasClass(node, 'fl-icon')).attrs.transform;
-    const scale = Number(/scale\(([^)]+)\)/.exec(transform)[1]);
-    assert.ok(Math.abs(scale * values.icon['size-small'] - icon.w) < EPS, 'SVG uses the measured brand width');
-    assert.equal(icon.h, icon.w);
+    const scale = Number(/scale\(([^)]+)\)/.exec(findOne(symbol, node => hasClass(node, 'fl-icon')).attrs.transform)[1]);
+    assert.ok(Math.abs(scale * values.icon['size-small'] - measured[index].w) < EPS);
   }
-  const person = result.scene.items.find(item => item.id === 'p').decor.items.find(item => item.kind === 'icon');
-  assert.equal(person.w, values.spacing.figure.icon.tile);
-  assert.equal(person.h, person.w);
-  const personSymbol = findOne(dom, node => hasClass(node, 'fl-symbol-concept'));
-  const personTransform = findOne(personSymbol, node => hasClass(node, 'fl-icon')).attrs.transform;
-  assert.ok(Math.abs(Number(/scale\(([^)]+)\)/.exec(personTransform)[1]) * values.icon['size-small'] - person.w) < EPS, 'SVG preserves the person tile size');
-  assert.deepEqual(measured.map(icon => icon.w), measured.map(() => values.spacing.figure.icon.brand), 'the same brand size across all four contexts');
+  assert.equal(measured[0].w, values.spacing.figure.group.title, 'the box-type icon occupies the group title height');
+  assert.equal(result.scene.groups[0].titleDx, 0, 'the group icon starts at its boundary');
+  const frame = findOne(dom, node => hasClass(node, 'frame-box'));
+  assert.equal(Number(frame.attrs.rx), values.radius.lg);
+  const clip = findOne(dom, node => node.tag === 'clipPath' && node.attrs.id?.includes('group-icon-'));
+  const clipRect = findOne(clip, node => node.tag === 'rect');
+  for (const attr of ['x', 'y', 'width', 'height', 'rx']) assert.equal(clipRect.attrs[attr], frame.attrs[attr], `icon clip shares the group ${attr}`);
+  assert.equal(findAll(dom, node => hasClass(node, 'fl-symbol-concept')).length, 1);
+  const resource = result.scene.items.find(item => item.id === 'r');
+  const resourceGroup = nodeGroup(dom, result.scene.items.indexOf(resource));
+  assert.equal(findOne(resourceGroup, node => hasClass(node, 'fl-stroke')).attrs.opacity, undefined, 'resource tiles keep their surface visible');
+  const label = resource.texts.find(text => text.role === 'label');
+  const span = textSpan({ x: 0, y: 0 }, label);
+  const pad = values.spacing.figure.node['tile-pad'];
+  assert.ok(span.x >= pad - EPS && span.x + span.width <= resource.w - pad + EPS, 'resource labels keep shared left and right padding');
+  const neutral = findOne(dom, node => hasClass(node, 'fl-symbol-concept'));
+  assert.ok(findAll(neutral, node => node.attrs.fill === 'currentColor').length > 0, 'neutral glyphs inherit readable theme ink');
 });
 
-test('U8 a concept icon is one symbol: the card header, the tile and the group title draw the same shapes in the same role, a brand keeps its own glyph', async () => {
-  for (const name of ['admin', 'user']) {
-    const result = await build(diagramplay(`
-      group g "G" icon=${name} {
-        box a "A" icon=${name}
-        box t "T" shape=tile icon=${name}
-      }
-      box b "B" icon=git
-      a -> b
-      scene "Move" mode=loop
-        a -> b
-    `));
-    const svg = await toSvg(result, { isStatic: true });
-    const dom = parseMarkup(svg);
-    const symbols = findAll(dom, (n) => n.tag === 'g' && hasClass(n, 'fl-symbol'));
-    assert.equal(symbols.length, 4);
-    const [concept, brand] = [symbols.filter((n) => hasClass(n, 'fl-symbol-concept')), symbols.filter((n) => hasClass(n, 'fl-symbol-brand'))];
-    assert.equal(concept.length, 3, 'group title, card header and tile');
-    assert.equal(brand.length, 1);
-    for (const [index, symbol] of concept.entries()) {
-      const prefix = index === 0 ? 'icon-g-0' : `icon-n-${index - 1}`;
-      const registered = parseMarkup(`<svg xmlns="http://www.w3.org/2000/svg">${iconBody(readIcon(name), { size: values.icon['size-small'], prefix })}</svg>`);
-      assert.deepEqual(shape({ tag: 'g', attrs: {}, children: symbol.children[0].children }), shape({ tag: 'g', attrs: {}, children: registered.children }), 'the registered shapes');
-    }
-    const animated = await toSvg(result);
-    const html = await toHtml(result, 'icons');
-    for (const output of [svg, animated, html]) {
-      const parsed = parseMarkup(output, { html: output === html });
-      // HTML의 좁은 배치는 비활성 template이며 넓은 배치와 교체되어 둘 중 하나만 문서에 붙는다.
-      const layouts = output === html ? findAll(parsed, node => hasClass(node, 'dp-panels')) : [parsed];
-      for (const layout of layouts) {
-        const masks = findAll(layout, (node) => node.tag === 'mask').map(node => node.attrs.id);
-        assert.equal(new Set(masks).size, masks.length, 'repeated icons and motion layers have unique masks');
-        for (const symbol of findAll(layout, (node) => hasClass(node, 'fl-symbol'))) {
-          const local = findAll(symbol, (node) => node.tag === 'mask').map(node => node.attrs.id);
-          for (const node of descendants(symbol)) if (node.attrs.mask) assert.ok(local.includes(/^url\(#(.+)\)$/.exec(node.attrs.mask)?.[1]), 'an icon only uses its own mask');
-        }
-      }
-    }
-    assert.equal(await toSvg(result), animated, 'shared icon IDs do not depend on earlier renders');
-    assert.equal(await toHtml(result, 'icons'), html, 'HTML is deterministic');
+test('U8 NHN asset types reject decorative cards and misplaced group icons', async () => {
+  for (const [source, pattern] of [
+    ['group g "G" icon=nhn-nks {\n box a "A"\n}', /box-type group icon/],
+    ['box a "A" icon=nhn-group-nks', /group boundaries/],
+    ['box a "A" icon=nhn-nks', /shape=tile or shape=symbol/],
+    ['store a "A" icon=nhn-resource-container-nks-container', /shape=tile or shape=symbol/],
+  ]) await assert.rejects(build(diagramplay(source)), pattern);
+  const result = await build(diagramplay('group g "NKS" icon=nhn-group-nks {\n box a "Workload" shape=symbol icon=nhn-resource-container-nks-container\n box b "Business action"\n}\na -> b\nscene "Move" mode=loop\n a -> b tone=green\n'));
+  const svg = await toSvg(result);
+  const html = await toHtml(result, 'nhn');
+  assert.equal(await toSvg(result), svg);
+  assert.equal(await toHtml(result, 'nhn'), html);
+  for (const output of [svg, html]) {
+    const parsed = parseMarkup(output, { html: output === html });
+    const ids = findAll(parsed, node => node.tag === 'clipPath' || node.tag === 'mask').map(node => node.attrs.id);
+    assert.equal(ids.length, new Set(ids).size, 'static and motion layers separate local definition IDs');
   }
 });
 

@@ -2,11 +2,10 @@ diagramplay
 pace 900ms
 title "06 · OAuth로 사진 접근 위임"
 subtitle "설명용 모형 · 사진 인쇄 앱에 비밀번호를 넘기지 않고 승인한 범위의 접근만 위임한다"
-icons story "icons" paint=source
-box user "사용자" shape=symbol icon=user
-box app "사진 인쇄" shape=symbol icon=story:browser
-box auth "인가 서버" shape=symbol icon=story:provider
-box photos "사진 API" shape=symbol icon=story:photos
+box user "사용자"
+box app "사진 인쇄"
+box auth "인가 서버"
+box photos "사진 API"
 view sequence {
   user app auth photos
 }

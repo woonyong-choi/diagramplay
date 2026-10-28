@@ -8,7 +8,7 @@ import { supportFiles } from './lib/catalog-support.mjs';
 
 const SOURCE = 'examples/authentication';
 const OUTPUT = '.local/authentication';
-const EXAMPLES = ['commerce-system', 'login-question', 'identity-access', 'sessions', 'session-scale', 'jwt-structure', 'jwt-flow', 'refresh-tokens', 'stolen-token', 'sso', 'oauth', 'oauth-key', 'oidc', 'auth-system'];
+const EXAMPLES = ['commerce-system', 'commerce-nhn', 'nhn-architecture', 'login-question', 'identity-access', 'sessions', 'session-scale', 'jwt-structure', 'jwt-flow', 'refresh-tokens', 'stolen-token', 'sso', 'oauth', 'oauth-key', 'oidc', 'auth-system'];
 
 async function main() {
   mkdirSync(OUTPUT, { recursive: true });

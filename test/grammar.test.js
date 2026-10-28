@@ -57,7 +57,7 @@ test('V3 words are separated by spaces: "->" and "=" need the documented spacing
   const cases = [
     ['box a "A"\nbox b "B"\na->b\n', 4],
     ['box a "A" icon = server\n', 2],
-    ['box a "A" icon=nginx icon=postgresql\n', 2],
+    ['box a "A" icon=nhn-general-application-instance icon=nhn-general-database\n', 2],
     ['box a "A" badge=api\n', 2],
     ['box a "A" badge="LB"tone=red\n', 2],
     ['box a "A"\nbox b "B"\na -> b quiet=yes\n', 4],

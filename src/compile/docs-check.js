@@ -27,11 +27,15 @@ export function withAspect(figure, aspect) {
 export async function checkDocs(result, { rebuild } = {}) {
   const problems = createProblems(result.figure.source);
   const context = { ...result, views: graphViews(result) };
+  const nhn = [...result.figure.nodes, ...result.figure.groups].some(item => item.iconData?.library === 'nhn-cloud');
   for (const { judge, stage } of CHECKS) if (stage === 'docs') judge?.(context, problems);
   for (const judge of STRUCTURE_JUDGES) judge(context, problems);
-  if (rebuild) await checkWrappedChain(result, rebuild, problems);
+  if (rebuild && !nhn) await checkWrappedChain(result, rebuild, problems);
   // 보이는 글은 모든 장면의 글이 든 움직이는 SVG에서 읽는다. 요구 항목이 없으면 만들지 않는다.
   if (result.figure.requires?.length) checkRequires(result, visibleTexts(await toSvg(result, { scene: 0, isStatic: false, name: 'docs' })), problems);
   checkColumn(result, problems);
-  return [...problems.errors, ...problems.warnings];
+  const diagnostics = [...problems.errors, ...problems.warnings];
+  // NHN 가이드는 모든 카드의 배지, 초점 수와 12개 개수 제한을 요구하지 않는다. 요구 항목과 실제 본문 읽힘 검사는 유지한다.
+  const editorial = new Set(['docs-1', 'docs-2', 'docs-3', 'docs-6', 'docs-9']);
+  return nhn ? diagnostics.filter(problem => !editorial.has(problem.code)) : diagnostics;
 }

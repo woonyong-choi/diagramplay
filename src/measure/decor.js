@@ -17,7 +17,7 @@ export const STACK_STEP = SPACE["1"];
 // basis: estimate
 // 장식 목록. 아이콘, 배지, 개수 순서다. 알약은 { kind, text, w, h }, 아이콘은 { kind: 'icon', w, h }다.
 function itemsOf(item, iconSize) {
-  const size = item.iconData?.role === 'brand' ? SIZE.icon.brand : iconSize;
+  const size = item.iconData?.library === 'nhn-cloud' ? iconSize : item.iconData?.role === 'brand' ? SIZE.icon.brand : iconSize;
   const pills = [item.badge && { kind: 'badge', text: item.badge }, item.count !== undefined && { kind: 'count', text: `×${item.count}` }].filter(Boolean);
   return [...(item.iconData ? [{ kind: 'icon', w: size, h: size }] : []), ...pills.map((p) => ({ ...p, ...sizeBadge(p.text) }))];
 }
@@ -50,7 +50,7 @@ export function layoutDecor(item, { iconSize, titleW, titleH = DECOR.pillH, icon
 export const nodeDecor = (node) => layoutDecor(node, { iconSize: node.tile ? SIZE.icon.tile : SIZE.icon.node });
 
 /** 그룹의 아이콘·제목·배지는 같은 줄에서 공통 간격으로 배치한다. */
-export const groupDecor = (group, titleW) => layoutDecor(group, { iconSize: SIZE.group.title - SPACE["2"], titleW });
+export const groupDecor = (group, titleW) => layoutDecor(group, { iconSize: group.iconData?.library === 'nhn-cloud' ? SIZE.group.title : SIZE.group.title - SPACE["2"], titleW });
 
 /** 복제 개수(count) 상자의 앞 상자(몸통) 사각형. 뒤 윤곽 두 겹이 비치는 만큼 도형 사각형보다 작다. 그 밖의 도형은 도형 사각형 그대로다. */
 export const bodyOf = (it) => ({ x: it.x, y: it.y, w: it.w - (it.stack ?? 0), h: it.h - (it.stack ?? 0) });

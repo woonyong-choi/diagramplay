@@ -8,7 +8,7 @@ group cloud "서울 리전" direction=down dashed badge="리전" {
   box cdn "CDN" tone=blue appearance=filled
   group front "프런트" direction=right tone=blue appearance=filled {
     box lb "로드 밸런서" badge="L7"
-    box web "웹 서버" icon=nginx count=2
+    box web "웹 서버" count=2
   }
   group core "서비스" direction=down tone=blue appearance=filled {
     box api "주문 API" badge="API" count=3
@@ -16,9 +16,9 @@ group cloud "서울 리전" direction=down dashed badge="리전" {
     box worker "작업자" tone=gray
   }
   group data "데이터" direction=right tone=blue appearance=filled {
-    box cache "캐시" shape=tile icon=redis
-    store db "주문 DB" icon=postgresql
-    store replica "복제본" icon=postgresql
+    box cache "캐시"
+    store db "주문 DB"
+    store replica "복제본"
   }
 }
 

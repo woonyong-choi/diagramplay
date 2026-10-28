@@ -1,0 +1,49 @@
+diagramplay
+title "11 · NHN Cloud 구성도 규칙"
+subtitle "설명용 모형 · 박스형 서비스 경계와 하위 리소스 · 실제 배포·HA 보장은 나타내지 않음"
+width wide
+pace 900ms
+
+external client "웹 클라이언트"
+group cloud "NHN Cloud" icon=nhn-cloud {
+  group region "Region · 예시 리전" icon=nhn-region {
+    group vpc "VPC" icon=nhn-vpc {
+      group compute "NHN Kubernetes Service" icon=nhn-group-nks direction=down {
+        box api "API 컨테이너" shape=tile icon=nhn-resource-container-nks-container
+        box worker "이벤트 처리 컨테이너" shape=tile icon=nhn-resource-container-nks-container
+      }
+      group database "RDS for MySQL" icon=nhn-group-database-rds-for-mysql direction=down {
+        box primary "Master" shape=tile icon=nhn-resource-database-rds-for-mysql-rds-instance
+        box candidate "Candidate Master" shape=tile icon=nhn-resource-database-rds-for-mysql-rds-instance
+      }
+      group stream "Kafka Instance" icon=nhn-group-kafka direction=down {
+        queue orders "주문 이벤트" slots=5
+        queue retry "재시도 이벤트" slots=5
+      }
+    }
+  }
+}
+client -> api "요청" no=1
+api -> primary "주문 저장" no=2
+api -> orders "이벤트 발행" no=3
+orders -> worker "처리" no=4
+worker -> primary "결과 저장" no=5
+primary -> candidate "복제 경로" dashed
+worker -> retry "실패 시 보조 경로" dashed
+retry -> worker "다시 시도" dashed
+
+scene "주 경로 · 성공" mode=loop status="primary=ok"
+  client -> api tone=green
+  api -> primary tone=green
+  api -> orders tone=green
+  orders -> worker tone=green
+  worker -> primary tone=green
+  wait 1600ms
+
+scene "보조 경로 · 실패와 재시도" mode=loop status="worker=fail"
+  orders -> worker tone=blue
+  worker -> retry tone=red
+  wait 1000ms
+  retry -> worker tone=blue
+  worker -> primary tone=green
+  wait 1600ms

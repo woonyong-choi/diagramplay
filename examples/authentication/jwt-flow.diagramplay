@@ -2,10 +2,9 @@ diagramplay
 pace 900ms
 title "03 · JWT 발급과 검증"
 subtitle "설명용 모형 · 로그인 때 발급한 토큰의 서명·발급자·대상·만료를 다음 요청에서 확인한다"
-icons story "icons" paint=source
-box user "사용자" shape=symbol icon=user
-box browser "브라우저" shape=symbol icon=story:browser
-box server "서버" shape=symbol icon=story:server
+box user "사용자"
+box browser "브라우저"
+box server "서버"
 view sequence {
   user browser server
 }

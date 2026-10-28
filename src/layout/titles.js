@@ -31,7 +31,7 @@ export function placeTitles(groups, edges, { sweep = new Map(), labels = [] } = 
 // 어느 후보도 맞지 않으면 기본 거리를 둔다(그림 검사 13번이나 2번이 알린다).
 function titleDx(g, edges, { sweep, labels }) {
   const head = groupHead(g);
-  const [w, inset] = [head.w, TITLE_INSET + head.lead];
+  const [w, inset] = [head.w, g.iconData?.library === 'nhn-cloud' ? 0 : TITLE_INSET + head.lead];
   const limit = g.w - TITLE_INSET - w;
   // 선분마다 비켜 설 간격: 박자 이동 글 상자가 쓸고 지나는 선은 그 옆 폭, 그 밖의 선은 TITLE_CLEAR
   const segments = edges.flatMap((e) => e.points.slice(1).map((p, i) => [e.points[i], p, Math.max(TITLE_CLEAR, sweep.get(e.index)?.x ?? 0)]));
