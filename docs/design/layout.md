@@ -63,33 +63,34 @@
 - 차트 숫자 폭은 Pretendard 파일의 `tnum` 기능을 적용해 잰다(`num`, `numSemibold` 글꼴). 글꼴 조각은 `tnum` 대체 글리프를 포함해 자른다. 그래서 보는 쪽이 `tabular-nums`로 그린 폭과 잰 폭이 같다.
 - 글을 읽는 방식은 그 글을 그리는 글꼴이 정하고(`format/text.js`의 `isLiteralFace`), 고정폭 글꼴(`mono`)과 값 글꼴(`semiboldLiteral`)이 글 그대로 읽는 글꼴이다. 고정폭 글꼴 칸(클래스 멤버, 테이블과 API 타입, `mono` 줄)과 값 글은 백틱도 글자로 읽어 잰 폭, 줄 나눔, 글꼴 조각에 모으는 글자, 그린 글, 원본 검사, 보이는 글 비교가 모두 같다. 값 글꼴은 `semibold`와 같은 글꼴 파일이고 글자 사이 간격도 같다. 고정폭만 간격이 없다. 그 밖의 칸에서는 글 안의 백틱 구간을 이름이 무엇이든 고정폭으로 잰다. 줄을 나눌 때 구간이 줄 사이에 걸치면 줄마다 구간을 닫고 다시 열어 각 줄이 짝이 맞는 글이 된다. 넘침 검사와 글꼴 없는 글자 검사도 구간별 글꼴을 따른다.
 - 글 폭은 글꼴 파일의 글자 너비 표로 잰다. 어림 비율을 쓰지 않는다.
-- 글자 크기는 역할별 정본 토큰을 따른다. 페이지·조작부는 `text.heading`, `subheading`, `body`, `control`, `caption`을 쓰고, 그림 안 글은 역할 셋이다. 제목은 `text.small-text`(15: 카드 제목 regular, 그룹 제목 semibold), 문장과 이름표는 `text.tiny-text`(13), 작은 표시는 `text.figure-meta`(11)다. 차트 눈금·범례·값도 같은 11과 13 역할 토큰을 읽는다(`chart/metrics.js`의 `TEXT`, `chart.css`). 페이지와 재생기 UI 글은 공통 text·font-weight 역할을 따로 쓴다. 역할의 크기와 굵기는 `measure/texts.js`의 `STYLE`이 재고 `@woonyong-choi/design-tokens/styles/diagram/figure.css`, `chart.css`, `status.css`가 그리며, 차트 제목과 부제도 같은 `label`, `sub` 역할이다. 그림 안 글의 굵기는 regular와 semibold 둘뿐이다. 아래는 현재 구현값이며 Things와의 시각적 일치 판정은 아니다. 도형 이름의 측정값과 CSS 크기와 굵기는 반드시 함께 변경한다.
+- 글자 크기는 역할별 정본 토큰을 따른다. 페이지·조작부는 `text.heading`, `subheading`, `body`, `control`, `caption`을 쓰고, 그림 안 글은 본문 단계에 묶인 역할 둘이다. 그림·그룹 제목과 차트 제목은 작은 글 `text.small`(15, semibold), 그 밖의 모든 글(카드 이름, 문장과 이름표, 태그, 표시, 번호, 열 키, 배지)은 설명 `text.caption`(13)이다. 11px와 22px 단계는 없다. 차트 눈금·범례·값도 같은 13 토큰 하나를 읽는다(`chart/metrics.js`의 `TEXT`, `chart.css`). 페이지와 재생기 UI 글은 공통 text·font-weight 역할을 따로 쓴다. 역할의 크기와 굵기는 `measure/texts.js`의 `STYLE`이 재고 `@woonyong-choi/design-tokens/styles/diagram/figure.css`, `chart.css`, `status.css`가 그리며, 차트 제목은 그룹 제목과 같은 `frame`(`STYLE.group`), 부제는 `sub` 역할이다. 그림 안 글의 굵기는 regular와 semibold 둘뿐이다. 아래는 현재 구현값이며 Things와의 시각적 일치 판정은 아니다. 도형 이름의 측정값과 CSS 크기와 굵기는 반드시 함께 변경한다.
 
 | 자리 | 정본 토큰 | 현재 크기·굵기 | 색 |
 |---|---|---|---|
 | 목록·문서 페이지 `h1` | `text.heading`, `font-weight.bold` | 36px·700 | `ink` |
 | 문서 미리보기 `h2` | `text.subtitle`, `font-weight.semibold` | 27px·600 | `ink` |
-| 목록의 그림 제목 | `text.figure.22`, `font-weight.semibold` | 22px·600 | `ink` |
+| 목록의 그림 제목 | `text.title-3`, `font-weight.semibold` | 24px·600 | `ink` |
 | 문서 미리보기 문단 | `text.body-text` | 18px·400 | `ink` |
-| 도형 이름·차트 제목 | `text.small-text` | 15px·400 | `ink` |
-| 단계 탭 | `text.body-text`를 기준으로 `text.platform-text`, `font-weight.semibold` | 홈페이지 문서 탭과 같은 버튼 변형 | `color.platform-color`, 선택 `color.control-paper` |
+| 도형 이름 | `text.caption` | 13px·400 | `ink` |
+| 차트 제목 | `text.small`, `font-weight.semibold` | 15px·600 | `ink` |
+| 장면 탭 | `text.small`, `font-weight.semibold` | 15px·600, 높이 32, 반경 8, 1px 선(사이트 단추와 같은 탭) | `body`, 선택은 메인 파랑 면 위 `color.feature-tab-ink` |
 | 테마 선택 | `text.body-text`를 기준으로 `text.feature-tab-font`, `font-weight.semibold` | 공통 분절 변형, 선택과 비선택의 굵기 동일 | `color.platform-color`, 선택 `color.control-paper` |
-| 차트 항목 이름 | `text.tiny-text` | 13px·400, 워터폴 합계 행 600 | `ink` |
-| 테이블 열 이름·격자 항목 | `text.figure.13` | 13px·400 | `ink` |
-| 단계 설명·현재 단계 | `text.figure.13`, `text.tiny-text` | 13px·400 | `ui-muted` |
-| 파일 이름·목록 링크 | `text.figure.13` | 13px·400 | 파일 이름 `ui-muted`, 링크 `ui.link` |
-| 도형·차트 부제, 선 라벨, 메모, 이동 글 | `text.tiny-text` | 13px·400 | 부제 `ui-muted`, 선 라벨은 알약 글자색, 나머지 `ink` |
-| 카드 줄·코드·형식·제약·값 | `text.tiny-text` | 13px·400, 값 600 | `ink`, 형식과 제약 `ui-muted` |
-| 그룹 제목·보기 이름 | `text.small-text`, `font-weight.semibold` | 15px·600, 자간 없음 | `group-title` |
-| 카드 태그·표시·열 키(PK, FK) | `text.figure-meta` | 11px·600 | 태그와 열 키 `ink`, 표시 `state.active-text` |
-| 차트 범례·눈금·단위·값·끝 이름 | `text.figure-meta` | 11px·400, 강조 값 600 | 값 `ink`, 끝 이름 계열 글자색, 나머지 `ui-muted` |
-| 상태 알약 글자 | `text.figure-meta` | 11px·600 | `ink` |
+| 차트 항목 이름 | `text.caption` | 13px·400, 워터폴 합계 행 600 | `ink` |
+| 테이블 열 이름·격자 항목 | `text.caption` | 13px·400 | `body` |
+| 단계 설명·현재 단계 | `text.caption` | 13px·400 | `ui-muted` |
+| 파일 이름·목록 링크 | `text.caption` | 13px·400 | 파일 이름 `ui-muted`, 링크 `ui.link` |
+| 도형·차트 부제, 선 라벨, 메모, 이동 글 | `text.caption` | 13px·400 | 부제와 선 라벨 `body`, 나머지 `ink` |
+| 카드 줄·코드·형식·제약·값 | `text.caption` | 13px·400, 값 600 | `body`, 형식과 제약 `ui-muted` |
+| 그룹 제목·보기 이름 | `text.small`, `font-weight.semibold` | 15px·600, 자간 없음 | `ink` |
+| 카드 태그·표시·열 키(PK, FK)·배지 | `text.caption` | 13px·600 | 태그와 열 키 `ink`, 표시 `state.active-text` |
+| 차트 범례·눈금·단위·값·끝 이름 | `text.caption` | 13px·400, 강조 값 600 | 값 `ink`, 끝 이름 계열 글자색, 나머지 `ui-muted` |
+| 상태 알약 글자 | `text.caption` | 13px·600 | `ink`(알약은 회색, 기호만 상태색) |
 
 페이지 제목과 그림 내부 제목은 서로 다른 역할이다. 같은 요소를 맞출 때는 숫자뿐 아니라 글꼴, 줄 높이, 주변 간격과 실제 표시 배율도 비교한다. 목록과 문서의 큰 제목은 모두 `leading.heading`을 사용한다.
 
 - 이름 한 줄에 아이콘 하나뿐인 단순 상자(카드, 부제, 배지, 개수, 타일, 원통 없음)는 아이콘과 이름을 한 줄에 나란히 놓는다(`sizeInline`). 너비는 아이콘, 간격, 이름 폭이고 높이는 `spacing.figure.node.min-height` 이상이라 아이콘을 위에 쌓아 생기던 빈 높이가 없다. 이름 자리는 `labelRows`가 같은 값(`decor.textCx`)을 쓴다. 타일, 카드가 있는 도형, 여러 줄 이름은 이전 배치 그대로다.
 - 줄 높이는 글자 크기에 비율 토큰을 곱해 반올림한다. 도형 안의 여러 줄 글(이름, 부제, 카드 줄, 격자 칸 글)은 `leading.normal`(1.5)이고 카드 줄 사이 간격은 `spacing.1-5`이다. 크기를 정하는 쪽(`measure/texts.js`의 `STYLE`)과 그리는 쪽이 같은 값을 쓰고, 카드 높이와 도형 높이가 이 값으로 늘어나 글이 카드 밖으로 잘리지 않는다. 이동 글 상자는 `leading.snug`(1.35), 설명 줄과 문단은 `leading.normal`(1.5)이다.
-- 차트 값 글자(11)는 눈금과 같은 크기라 굵기(강조 값 600)와 색(`ink` 대 `ui-muted`)으로 앞선다. 데이터 그림에서 가장 중요한 글이지만 크기 단계를 하나 더 늘리지 않았다. 카드 값 줄의 값은 카드 줄과 같은 13이고 굵기만 다르다.
+- 차트 값 글자(13)는 눈금과 같은 크기라 굵기(강조 값 600)와 색(`ink` 대 `ui-muted`)으로 앞선다. 데이터 그림에서 가장 중요한 글이지만 크기 단계를 하나 더 늘리지 않았다. 카드 값 줄의 값은 카드 줄과 같은 13이고 굵기만 다르다.
 - 이동 글 상자는 문장과 이름표 역할(13)이다.
 - 글 한 줄의 자리와 폭은 `measure/texts.js`가 `textAt`으로 정한 text 하나이고, 기준 점(`anchor`)도 text가 정한다. 카드 내용 줄(`measure/content.js`의 `sizeContent`)도 태그, 오른쪽 표시, 본문, 관계 그래프 이름, 값을 모두 text로 재어 돌려주고, 그리는 쪽(`draw/content.js`, `draw/values.js`)과 그림 검사 1번(`check/fit.js`)은 그 text를 그대로 읽어 따로 폭을 다시 세지 않는다. 메모와 순서 구획 제목은 `textBlock`, 그룹 제목은 `placeGroupHead`가 같은 방식으로 text를 만든다.
 - 구획 카드(표, API, 클래스)와 순서 보기 참여자의 머리는 `measure/card.js`의 `headerOf` 하나다. 제목은 아이콘과 배지를 뺀 폭(`room`)에 한 줄이 들면 그대로 두고, 넘으면 낱말 자리, 이름 안의 `/`, `-`, `_`, `.` 뒤, 글자 단위 순서로 줄을 나눈다. `room`은 본문 폭과 `INNER_MAX` 중 큰 쪽이라 본문이 이미 넓으면 제목은 필요 없이 좁게 나뉘지 않는다. 머리 높이는 줄 수만큼 늘어나고 아이콘은 첫 줄과 가운데가 같다.
@@ -280,7 +281,7 @@ HTML은 흰 문서 면 위에 제목과 조작을 놓는다. 설명 그림 판�
 
 키보드 초점(`:focus-visible`)은 도형 자신의 윤곽을 `--color-ui-focus` 색과 `outline-width.focus` 굵기로 그리는 접근성용 굵기 예외다. 켜짐(`light`)의 강조 윤곽이나 도착 펄스와 별개의 표시이고, 같은 윤곽 모양(원통, 둥근 표)과 모서리를 쓰므로 도형의 크기와 배치는 그대로다. 브라우저 기본 사각 포커스 상자(`outline`)는 어떤 초점에서도 g 요소에서 끄고, `:focus-visible`이 아닌 초점은 아무 표시도 그리지 않는다. 값 변경 강조는 값 행의 정확한 행 모양(첫 행과 마지막 행은 카드 모서리에 맞춘 둥근 끝)으로만 그리고, 이 행 강조가 켜진 도형에는 도형 전체의 지금 면을 칠하지 않는다.
 
-도형의 글자는 내장 Pretendard로 측정하고 같은 파일의 부분 글꼴로 출력한다. Things 웹의 시스템 글꼴 자체를 재배포하지 않는다. 제목 15px(카드 제목 regular, 그룹 제목 semibold), 문장과 이름표 13px, 작은 표시 11px semibold의 위계를 유지하며 조작부는 15px semibold다.
+도형의 글자는 내장 Pretendard로 측정하고 같은 파일의 부분 글꼴로 출력한다. Things 웹의 시스템 글꼴 자체를 재배포하지 않는다. 그룹·그림 제목 15px semibold와 그 밖의 글 13px(이름과 문장 regular, 표시 semibold) 위계를 유지하며 조작부(장면 탭)는 15px semibold다.
 
 테이블과 클래스는 제목 영역을 `color.figure.selection-fill` 면으로 구분한다. 제목 면은 바깥 윤곽 안쪽에만 채워 모서리와 선 굵기를 바꾸지 않는다. PK·FK·UNQ는 강조 글자색으로 구분하고 자료형은 고정폭 보조 글자다.
 
@@ -366,7 +367,7 @@ HTML 생성 때 좁은 배치의 목표 폭을 컨테이너 폭(`spacing.figure.
 
 ### 카드 태그와 모바일 읽기 폭
 
-카드 태그, 번호, 표식, 열 키는 작은 표시 역할(`text.figure-meta` 11px)이고 그려지는 가장 작은 글이 11px이다. 틀이 그림보다 좁으면 글자도 그림과 함께 작아진다. HTML 재생기는 가장 작은 글 역할이 가장 작은 글 토큰(`text.figure.9`)이 되는 배율(9/11)까지만 줄이고 그보다 좁으면 그림 영역 안에서 가로로 옮기며(design-tokens `styles/diagram/player.css`, 그림 검사 10번과 같은 기준), SVG 이미지는 넣는 쪽의 이미지 규칙대로 줄어든다. 그래서 배치는 본문 단 폭(680)에 드는 후보를 먼저 고른다.
+카드 태그, 번호, 표식, 열 키도 설명 단계(`text.caption` 13px)이고 그려지는 가장 작은 글이 13px이다. 틀이 그림보다 좁으면 글자도 그림과 함께 작아진다. HTML 재생기는 가장 작은 글 역할이 가장 작은 글 토큰(`text.figure.9`)이 되는 배율(9/13)까지만 줄이고 그보다 좁으면 그림 영역 안에서 가로로 옮기며(design-tokens `styles/diagram/player.css`, 그림 검사 10번과 같은 기준), SVG 이미지는 넣는 쪽의 이미지 규칙대로 줄어든다. 그래서 배치는 본문 단 폭(680)에 드는 후보를 먼저 고른다.
 
 표의 PK·FK는 카드 태그와 별도의 키 역할(`STYLE.key`)을 쓴다. 표 크기·충돌 검사·글자 장애물이 모두 이 역할을 사용하므로 카드 태그를 바꿔도 표의 폭이나 경로가 바뀌지 않는다.
 

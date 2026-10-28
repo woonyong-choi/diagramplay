@@ -387,7 +387,7 @@ scene "소비자 하나가 느려진다" for=6s status="slow=warn"
 - `filled`: 같은 계열의 옅은 면.
 - `outline`: 같은 계열의 경계와 중립 면.
 - `filled`와 `outline`에서 `tone`을 생략하면 무채색 `gray`를 쓴다. `show`의 `tone`은 `plain`이면 알약을 칠하므로 `tag`가 있어야 하고(`tone colors a tag or, with appearance=filled|outline, the card`), `appearance=filled|outline`이면 `tag` 없이 그 내용의 카드 면이나 경계를 칠한다. 차트의 관측값과 기준값을 가르는 채움과 빈 표시(`series`의 `role`)는 이 규칙과 별개의 차트 역할이다.
-- 색 이름은 문법 표의 `tone` 값 목록이 정한다: 범주 팔레트 계열 일곱(`blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`)과 무채색 `gray`. 흐름의 이동 점 색(`a -> b`와 `track`의 `tone=`)도 같은 목록이다. hex와 따옴표 글은 오류다. 대비 규칙(글자 4.5, 그래픽 3)을 원본이 깨지 못하게 하기 위해서다. 값 없이 `tone=#ff0000`처럼 쓰면 `#`부터 주석이라는 안내가 붙는다.
+- 색 이름은 문법 표의 `tone` 값 목록이 정한다: 구분색 넷(`blue`, `orange`, `gray`, `silver`). 상태(성공, 경고, 오류)는 색 이름이 아니라 장면 상태(`status=`)의 아이콘이 알린다. 흐름의 이동 점 색(`a -> b`와 `track`의 `tone=`)도 같은 목록이다. hex와 따옴표 글은 오류다. 대비 규칙(글자 4.5, 그래픽 3)을 원본이 깨지 못하게 하기 위해서다. 값 없이 `tone=#ff0000`처럼 쓰면 `#`부터 주석이라는 안내가 붙는다.
 - `fill=`, `stroke=`, `card=`는 없다. 쓰면 그 줄이 받는 선택 사항 목록을 알리는 오류다.
 - 색 단계의 값과 대비는 [색 역할](docs-integration.md#색-역할)이 정한다.
 
@@ -518,10 +518,10 @@ trace t "결제 추적" unit=ms {
 | 줄 | 뜻 |
 |---|---|
 | `scene "이름" [mode=static\|once\|loop] [speed=1] [for=12s] [keep="값, 값"] [set="식, 식"] [status="카드=종류, 카드=종류"]` | 장면 시작. 이름은 글 하나뿐이고 설명 글을 더하면 오류다. `mode`와 `speed`는 [재생 방식](#재생-방식)이다. `for`는 흐름 장면의 길이이고 생략하면 토큰 `duration.flow-step`이다. `keep`, `set`, `status`는 이 장면의 시작 값과 카드 상태를 정한다([값 유지와 읽기](#값-유지와-읽기), [장면별 도형 상태](#장면별-도형-상태)) |
-| `a[.칸] -> b[.칸] ["실어 보낼 글"] [time=3s] [tone=purple] [set="식, 식"] [lost=60%] [when="조건"] [wait="조건"] [timeout=2s] [else=카드] [stuck] [reserve="식, 식"]` | 이동 박자. 점 하나가 선 하나를 지난다. 순서 보기에 보이는 이동은 `dashed`, `create`, `destroy`를 더할 수 있다 |
+| `a[.칸] -> b[.칸] ["실어 보낼 글"] [time=3s] [tone=orange] [set="식, 식"] [lost=60%] [when="조건"] [wait="조건"] [timeout=2s] [else=카드] [stuck] [reserve="식, 식"]` | 이동 박자. 점 하나가 선 하나를 지난다. 순서 보기에 보이는 이동은 `dashed`, `create`, `destroy`를 더할 수 있다 |
 | `track a, b -> c -> d ["글"] [at=0s] [every=2s] [time=6s] [legs="1s, -"] [tone=blue] [set="식"] [lost=60%] [when="조건"] [wait="조건"] [timeout=2s] [else=카드] [stuck] [reserve="식"]` | 흐름. 출발지마다 점이 선언된 선들을 멈춤 없이 잇는다. `legs`는 구간마다 이동 시간을 정한다 |
 | `a -> b "글" & c -> d time=2s` | 한 박자 안의 여러 이동 |
-| `show id "글" [tag="태그"] [tone=purple] [appearance=모양] [meta="덧붙임"] [mark="표시"] [mono]` | 카드 줄 하나를 바로 앞 박자에 더한다. 카드를 그리는 그래프 보기에 놓인 카드만 쓸 수 있다 |
+| `show id "글" [tag="태그"] [tone=orange] [appearance=모양] [meta="덧붙임"] [mark="표시"] [mono]` | 카드 줄 하나를 바로 앞 박자에 더한다. 카드를 그리는 그래프 보기에 놓인 카드만 쓸 수 있다 |
 | `show id graph "가 -> 나; 가 -> 다" [lit="가, 나"]` | 카드에 작은 관계 그래프 줄 하나를 더한다 |
 | `clear id` | 바로 앞 박자에서 값 줄을 남기고 카드 본문을 비운다 |
 | `light 이름 ...` | 점 없이 카드, 그룹, 칸을 밝히는 박자. 칸은 `카드.칸`(테이블·API의 칸, 격자의 `item`, 추적의 구간)이다 |
@@ -552,7 +552,7 @@ trace t "결제 추적" unit=ms {
 - `show`, `clear`는 바로 앞 박자에 붙고, 적은 순서대로 적용한다. 장면의 첫 줄이 `show`면 멈추는 박자를 하나 만든다. 장면의 첫 줄이 `clear`면 선언한 본문이 있는 카드만 비울 수 있다. 선언한 본문도 없으면 오류다.
 - 내용이 없는 카드는 틀도 글자도 그리지 않는다. 읽을 내용이 없는데 점선 틀이 도형마다 남으면 정보 없는 표시가 반복돼 화면이 어수선하기 때문이다. 틀은 카드에 내용이 들어오는 박자에 내용과 함께 나타나고 `clear`로 비우면 함께 사라진다. 카드 자리는 배치에 그대로 잡혀 도형 크기는 변하지 않고, 도형의 이름 묶음은 카드가 비어 있어도 찬 뒤에도 같은 자리에 있다. 머리가 내려오거나 올라가지 않으며, 카드 내용이 들어올 자리는 비어 있는 동안에도 남는다. 내용이 찬 카드의 틀은 중립 면과 경계이고 파랑 윤곽은 바깥 도형이 맡는다. 카드에 읽을 글이 없으므로 대체 글도 두지 않는다. 정지 SVG는 고른 장면의 마지막 카드 내용을 그린다. 장면이 없으면 선언한 본문과 값이 남는다.
 - 도착 규칙: 그 박자에 점이 도착하는 도형의 카드는 그 도형에 도착하는 이동 가운데 가장 늦은 도착 때 바뀐다. 나머지 도형의 카드는 박자 시작에 바뀐다.
-- 태그는 대문자로 그린다. `tone`이 있는 줄은 그 색이다. `tone`이 없는 줄은, `tone` 없이 처음 나온 태그 순서대로 범주 팔레트 순서(`blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, 다시 처음부터)로 붙인 색을 그림 전체에서 같은 태그에 쓴다. 상태 색이라고 건너뛰는 자리는 없다. `gray`는 `tone`으로 고를 때만 쓴다.
+- 태그는 대문자로 그린다. `tone`이 있는 줄은 그 색이다. `tone`이 없는 줄은, `tone` 없이 처음 나온 태그 순서대로 범주 팔레트 순서(`blue`, `orange`, `gray`, `silver`, 다시 처음부터)로 붙인 색을 그림 전체에서 같은 태그에 쓴다.
 - `mark`는 8자 이하다. 카드 오른쪽 끝에 들어갈 자리가 정해져 있기 때문이다.
 - 관계 그래프 글은 `;`로 관계를 나누고, 관계는 `이름 -> 이름` 또는 이름 하나다. 이름은 앞뒤 공백을 빼고 `;`, `,`, `->`를 쓰지 않는다. 관계가 돌아 제자리로 오거나, `lit`의 이름이 그래프에 없으면 오류다. 이름 수나 깊이, 이름 길이의 한도는 없다. 그래프 줄은 이름을 자르지 않고, 필요하면 카드를 `spacing.figure.node.max-width`보다 넓힌다(표처럼 구조 내용이 카드를 넓히는 것과 같고, 넓어진 카드에도 같은 바깥 폭 맞춤이 적용된다. [배치](layout.md)).
 - 카드를 쓰는 도형은 `box`, `external`, `store`, `person`, `table`, `api`다. `decision`, 격자, 그룹에 `show`를 쓰면 오류다. `show`와 `clear`의 대상은 카드를 그리는 그래프 보기에 놓여야 한다. 순서 보기에만 놓인 카드에 쓰면 `show "s" needs a card, and no graph view shows "s"` 오류이고, 같은 카드를 그래프 보기에도 놓으면 된다. 상태 알약(`status`)은 순서 보기 머리에도 그려서 이 제한이 없다.
@@ -573,7 +573,7 @@ trace t "결제 추적" unit=ms {
 
 점 색과 값 바꾸기:
 
-- `tone=`은 점과 글 상자의 색이다. tone 이름은 그 색을 그린다. 값 목록은 카드 태그의 `tone`과 같아서(범주 팔레트 계열 일곱과 `gray`) 문법 표의 값 목록 한 곳이 이름을 정한다. 생략한 이동은 지금 색(`state.active`)이고, 생략한 흐름은 위 자동 배정 색이다. 점과 글 상자의 면, 그 위 글자, 글 상자 윤곽은 계열마다 팔레트의 면, 글자, 윤곽 단계(`src/color/tone.js`)이고 `gray`는 윤곽이 없다([색 역할](docs-integration.md#색-역할)).
+- `tone=`은 점과 글 상자의 색이다. tone 이름은 그 색을 그린다. 값 목록은 카드 태그의 `tone`과 같아서(구분색 넷) 문법 표의 값 목록 한 곳이 이름을 정한다. 생략한 이동은 지금 색(`state.active`)이고, 생략한 흐름은 위 자동 배정 색이다. 점과 글 상자의 면, 그 위 글자, 글 상자 윤곽은 계열마다 팔레트의 면, 글자, 윤곽 단계(`src/color/tone.js`)다([색 역할](docs-integration.md#색-역할)).
 - `set="식, 식"`은 이동이나 흐름의 점이 도형에 닿을 때 값을 바꾼다. `@도형`을 붙이면 점이 그 도형에 닿을 때, 없으면 이동이나 흐름의 도착 도형에 닿을 때 적용한다. `@도형`은 경로 위 도형이어야 하고, 경로가 그 도형을 두 번 지나면 어느 쪽인지 알 수 없어 오류다(방문 순번은 없다. 그 도형의 변화는 `on` 줄로 쓴다). 낱말을 담는 값에 `+`, `-`를 쓰면 오류다.
 - 같은 순간에 적용할 식의 순서: 시각이 앞선 것, 같은 시각이면 `on` 줄이 모두 `set=`보다 앞, 같은 종류면 이동과 흐름의 선언 순서, 같은 줄이면 적은 순서다.
 - 값이 바뀌는 순간 그 카드 줄과 그 값을 참조하는 줄의 배경 면(테두리 없음)이 갱신 펄스 동안 밝아지고, 값 글자는 새 글로 바뀐다. 글이 그대로면 바뀐 것이 아니다.
@@ -666,7 +666,7 @@ scene "같은 시각에 요청한다" for=8s
 | `wait` | `WAIT` | 점 셋 | `outline` |
 
 - 알약은 글자와 기호를 늘 함께 그린다. 색을 구별하지 못해도 상태가 읽히게 하기 위해서다. 알약 면은 도형 면(`ui-card`)이고 기호와 테두리는 종류의 색, 글자는 `ink`다. 글자는 `ink` 4.5 이상이다. 기호와 테두리는 `ok`, `fail`, `wait`가 도형 면과 그림 바탕, 그룹 면 위에서 그래픽 대비 3을 지키고 다크의 `warn`도 지킨다([색 역할](docs-integration.md#색-역할)). `wait`는 구분을 위해 중립색을 쓰는데 `border`는 `ui-card` 위 대비가 라이트 1.27, 다크 1.08이라 기준에 못 미쳐 대비 3을 보장하는 `outline`을 쓴다.
-- 라이트의 `warn`은 예외다. 승인한 노랑 계열 경계(`state.warning`)는 바꾸지 않고, 그 테두리는 어느 면 위에서도 대비 3에 못 미친다. 같은 색상의 테두리, 읽히는 글자 `WARN`, 중복 기호(삼각형 안 느낌표)가 색 대신 상태를 전한다. 모든 그래픽이 대비 3이라고 주장하지 않는다.
+- 상태 알약은 회색(옅은 회색 면과 `color.ui-line` 테두리)이고 상태색은 기호에만 쓴다. 읽히는 글자(`OK`, `WARN`, `FAIL`, `WAIT`)와 기호 모양(삼각형 안 느낌표 등)이 색 대신 상태를 전한다. 모든 그래픽이 대비 3이라고 주장하지 않는다.
 - 알약은 도형 이름과 글자, 다른 도형, 선 라벨, 그룹 제목을 가리지 않는다. 가리면 [그림 검사](figure-check.md) 2번이 상태를 적은 장면 줄의 오류로 알린다. 이동 글 상자도 상태 알약을 가리지 않는 자리를 고른다.
 - 알약은 도형 오른쪽 위 모서리에 걸쳐 그려서 도형 크기와 배치를 바꾸지 않는다.
 - 도형 상자는 그 도형이 어느 장면에서든 보일 가장 큰 카드(`show`, `value`)에 맞춰 늘 같은 크기이므로, 카드를 한 장면에만 넣은 도형은 카드 없는 같은 종류의 도형보다 커 보인다. 대기 중 같은 일시 표시를 카드로 적으면 이 크기 차이가 생기므로, 크기를 같게 두려면 상태 알약(`status`)으로 적는다.
@@ -736,11 +736,11 @@ scene "같은 시각에 요청한다" for=8s
 | `group.dashed` | 값 없음(낱말만) |
 | `group.badge` | 글, 최대 8자 |
 | `group.icon` | 이름 또는 세트:이름 |
-| `group.tone` | `blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, `gray` |
+| `group.tone` | `blue`, `orange`, `gray`, `silver` |
 | `group.appearance` | `plain`, `filled`, `outline` |
 | `node.badge` | 글, 최대 8자 |
 | `node.icon` | 이름 또는 세트:이름 |
-| `node.tone` | `blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, `gray` |
+| `node.tone` | `blue`, `orange`, `gray`, `silver` |
 | `node.appearance` | `plain`, `filled`, `outline` |
 | `box.count` | 2 이상 정수 |
 | `queue.slots` | 1 이상 32 이하 정수 |
@@ -753,7 +753,7 @@ scene "같은 시각에 요청한다" for=8s
 | `scene.keep` | 값 이름 목록 |
 | `scene.set` | 글 |
 | `hop.time` | 시간 |
-| `hop.tone` | `blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, `gray` |
+| `hop.tone` | `blue`, `orange`, `gray`, `silver` |
 | `hop.set` | 글 |
 | `hop.lost` | 0 이상 100 이하 퍼센트 |
 | `hop.when` | 조건 글 |
@@ -765,7 +765,7 @@ scene "같은 시각에 요청한다" for=8s
 | `track.at` | 시간(0 가능) |
 | `track.every` | 시간 |
 | `track.time` | 시간 |
-| `track.tone` | `blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, `gray` |
+| `track.tone` | `blue`, `orange`, `gray`, `silver` |
 | `track.set` | 글 |
 | `track.lost` | 0 이상 100 이하 퍼센트 |
 | `track.when` | 조건 글 |
@@ -788,7 +788,7 @@ scene "같은 시각에 요청한다" for=8s
 | `edge.head` | `end`, `both`, `none` |
 | `box.shape` | `rect`, `circle`, `tile` |
 | `show.tag` | 글 |
-| `show.tone` | `blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, `gray` |
+| `show.tone` | `blue`, `orange`, `gray`, `silver` |
 | `show.appearance` | `plain`, `filled`, `outline` |
 | `show.meta` | 글 |
 | `show.mark` | 글, 최대 8자 |
@@ -841,7 +841,7 @@ scene "같은 시각에 요청한다" for=8s
 | `scale` | `scale 값` | `linear`, `log` | `linear` |
 | `zero` | `zero 값` | `on`, `off` | `on` |
 | `chartType` |  | `bar`, `stacked`, `percent`, `dumbbell`, `box`, `scatter`, `line`, `step`, `area`, `ecdf`, `difference`, `heatmap`, `pie`, `donut`, `histogram`, `waterfall` | 없음 |
-| `tone` | `group.tone`, `node.tone`, `hop.tone`, `track.tone`, `show.tone` | `blue`, `yellow`, `red`, `green`, `orange`, `purple`, `cyan`, `gray` | 없음 |
+| `tone` | `group.tone`, `node.tone`, `hop.tone`, `track.tone`, `show.tone` | `blue`, `orange`, `gray`, `silver` | 없음 |
 | `appearance` | `group.appearance`, `node.appearance`, `show.appearance` | `plain`, `filled`, `outline` | `plain` |
 | `role` | `series.role` | `main`, `compare`, `reference` | 계열이 하나나 둘이면 선언 순서대로 main, compare(`dumbbell`은 compare, main), 셋 이상이면 없음 |
 | `head` | `edge.head` | `end`, `both`, `none` | `end` |
