@@ -1,14 +1,12 @@
 // 카드 안에 보이는 내용(`show`와 값 줄)을 그린다. 내용마다 층을 하나씩 두고 박자가 보일 층을 고른다. 크기와 글 자리는 measure/content.js가 정한 그대로고, 글은 카드 머리와 같은 drawTexts가 그린다.
 // 카드 면과 머리는 draw/card.js가 그리고, 이 파일은 그 면 안쪽에 놓이는 내용 면 하나와 그 위의 줄(태그 알약, 관계 그래프의 선과 알약)만 맡는다.
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { autoTone, toneColors } from '../color/tone.js';
 import { roundCoord as r } from '../format/text.js';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { faceOf, lookClass } from './look.js';
 import { CORNER, rectOpen } from './surface.js';
-import { pillFace } from './pill.js';
 import { drawTexts } from './texts.js';
 import { hiddenAttr } from './visible.js';
-import { drawChartBody } from './chart.js';
 
 const RADIUS = values.radius;
 const contentLook = (layout) => layout.rows.map(({ row }) => faceOf(row)).find(({ tone }) => tone !== undefined) ?? faceOf({});
@@ -66,38 +64,11 @@ function drawFace(layout, box) {
 // 줄마다 태그 알약(있으면), 관계 그래프의 선과 알약(있으면), 그 줄의 글. 글(태그, 표시, 본문, 그래프 이름)은 모두 측정이 놓은 text다.
 function drawRows(layout, box, { toneOf, glyphs }) {
   return layout.rows.map((laid) => {
-    if (laid.chart) return drawChartBody(laid.chart, { id: laid.id, x: box.x + (box.w - laid.chart.width) / 2, y: box.y + laid.top }, glyphs);
-    return `${laid.tag ? drawTag(laid, box, toneOf(laid.row)) : ''}${laid.graph ? drawMiniGraph(laid.graph, box) : ''}${drawTexts(laid.texts, box, glyphs)}`;
+    return `${laid.tag ? drawTag(laid, box, toneOf(laid.row)) : ''}${''}${drawTexts(laid.texts, box, glyphs)}`;
   }).join('');
 }
 
 // 태그 알약. 알약은 줄 첫 줄의 세로 가운데에 놓이고 자리는 측정이 정했다.
 function drawTag({ tag }, box, tone) {
   return `<rect x="${r(box.x + tag.x)}" y="${r(box.y + tag.center - tag.h / 2)}" width="${r(tag.w)}" height="${tag.h}" rx="${RADIUS.sm}" fill="${tone}" fill-opacity="${values.opacity.tag}"/>`;
-}
-
-// cost: time O(n + e), heap O(out), stack O(1)
-// vars: n = 이름 수, e = 관계 수, out = 만든 SVG 글자 수
-// basis: estimate
-// 관계 그래프의 선과 이름 알약. 밝힌 이름과, 밝힌 두 이름 사이 선은 강조 색이다. 열을 건너뛰는 관계는 위로 휜다. 이름 글은 text다.
-function drawMiniGraph(laid, box) {
-  const [x, y] = [box.x + laid.at.x, box.y + laid.at.y];
-  // 관계선은 바깥 연결선과 같은 부품이다: 묶음 `fl-edge`와 선 `fl-path`가 굵기, 모서리, 평소 색을 정하고, 강조는 같은 켜짐 색(`--fx-edge`)을 선 묶음 색으로 읽을 뿐이다.
-  const lines = laid.edges.map(({ from, to, isLit, isSkip }) => {
-    let d;
-    if (isSkip) {
-      const [x1, x2] = [from.x + from.w / 2, to.x + to.w / 2];
-      d = `M ${r(x + x1)} ${r(y + from.y)} Q ${r(x + (x1 + x2) / 2)} ${r(y - Math.min(from.y, to.y))} ${r(x + x2)} ${r(y + to.y)}`;
-    } else {
-      const isSameColumn = Math.abs(from.x - to.x) < 1;
-      const [x1, y1] = isSameColumn ? [from.x + from.w / 2, from.y + from.h] : [from.x + from.w, from.y + from.h / 2];
-      const [x2, y2] = isSameColumn ? [to.x + to.w / 2, to.y] : [to.x, to.y + to.h / 2];
-      d = `M ${r(x + x1)} ${r(y + y1)} L ${r(x + x2)} ${r(y + y2)}`;
-    }
-    return `<g class="fl-edge${isLit ? ' fl-mini-lit' : ''}"><path d="${d}" class="fl-path"/></g>`;
-  });
-  const pills = laid.nodes.map((n) => {
-    return pillFace({ x: x + n.x, y: y + n.y, w: n.w, h: n.h }, 'mini', n.isLit ? ' fl-mini-lit' : '');
-  });
-  return lines.join('') + pills.join('');
 }

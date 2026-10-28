@@ -16,6 +16,7 @@
   --color-outline: var(--color-gray-529);
   --color-line: var(--color-gray-282);
   --color-state-active: var(--color-category-blue-light-border);
+  --color-state-active-fill: var(--color-category-blue-fill);
   --color-state-active-text: var(--color-category-blue-light-ink);
   --color-state-on-active: var(--color-gray-0);
   --color-ui-focus: var(--color-action-link);
@@ -30,11 +31,16 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
+  --color-figure-label-ink: var(--color-ink);
+  --color-figure-label-active-fill: var(--color-state-active-fill);
+  --color-figure-label-active-ink: var(--color-state-on-active);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
   --color-soft: var(--primitive-soft);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   --color-action-link: var(--primitive-link);
   --color-category-blue-anchor: #1e6bd6;
@@ -62,6 +68,7 @@
   --primitive-soft: #e9edf2;
   --primitive-small-text: 15px;
   --primitive-tiny-text: 13px;
+  --primitive-help-border: #ebecef;
   --primitive-search-hover: #d9e6ff;
   --primitive-help-hover: #ebf1ff;
   --primitive-help-title-color: #3d4856;
@@ -105,10 +112,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
   }
@@ -129,10 +138,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
 }
@@ -152,10 +163,12 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   color-scheme: light;
 }
@@ -329,11 +342,20 @@
   stroke-dasharray: var(--dash-card) var(--dash-card);
 }
 
-/* 알약은 모두 같은 중립 흰 면과 평소 경계다: 선 라벨, 배지와 개수. */
-.fl .pill,
+/* 관계 라벨은 번호 유무와 관계없이 같은 채움과 대비 글자를 사용한다. */
+.fl .fl-pill {
+  --fx-ink-rest: var(--color-figure-label-ink);
+  --fx-ink: var(--color-figure-label-active-ink);
+}
+
+.fl .pill {
+  fill: var(--color-figure-label-fill);
+  stroke: none;
+}
+
 .fl .badge-pill {
-  fill: var(--color-ui-card);
-  stroke: var(--fx-edge-rest);
+  fill: var(--color-figure-label-fill);
+  stroke: none;
 }
 
 .fl .fl-mini-pill {
@@ -620,25 +642,25 @@
 .fl .a3 { animation: a3 5.066s 1 forwards linear; }
 @keyframes a4 { 0%,69.56% { color: var(--fx-line-rest) } 69.562%,92.102% { color: var(--fx-edge) } 92.104%,100% { color: var(--fx-line-rest) } }
 .fl .a4 { animation: a4 5.066s 1 forwards linear; }
-@keyframes a5 { 0%,22.54% { stroke: var(--fx-edge) } 22.542% { stroke: var(--fx-edge) } 30.438%,100% { stroke: var(--fx-edge-rest) } }
+@keyframes a5 { 0%,22.54% { fill: var(--color-figure-label-active-fill) } 22.542% { fill: var(--color-figure-label-active-fill) } 30.438%,100% { fill: var(--color-figure-label-fill) } }
 .fl .a5 { animation: a5 5.066s 1 forwards linear; }
 @keyframes a6 { 0%,22.54% { fill: var(--fx-ink) } 22.542% { fill: var(--fx-ink) } 30.438%,100% { fill: var(--fx-ink-rest) } }
 .fl .a6 { animation: a6 5.066s 1 forwards linear; }
-@keyframes a7 { 0%,22.54% { stroke: var(--fx-edge-rest) } 22.542%,46.05% { stroke: var(--fx-edge) } 46.052% { stroke: var(--fx-edge) } 53.948%,100% { stroke: var(--fx-edge-rest) } }
+@keyframes a7 { 0%,22.54% { fill: var(--color-figure-label-fill) } 22.542%,46.05% { fill: var(--color-figure-label-active-fill) } 46.052% { fill: var(--color-figure-label-active-fill) } 53.948%,100% { fill: var(--color-figure-label-fill) } }
 .fl .a7 { animation: a7 5.066s 1 forwards linear; }
 @keyframes a8 { 0%,22.54% { fill: var(--fx-ink-rest) } 22.542%,46.05% { fill: var(--fx-ink) } 46.052% { fill: var(--fx-ink) } 53.948%,100% { fill: var(--fx-ink-rest) } }
 .fl .a8 { animation: a8 5.066s 1 forwards linear; }
-@keyframes a9 { 0%,46.05% { stroke: var(--fx-edge-rest) } 46.052%,69.56% { stroke: var(--fx-edge) } 69.562% { stroke: var(--fx-edge) } 77.458%,100% { stroke: var(--fx-edge-rest) } }
+@keyframes a9 { 0%,46.05% { fill: var(--color-figure-label-fill) } 46.052%,69.56% { fill: var(--color-figure-label-active-fill) } 69.562% { fill: var(--color-figure-label-active-fill) } 77.458%,100% { fill: var(--color-figure-label-fill) } }
 .fl .a9 { animation: a9 5.066s 1 forwards linear; }
 @keyframes a10 { 0%,46.05% { fill: var(--fx-ink-rest) } 46.052%,69.56% { fill: var(--fx-ink) } 69.562% { fill: var(--fx-ink) } 77.458%,100% { fill: var(--fx-ink-rest) } }
 .fl .a10 { animation: a10 5.066s 1 forwards linear; }
-@keyframes a11 { 0%,69.56% { stroke: var(--fx-edge-rest) } 69.562%,92.102% { stroke: var(--fx-edge) } 92.104% { stroke: var(--fx-edge) } 99.998%,100% { stroke: var(--fx-edge-rest) } }
+@keyframes a11 { 0%,69.56% { fill: var(--color-figure-label-fill) } 69.562%,92.102% { fill: var(--color-figure-label-active-fill) } 92.104% { fill: var(--color-figure-label-active-fill) } 99.998%,100% { fill: var(--color-figure-label-fill) } }
 .fl .a11 { animation: a11 5.066s 1 forwards linear; }
 @keyframes a12 { 0%,69.56% { fill: var(--fx-ink-rest) } 69.562%,92.102% { fill: var(--fx-ink) } 92.104% { fill: var(--fx-ink) } 99.998%,100% { fill: var(--fx-ink-rest) } }
 .fl .a12 { animation: a12 5.066s 1 forwards linear; }
 .fl .sa0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 </style>
-<defs></defs>
+
 <rect x="0.5" y="0.5" width="437.7" height="306" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 <line x1="67" x2="67" y1="63" y2="291" class="lifeline"/>
@@ -658,7 +680,7 @@
 <g class="fl-packet p1-0" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="5.066s" repeatCount="1" fill="freeze" calcMode="discrete" keyTimes="0;0.22542;0.46052" values="0;1;0"/><animateMotion dur="5.066s" repeatCount="1" fill="freeze" calcMode="spline" keyTimes="0;0.22542;0.46052;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#p-1" xlink:href="#p-1"/></animateMotion></g>
 <g class="fl-packet p2-0" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="5.066s" repeatCount="1" fill="freeze" calcMode="discrete" keyTimes="0;0.46052;0.69562" values="0;1;0"/><animateMotion dur="5.066s" repeatCount="1" fill="freeze" calcMode="spline" keyTimes="0;0.46052;0.69562;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#p-2" xlink:href="#p-2"/></animateMotion></g>
 <g class="fl-packet p3-0" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="5.066s" repeatCount="1" fill="freeze" calcMode="discrete" keyTimes="0;0.69562;0.92104" values="0;1;0"/><animateMotion dur="5.066s" repeatCount="1" fill="freeze" calcMode="spline" keyTimes="0;0.69562;0.92104;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#p-3" xlink:href="#p-3"/></animateMotion></g>
-<g class="fl-pills"><g id="l-0" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="75" y="93" width="71.6" height="18" rx="9" class="pill a5"/><text x="110.8" y="106.7" class="edgelabel a6">로그인 누름</text></g></g><g id="l-1" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="166.3" y="149" width="79.3" height="18" rx="9" class="pill a7"/><text x="206" y="162.7" class="edgelabel a8">POST /login</text></g></g><g id="l-2" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="209.7" y="193" width="35.9" height="18" rx="9" class="pill a9"/><text x="227.6" y="206.7" class="edgelabel a10">토큰</text></g></g><g id="l-3" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="100.6" y="237" width="49.8" height="18" rx="9" class="pill a11"/><text x="125.4" y="250.7" class="edgelabel a12">홈 화면</text></g></g></g>
+<g class="fl-pills"><g id="l-0" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="76.8" y="93" width="71.6" height="18" rx="9" class="pill a5"/><text x="112.7" y="106.7" class="edgelabel a6">로그인 누름</text></g></g><g id="l-1" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="166.3" y="149" width="79.3" height="18" rx="9" class="pill a7"/><text x="206" y="162.7" class="edgelabel a8">POST /login</text></g></g><g id="l-2" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="188" y="193" width="35.9" height="18" rx="9" class="pill a9"/><text x="206" y="206.7" class="edgelabel a10">토큰</text></g></g><g id="l-3" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="87.8" y="237" width="49.8" height="18" rx="9" class="pill a11"/><text x="112.7" y="250.7" class="edgelabel a12">홈 화면</text></g></g></g>
 </g>
 <g class="fl-still" transform="translate(0 0)">
 <line x1="67" x2="67" y1="63" y2="291" class="lifeline"/>
@@ -675,6 +697,6 @@
 <g class="fl-note" data-si="0"><path d="M265.6 135H412.7L422.7 145V175H265.6Z" class="note-box"/><path d="M412.7 135V145H422.7" class="note-box"/><text x="275.6" y="159.7" class="meta">비밀번호 해시를 비교합니다</text></g>
 
 
-<g class="fl-pills"><g id="still-l-0" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="75" y="93" width="71.6" height="18" rx="9" class="pill "/><text x="110.8" y="106.7" class="edgelabel ">로그인 누름</text></g></g><g id="still-l-1" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="166.3" y="149" width="79.3" height="18" rx="9" class="pill "/><text x="206" y="162.7" class="edgelabel ">POST /login</text></g></g><g id="still-l-2" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="209.7" y="193" width="35.9" height="18" rx="9" class="pill "/><text x="227.6" y="206.7" class="edgelabel ">토큰</text></g></g><g id="still-l-3" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="100.6" y="237" width="49.8" height="18" rx="9" class="pill "/><text x="125.4" y="250.7" class="edgelabel ">홈 화면</text></g></g></g>
+<g class="fl-pills"><g id="still-l-0" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="76.8" y="93" width="71.6" height="18" rx="9" class="pill "/><text x="112.7" y="106.7" class="edgelabel ">로그인 누름</text></g></g><g id="still-l-1" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="166.3" y="149" width="79.3" height="18" rx="9" class="pill "/><text x="206" y="162.7" class="edgelabel ">POST /login</text></g></g><g id="still-l-2" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="188" y="193" width="35.9" height="18" rx="9" class="pill "/><text x="206" y="206.7" class="edgelabel ">토큰</text></g></g><g id="still-l-3" class="fl-edge" data-si="0"><g class="fl-pill"><rect x="87.8" y="237" width="49.8" height="18" rx="9" class="pill "/><text x="112.7" y="250.7" class="edgelabel ">홈 화면</text></g></g></g>
 </g>
 </svg>

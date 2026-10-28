@@ -1,11 +1,11 @@
 // 흐름 장면 문장(`scene ... for=시간`, `track a -> b -> c ...`)을 읽는다. 선이 있는지와 시간이 맞는지는 flow-check.js가 확인한다.
 import { autoTone } from '../color/tone.js';
+import { valueNames } from './grammar.js';
 import { readMoveOptions, readTime } from './move-options.js';
 import { readOptions } from './options.js';
-import { valueNames } from './grammar.js';
 import { readSets } from './value.js';
+import { isOverTimeLimit, MS_PER_SECOND, overLimitMessage, parseTime, TIME_LIMIT_MS, timeHint } from './values.js';
 import { ID_PATTERN } from './words.js';
-import { isOverTimeLimit, MS_PER_SECOND, overLimitMessage, parseTime, timeHint, TIME_LIMIT_MS } from './values.js';
 
 const TRACK_FORM = 'write a track as: track a, b -> c -> d ["text"] [at=time] [every=time] [time=time] [legs="time, -"] [tone=name] [set="id+1@node"] [lost=60%] [when="condition"] [wait="condition"] [timeout=time] [else=node] [stuck] [reserve="id+1, id=word"]';
 const STATUS_FORM = 'write status as: status="node=ok, node=warn"';

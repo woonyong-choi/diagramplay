@@ -1,16 +1,15 @@
 // 흐름 단계(`track`)를 시간표 구간 하나로 만든다. 박자가 끝나야 다음 박자가 시작하는 시계와 달리, 흐름은 단계 길이 안에서 서로 기다리지 않고 각자 출발한다(docs/design/playback.md 흐름 단계).
-import { arrivalOffsetMs } from '../math/easing.js';
-import { ratio } from '../format/numbers.js';
-import { hopMs, lengthMs } from './hop-ms.js';
-import { isPassed } from './lost.js';
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { trackGeometry, trackInstances } from '../flow/track-geometry.js';
 import { mirrorPace } from '../flow/track-pace.js';
-import { makeDiagnostic, FigureError } from '../source/problems.js';
+import { ratio } from '../format/numbers.js';
+import { arrivalOffsetMs } from '../math/easing.js';
+import { FigureError, makeDiagnostic } from '../source/problems.js';
 import { TIME_LIMIT_MS } from '../source/values.js';
-import { checkMoveInputs, gridPlan, inputTicks, msOfTicks, TICKS_PER_MS } from './time-grid.js';
-import { chartSegState } from './charts.js';
+import { hopMs, lengthMs } from './hop-ms.js';
+import { isPassed } from './lost.js';
 import { createSeg } from './seg.js';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { checkMoveInputs, gridPlan, inputTicks, msOfTicks, TICKS_PER_MS } from './time-grid.js';
 
 const FLOW_STEP_MS = values.duration['flow-step'];
 // 한 그림이 그릴 수 있는 점 수의 하드 상한. 경고 기준(`scale.flow-dots-max`)의 열 배다. 경고선 위에서 그림은 느려질 뿐이지만 이 선을 넘으면 입력이 처리 예산을 넘으므로 그리지 않는다.
@@ -255,7 +254,6 @@ export function flowSeg({ step, si, engine }, run, { scene, cards, chips, dotsLi
     nodesOn: [],
     partsOn: [],
     card: { before: start, after: start, at: {} },
-    charts: chartSegState(run, { charts: new Map() }, { si, bi: 0 }),
     status: step.status,
     // 단계 끝(for=)에 닿는 점도 이 단계의 사건이다. 닿지 못하고 잘리는 점(끝 뒤에 닿는 점)만 후광이 없다.
     extra: { pulses: pulses.filter(({ at }) => at <= length) },

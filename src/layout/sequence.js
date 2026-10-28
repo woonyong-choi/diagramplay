@@ -1,12 +1,13 @@
 // 순서 그림 배치. 참여자 열과 메시지 행이 정해진 격자라 elkjs를 쓰지 않는다(docs/design/layout.md 순서 그림 배치).
-import { maxOf } from '../math/extremes.js';
-import { fragmentRows, finishFragments } from './sequence-fragments.js';
-import { placeSequenceLife } from './sequence-life.js';
-import { FIGURE_PAD } from '../measure/canvas.js';
-import { stretchHeight } from '../measure/sizes.js';
-import { sizePill } from '../measure/pills.js';
-import { STYLE, textBlock } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { maxOf } from '../math/extremes.js';
+import { FIGURE_PAD } from '../measure/canvas.js';
+import { sizePill } from '../measure/pills.js';
+import { stretchHeight } from '../measure/sizes.js';
+import { STYLE, textBlock } from '../measure/texts.js';
+import { finishFragments, fragmentRows } from './sequence-fragments.js';
+import { placeSequenceLife } from './sequence-life.js';
+import { sequenceLabelX } from './sequence-labels.js';
 
 const SPACE = values.spacing;
 const SIZE = values.spacing.figure;
@@ -90,9 +91,8 @@ function layoutRow(beat, rowNotes, { index, centers, sizes, m, y }) {
   const pill = sizePill(hop.data);
   const loop = loopOf(pill);
   const placed = rowNotes.map((n) => ({ ...n, x: noteX(n, centers[index.get(n.node)], isRightNote(n, hop)), y: y + SPACE["1"] }));
-  // 라벨은 보내는 생명선 바로 옆, 화살표가 가는 쪽에 둔다. 열 간격(placeColumns)이 라벨을 보내는 쪽 이웃 생명선 앞까지에 넣으므로 라벨이 생명선을 가로지르지 않는다.
-  const way = Math.sign(centers[b] - centers[a]);
-  const labelX = centers[a] + way * (LABEL_GAP + pill.w / 2);
+  // 관계 설명은 중앙 우선이며 중간 참여자의 생명선을 가로지르지 않는다.
+  const labelX = isSelf ? centers[a] : sequenceLabelX(centers[a], centers[b], centers, pill.w);
   const span = isSelf ? [centers[a], centers[a] + loop + pill.w / 2] : [Math.min(centers[a], centers[b], labelX - pill.w / 2), Math.max(centers[a], centers[b], labelX + pill.w / 2)];
   const isStacked = placed.some((n) => n.x < span[1] && n.x + n.w > span[0]);
   const selfExtra = isSelf ? SIZE.sequence.row / 2 : 0;

@@ -1,5 +1,4 @@
-// 도형과 그룹의 연결점. 선 끝이 어디에 닿는지, 몸통 도형의 연결점을 어디에 놓는지를 정한다(docs/design/layout.md 도형 크기와 연결점, 연결점 순서).
-import { cellPort, circlePort } from './cell-ports.js';
+
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { columnAnchorY } from '../format/columns.js';
 
@@ -33,17 +32,8 @@ export function addPort(container, way, edge) {
 export function endpoint(id, end, nodes) {
   const node = nodes.get(id);
   if (!node) return id;
-  const spec = portSpec(node, { ...end, isTrailingField: trailingFieldEdge(end.edge, nodes) });
+  const spec = portSpec(node, end);
   return spec ? addNodePort(node, end, spec) : id;
-}
-
-// 한 줄 필드 띠의 같은 오른쪽 구간을 연결할 때 아래로 돌아 중간 조회 영역을 비운다.
-function trailingFieldEdge(edge, nodes) {
-  const from = nodes.get(edge.from), to = nodes.get(edge.to);
-  if (from?.shape !== 'grid' || to?.shape !== 'grid' || from.rows !== 1 || to.rows !== 1 || from.direction !== 'right' || to.direction !== 'right' || from.id === to.id) return false;
-  const a = from.cells.find(cell => cell.id === edge.fromCell);
-  const b = to.cells.find(cell => cell.id === edge.toCell);
-  return Boolean(a && b && a.col > 0 && b.col > 0 && a.col + a.cols === from.cols && b.col + b.cols === to.cols && a.col * to.cols === b.col * from.cols);
 }
 
 // cost: time O(c), heap O(1), stack O(1)
@@ -54,8 +44,6 @@ function portSpec(node, end) {
   const { way, edge, flow } = end;
   const columns = way === 'out' ? edge.fromColumns : edge.toColumns;
   if ((node.shape === 'table' || node.shape === 'api') && columns) return columnPort(node, way, columns, edge.from === edge.to);
-  if (node.shape === 'grid' && (way === 'out' ? edge.fromCell : edge.toCell)) return cellPort(node, end);
-  if (node.shape === 'circle') return circlePort(node, way);
   if (node.shape === 'decision') return decisionPort(node, way, edge.branch ?? 0);
   if (node.shape === 'store') return { side: storeSide(way === 'in' ? flow.direction : node.direction, way) };
   // 그룹 경계를 넘는 선은 도형 자신의 그룹 방향이 선이 놓이는 방향과 다를 때만 선이 놓이는 방향의 면에 닿는다(같으면 elkjs가 같은 면을 고른다).
@@ -114,7 +102,7 @@ export function orientFlowPorts({ nodes, containers, pieces }) {
     for (const end of new Set(list.flatMap(piece => [piece.from, piece.to]))) {
       const id = end.split('::')[0];
       const owner = nodes.get(id) ?? containers.get(id);
-      if (!owner || ['grid', 'table', 'api', 'decision', 'circle'].includes(owner.shape)) continue;
+      if (!owner || ['table', 'api', 'decision'].includes(owner.shape)) continue;
       const port = owner.ports.find(p => p.id === end);
       if (port) port.side = OPPOSITE[port.side];
     }

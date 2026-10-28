@@ -1,7 +1,7 @@
 {
   "name": "diagramplay",
   "version": "0.3.0",
-  "description": "Turn one .diagramplay text source into an animated SVG figure for documentation: asynchronous flows, sequences, states, data relations, and charts",
+  "description": "Animated architecture, card flow, sequence, entity relationship, and class diagrams from text",
   "license": "MIT",
   "keywords": [
     "diagram",
@@ -12,8 +12,9 @@
     "simulation",
     "async",
     "sequence-diagram",
-    "chart",
-    "cli"
+    "cli",
+    "erd",
+    "class-diagram"
   ],
   "author": "choi woo-nyong",
   "repository": {
@@ -49,7 +50,8 @@
     "showcase": "node scripts/build-showcase.mjs",
     "figures": "npm run catalog && node src/cli.js render docs/assets/how-it-works.diagramplay && npm run showcase && node scripts/run-md.mjs",
     "catalog": "node scripts/build-catalog.mjs",
-    "check:package": "node scripts/check-package.mjs"
+    "check:package": "node scripts/check-package.mjs",
+    "compare": "node scripts/build-comparison.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -57,7 +59,7 @@
   "dependencies": {
     "@expo-google-fonts/noto-sans": "^0.4.2",
     "@expo-google-fonts/noto-sans-math": "^0.4.2",
-    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/7a9c43e4d16469c4abcaec67340637de5b9aca70/artifacts/diagram.tgz",
+    "@woonyong-choi/design-tokens": "https://raw.githubusercontent.com/woonyong-choi/design-tokens/8b37dcab5078411fe435688c5455b26b2d8897f9/artifacts/diagram.tgz",
     "elkjs": "^0.9.3",
     "fontkit": "^2.0.4",
     "jetbrains-mono": "^1.0.6",

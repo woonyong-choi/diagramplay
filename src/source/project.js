@@ -16,7 +16,7 @@ export function assignViewEdges(figure) {
   }
 }
 
-const partsOf = (e, way) => e[`${way}Columns`] ?? [e[`${way}Cell`]];
+const partsOf = (e, way) => e[`${way}Columns`] ?? [undefined];
 
 // 열 묶음의 양쪽 주소가 있으면 같은 위치의 열 쌍이어야 한다.
 // cost: time O(c), heap O(1), stack O(1)

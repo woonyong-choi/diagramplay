@@ -75,11 +75,10 @@ scene "loop" mode=loop
             await page.getByRole('tab', { name: 'loop', exact: true }).click();
             await page.waitForFunction(() => document.querySelector('.fl-edge.on'));
             assert.equal(await stroke(), rootOverride, 'explicit active override');
-            await page.waitForFunction(() => !document.querySelector('.fl-edge.on'));
-            assert.equal(await stroke(), rest);
+            await page.waitForFunction(expected => !document.querySelector('.fl-edge.on') && getComputedStyle(document.querySelector('.fl-path')).stroke === expected, rest);
             await page.waitForFunction(() => document.querySelector('.fl-edge.on'));
-            await page.waitForFunction(() => !document.querySelector('.fl-edge.on'));
-            assert.equal(await stroke(), rest, 'second loop returns to default');
+            // 같은 프레임에서 비활성 상태와 실제 색을 함께 관측해 다음 루프와 경합하지 않는다.
+            await page.waitForFunction(expected => !document.querySelector('.fl-edge.on') && getComputedStyle(document.querySelector('.fl-path')).stroke === expected, rest);
             await page.getByRole('tab', { name: 'rest', exact: true }).click();
             assert.equal(await stroke(), rest, 'scene switch restores rest');
           } else {
@@ -94,6 +93,110 @@ scene "loop" mode=loop
         await context.close();
       }
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test('numbered_and_plain_pills_share_filled_contrast_in_both_players_and_themes', async () => {
+  const result = await buildFigure(`diagramplay
+box a "A"
+box b "B"
+box c "C"
+a -> b "요청" no=1
+b -> c "전달"
+scene "rest"
+scene "run" mode=loop
+  a -> b time=1s
+  b -> c time=1s
+  wait 1s
+`);
+  const browser = await chromium.launch({ channel: 'chrome' });
+  try {
+    for (const colorScheme of ['light', 'dark']) {
+      for (const [kind, output] of [['svg', await toSvg(result, { scene: 1 })], ['html', await toHtml(result)]]) {
+        const page = await browser.newPage({ colorScheme, reducedMotion: 'no-preference' });
+        try {
+          await page.setContent(output);
+          if (kind === 'html') await page.getByRole('tab', { name: 'run', exact: true }).click();
+          await page.waitForFunction(() => document.getAnimations().length > 0 || document.querySelector('.fl-edge.on'));
+          for (const state of ['rest', 'active']) {
+            if (kind === 'svg') await page.evaluate(time => document.getAnimations().forEach(animation => { animation.pause(); animation.currentTime = time; }), state === 'active' ? 250 : 2900);
+            else if (state === 'rest') await page.getByRole('tab', { name: 'rest', exact: true }).click();
+            else {
+              await page.getByRole('tab', { name: 'run', exact: true }).click();
+              await page.waitForFunction(() => document.querySelector('#e-0.on'));
+            }
+            const pills = await page.locator('svg.fl:not(.fl-still) .fl-pill').evaluateAll(elements => elements.filter(element => !element.closest('.fl-still')).map(element => {
+              const face = getComputedStyle(element.querySelector('.pill'));
+              const text = getComputedStyle(element.querySelector('.edgelabel'));
+              const canvas = document.createElement('canvas');
+              canvas.width = canvas.height = 1;
+              const ctx = canvas.getContext('2d');
+              const rgb = color => {
+                ctx.clearRect(0, 0, 1, 1);
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, 1, 1);
+                return [...ctx.getImageData(0, 0, 1, 1).data];
+              };
+              const luminance = rgb => rgb.slice(0, 3).map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+              const fill = rgb(face.fill);
+              const a = luminance(fill), b = luminance(rgb(text.fill));
+              return { fill: face.fill, ink: text.fill, alpha: fill[3], ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), numbered: !!element.querySelector('.number-pill') };
+            }));
+            assert.equal(pills.length, 2);
+            assert.deepEqual(pills.map(pill => pill.numbered), [true, false]);
+            for (const pill of pills) {
+              assert.equal(pill.alpha, 255, `${kind}/${colorScheme}/${state}: filled background`);
+              assert.ok(pill.ratio >= 4.5, `${kind}/${colorScheme}/${state}: ${JSON.stringify(pill)}`);
+            }
+            if (state === 'rest') assert.equal(pills[0].fill, pills[1].fill, 'numbering does not change the label palette');
+          }
+        } finally {
+          await page.close();
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test('example_theme_controls_preserve_scene_and_status_pills_use_filled_semantics', async () => {
+  const result = await buildFigure(`diagramplay
+box a "A"
+box b "B"
+a -> b "요청" no=1
+scene "성공" mode=loop status="b=ok"
+  a -> b time=1s
+  wait 1s
+scene "실패" mode=loop status="b=fail"
+  a -> b time=1s
+  wait 1s
+`);
+  const browser = await chromium.launch({ channel: 'chrome' });
+  try {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.setContent(await toHtml(result));
+    await page.getByRole('tab', { name: '실패', exact: true }).click();
+    for (const theme of ['라이트', '다크']) {
+      await page.getByRole('button', { name: theme, exact: true }).click();
+      assert.equal(await page.getByRole('button', { name: theme, exact: true }).getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.getByRole('tab', { name: '실패', exact: true }).getAttribute('aria-selected'), 'true');
+      const status = await page.locator('.fl-status-fail').first().evaluate(element => ({
+        fill: getComputedStyle(element.querySelector('.status-pill')).fill,
+        ink: getComputedStyle(element.querySelector('.status-text')).fill,
+        expectedFill: getComputedStyle(element).getPropertyValue('--color-figure-status-fail-fill').trim(),
+        expectedInk: getComputedStyle(element).getPropertyValue('--color-figure-status-fail-ink').trim(),
+      }));
+      assert.notEqual(status.fill, status.ink);
+      assert.notEqual(status.expectedFill, '');
+      assert.notEqual(status.expectedInk, '');
+    }
+    assert.deepEqual(errors, []);
+    await page.close();
   } finally {
     await browser.close();
   }

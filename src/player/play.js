@@ -13,7 +13,7 @@ const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
 function figurePlay(root, data) {
   const player = createPlayer(root, data);
   if (document.documentElement.classList.contains('embedded')) fitEmbedded(root, data);
-  figureView(root, data, bindResponsiveScene(root, player));
+  figureView(root, data);
   document.addEventListener('visibilitychange', () => syncClock(player));
   REDUCED_MOTION.addEventListener('change', () => REDUCED_MOTION.matches && settleScene(player));
   // 시간 흐름이 없는 그림은 다 자란 모양 그대로 움직이지 않고 탭도 없다(도구 막대는 쓸 수 있다). 장면이 하나뿐이어도 탭이 없다.

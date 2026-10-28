@@ -1,580 +1,112 @@
 # DiagramPlay 사용법
 
-DiagramPlay는 텍스트로 문서용 그림을 만드는 도구이다. 구성 요소를 한 번 선언한 뒤 연결, 보기, 장면을 조합한다. 구조·순서·상태·데이터 관계·차트가 같은 카드와 조작부를 사용하고, 애니메이션은 선언한 구조를 따라 움직인다.
-
-이 문서는 처음 설치해서 글에 그림을 넣는 과정과 지원하는 표현을 설명한다. 옵션의 전체 목록은 코드에서 생성하는 [그림 문법](design/figure-syntax.md#문법-표)이 정본이다. 여기의 수치와 서비스는 설명용 예시이며 실제 시스템의 측정값이 아니다.
-
-## 시작하기
-
-처음에는 다음 네 단계만 따라 하면 된다.
-
-1. [설치와 버전 확인](#설치와-버전-확인)에서 Node.js와 패키지를 준비한다.
-2. [첫 그림 만들기](#첫-그림-만들기)의 원본을 저장하고 SVG와 HTML을 만든다.
-3. [읽는 화면의 동작](#읽는-화면의-동작)에서 그림 확인, 복사, 다운로드를 익힌다.
-4. [Markdown과 홈페이지에 넣기](#markdown과-홈페이지에-넣기)에서 글과 함께 저장한다.
-
-그림을 만든 다음에는 아래에서 필요한 작업을 고른다. 모든 옵션을 먼저 익힐 필요는 없다.
-
-| 하려는 작업 | 안내 |
-|---|---|
-| 서비스와 경계, 아이콘, 연결 방향 표현 | [아키텍처와 경계](#아키텍처와-경계) |
-| 카드에 설명, 현재 값, 작은 차트 넣기 | [카드에 설명과 값 넣기](#카드에-설명과-값-넣기) |
-| API 요청·응답의 필드 연결 | [API 계약](#api-계약) |
-| 클래스와 인터페이스의 관계 표현 | [클래스와 인터페이스](#클래스와-인터페이스) |
-| 요청과 응답의 시간 순서 설명 | [메시지 순서](#메시지-순서) |
-| 상태 전이와 재시도 설명 | [상태와 재시도](#상태와-재시도) |
-| 테이블과 키, 참조 관계 표현 | [테이블, 관계와 일반 표](#테이블-관계와-일반-표) |
-| 배열·메모리·비트·포인터 설명 | [배열, 비트와 포인터](#배열-비트와-포인터) |
-| 측정값 비교와 분포 그리기 | [차트와 측정값](#차트와-측정값) |
-| 호출 시간과 여러 보기 비교 | [실제 시간의 추적과 여러 보기](#실제-시간의-추적과-여러-보기) |
-| 장면 탭과 단계별 강조 추가 | [구조에 장면 추가하기](#구조에-장면-추가하기) |
-| 반복 요청·큐·조건·값 변화 표현 | [동시에 움직이는 트래픽과 큐](#동시에-움직이는-트래픽과-큐) |
-| SVG·HTML·갤러리 출력과 자동 검사 | [CLI 출력과 검사](#cli-출력과-검사) |
-| Mermaid·DBML·D2·draw.io·Excalidraw 원본 옮기기 | [다른 도구의 원본 가져오기](#다른-도구의-원본-가져오기) |
-| JavaScript·TypeScript 연동 | [JavaScript에서 조립하기](#javascript에서-조립하기) |
-| 오류 수정과 지원 범위 확인 | [문제가 있을 때](#문제가-있을-때) |
-
-문법을 바로 찾으려면 [문서 안내](README.md)의 문법·검사 항목을 사용한다. 이 문서는 저장소 기본 브랜치 기준이다. 명령 예시는 저장소 안에서 실행하는 `node src/cli.js`로 적고, npm으로 설치한 곳에서는 `npx diagramplay`로 바꿔 실행한다. 원본의 `diagramplay` 선언에는 패키지 버전을 붙이지 않는다.
+아키텍처, 카드 흐름, 시퀀스, ERD, 클래스를 같은 카드·선·장면으로 그린다. 요청·응답·이벤트·큐·값 변화는 실행 표현이다. 통계 차트와 측정 시계열은 지원하지 않는다.
 
 ## 설치와 버전 확인
 
-Node.js 20 이상과 npm이 필요하다. 문서 저장소에서 쓸 때는 패키지로 설치한다.
-
 ```sh
-npm i diagramplay
-npx diagramplay check request.diagramplay --strict
+npm install diagramplay
+npx diagramplay --version
 ```
-
-이 저장소의 예제와 그림을 고치려면 저장소를 복제하고 `npm ci`로 잠금 파일의 의존성을 설치한다. 복제한 저장소 루트에서는 `node src/cli.js`로 실행한다.
-
-```sh
-git clone https://github.com/woonyong-choi/diagramplay.git
-cd diagramplay
-npm ci
-```
-
-패키지 버전은 다음 명령으로 확인할 수 있다. 원본 첫 줄에는 버전 숫자 없이 `diagramplay`만 적는다.
-
-```sh
-node --input-type=module -e "import {createRequire} from 'node:module'; console.log(createRequire(import.meta.url)('diagramplay/package.json').version)"
-```
-
-DiagramPlay 패키지에는 렌더러와 TypeScript 선언이 포함된다. 공통 디자인과 아이콘은 패키지 안에 묶인 `@woonyong-choi/design-tokens`(DiagramPlay용 `diagram` 배포물, 고정 commit)에서 읽으므로 따로 설치하지 않는다. 브랜드 크기 역할 `spacing.figure.icon.brand`가 없는 구버전 디자인은 가져오기 단계에서 호환 오류로 중단한다. 다른 디자인 commit을 쓰는 방법은 [아키텍처의 배포](architecture.md#배포)에 있다. 라이브러리 API도 Node.js에서 실행하며 ESM으로 가져온다. 패키지 구성과 배포 절차는 [마크다운과 배포](design/markdown.md#패키지)에 있다.
 
 ## 첫 그림 만들기
 
-아래 내용을 `request.diagramplay`에 저장한다. 카드 세 개와 선 두 개만으로 정적인 구조가 만들어진다. 좌표, 글꼴, 색, 보기, 장면을 지정할 필요가 없다.
+`request.diagramplay`에 다음 원본을 적는다. 첫 줄은 옵션 없는 `diagramplay`다.
 
 ```diagramplay name=request
 diagramplay
-title "요청을 저장하는 경로"
-person client "사용자"
-box service "주문 서비스"
-store records "저장소"
-client -> service "요청"
-service -> records "기록"
+title "요청 처리"
+box client "클라이언트"
+box api "주문 API" {
+  text "요청을 검증합니다"
+  value pending "접수" from=0
+}
+store db "주문 DB"
+client -> api
+api -> db
+scene "주문"
+  client -> api set="pending+1"
+  api -> db
 ```
 
-![요청을 저장하는 경로](usage-request.svg)<!-- diagramplay -->
-
-검사하고 SVG와 HTML을 만든다.
+![요청 처리](usage-request.svg)<!-- diagramplay -->
 
 ```sh
-node src/cli.js check request.diagramplay --strict
-node src/cli.js render request.diagramplay --html
+npx diagramplay render request.diagramplay
+npx diagramplay check request.diagramplay --strict
 ```
 
-`request.svg`와 `request.html`이 원본 옆에 생긴다. HTML은 모든 장면을 선택하는 재생기이고 SVG는 선택한 장면 하나이다. 장면이 없는 위 예제는 두 형식 모두 정지 그림이다. 그림 제목은 원본의 `title`에 적는다. `render --title`은 지원하지 않는다.
-
-`request.html`을 브라우저로 열어 사용자 → 주문 서비스 → 저장소가 차례로 연결되는지 확인한다. 검사 명령이 아무 진단 없이 끝나고 두 파일이 만들어지면 첫 그림이 완성된 것이다. 원본을 고칠 때마다 같은 두 명령을 다시 실행한다.
-
-### 네 가지 개념
-
-| 개념 | 역할 | 필요한 경우 |
-|---|---|---|
-| 카드 | 서비스, 저장소, 상태, 테이블, 차트 같은 대상 | 모든 그림 |
-| 연결 | 대상 사이의 관계 | 관계나 이동 경로를 보일 때 |
-| 보기 `view` | 같은 대상을 그래프·순서·차트·시간 방식으로 배치 | 기본 배치와 다른 표현이 필요할 때 |
-| 장면 `scene` | 같은 대상의 상태와 이동을 설명하는 단계 | 강조·움직임·비교가 필요할 때 |
-
-`service`는 다른 줄에서 참조하는 식별자이고 `"주문 서비스"`는 화면의 표시 이름이다. 표시 이름을 바꿔도 연결 줄은 그대로 쓸 수 있다. 카드와 그룹, 값의 식별자는 문서 안에서 겹치면 안 된다. 일반 식별자는 영어 소문자로 시작하고 소문자·숫자·낱말 사이의 `-`를 쓴다. 테이블 이름과 열 이름의 세부 규칙은 [이름 규칙](design/figure-syntax.md#이름)을 따른다.
-
-원본은 시작 선언 → 제목 등 머리말 → 카드·값·연결·보기 → 장면 순서로 쓴다. 장면을 쓰기 시작한 뒤 새 카드를 선언하지 않는다. 한 줄에 한 문장을 쓰며 표시 글은 큰따옴표로 감싼다. 카드 안의 열이나 칸은 `{ ... }` 블록에 두고, 장면 아래의 들여쓰기는 읽기 편하도록 맞춘다.
-
-## 읽는 화면의 동작
-
-생성 HTML은 README의 라이트·다크 로고를 줄인 PNG를 탭 아이콘으로 내장하므로, 아이콘을 읽는 데 네트워크 연결이 필요 없다.
-
-도표의 막대·범례·트래픽 표식은 같은 Things 기준 범주 팔레트를 사용하며 그림 종류나 면적에 따라 색을 따로 지정하지 않는다.
-
-장면 탭은 클릭 또는 방향키·Home·End로 고른다. 선택한 탭만 Tab 순서에 들어간다. 장면이 없거나 하나뿐이면 탭 줄이 없다. 코드 블록과 같은 조작부가 그림 면 안쪽에 놓인다. 복사는 원본 문법을 복사하고 다운로드는 모든 장면을 담은 HTML을 저장한다. 다운로드한 파일은 현재 시각이나 확대 배율을 저장한 화면 캡처가 아니다.
-
-전체화면에서는 확대·축소·전체 보기가 나타난다. 브라우저 전체화면을 허용하지 않는 삽입 환경에서는 부모 페이지가 대체 전체화면 메시지를 처리해야 한다. 닫아도 선택한 장면과 재생 상태를 새로 만들지 않는다. 좁은 화면용 배치는 빌드할 때 함께 만들며 화면에서 보기만 전환한다.
-
-라이트·다크와 움직임 줄이기는 공통 디자인과 재생 계약을 따른다. 반복 장면에는 일시정지 조작이 없으므로 본문에 정적인 구조 장면을 함께 제공하면 내용을 읽는 데 도움이 된다. 모든 브라우저·실제 기기의 검증을 마쳤다는 뜻은 아니다. 확인한 범위는 [표현 범위](design/expression-coverage.md#예제와-검증-범위)에 구분되어 있다.
-
-## Markdown과 홈페이지에 넣기
-
-### GitHub에서 읽는 Markdown
-
-다음 블록을 `guide.md`에 저장한다. 블록 이름은 소문자·숫자·`-`를 사용하고 같은 문서 안에서 중복하지 않는다.
-
-````text
-```diagramplay name=request
-diagramplay
-box client "사용자"
-box service "주문 서비스"
-client -> service
-```
-````
-
-```sh
-node src/cli.js md guide.md --strict
-node src/cli.js md guide.md --check --strict
-```
-
-첫 명령은 SVG를 만들고 블록 아래에 관리 표식이 있는 이미지 줄을 넣는다. 둘째 명령은 파일을 바꾸지 않고 낡은 결과가 있는지 검사한다. 생성된 SVG와 수정된 Markdown을 함께 커밋한다. 원본을 고친 뒤 SVG를 손으로 고치지 않는다.
-
-`--fold`는 그림을 먼저 보여 주고 원본을 접는다. `--unfold`로 되돌린다. `--out-dir`은 SVG를 둘 폴더이다. 블록 이름을 바꾸거나 지우면 도구가 소유한 옛 SVG와 이미지 줄을 정리한다. 사용자가 만든 표식 없는 이미지나 파일을 가져가거나 지우지 않는다. 인용·목록·접기와 쓰기 실패의 상세 계약은 [마크다운과 배포](design/markdown.md)를 따른다.
-
-### 홈페이지에서 읽는 본문
-
-홈페이지는 DiagramPlay와 design-tokens 버전을 따로 고정한다. 그림은 DiagramPlay에 묶인 디자인으로 그려지므로, 페이지와 그림이 같은 디자인이려면 홈페이지가 고정한 design-tokens commit을 DiagramPlay가 묶은 commit과 맞춘다([아키텍처의 배포](architecture.md#배포)). 의존성 갱신과 콘텐츠 발행은 해당 저장소에서 검증한다.
-
-홈페이지는 호스트가 지원하는 도표 블록을 빌드할 때 HTML 그림으로 컴파일하고 본문에 삽입한다. 원본의 `title`이 그림의 이름이 된다. 같은 원본은 빌드에서 재사용하고 읽는 브라우저에서 파서나 배치 엔진을 실행하지 않는다.
-
-홈페이지의 블로그와 문서는 같은 삽입 부품을 사용한다. 장면 탭, 문법 복사, HTML 다운로드, 전체화면을 그림마다 따로 구현하지 않는다. 정적인 설명으로 충분한 곳에는 장면 없이 넣고, 순서나 변화의 이해를 돕는 곳에만 장면을 추가한다.
-
-홈페이지의 삽입 빌드는 `allowFileAccess: false`를 사용한다. `data` 파일과 파일 기반 아이콘 세트는 이 경로에서 읽지 못하므로 승인된 원본 안의 값과 내장 아이콘을 사용한다. CLI의 외부 자료 읽기와 같은 권한이라고 가정하지 않는다. 콘텐츠 발행은 홈페이지의 승인·동기화 절차를 따른다.
+SVG와 독립 HTML을 만든다. 장면이 없으면 정지 그림이고, 줄이 있는 장면은 기본 한 번 재생한다. `mode=loop`로 반복하고 `mode=static`으로 마지막 상태만 그린다.
 
 ## 목적에 맞는 보기 선택하기
 
-### 아키텍처와 경계
+| 목적 | 선언과 보기 | 예제 |
+|---|---|---|
+| 카드 흐름·순서도 | 카드와 선, 기본 `view graph` | [flow](../examples/flow.diagramplay) |
+| 아키텍처 | 같은 그래프에 중첩 `group`과 리소스 | [architecture](../examples/architecture.diagramplay) |
+| 시퀀스 | 참여자를 선언하고 `view sequence` | [sequence](../examples/sequence.diagramplay) |
+| ERD | `table`, 컬럼과 PK/FK, 다중성 | [schema](../examples/schema.diagramplay) |
+| 클래스 | `class`, `interface`, 필드·메서드·관계 | [class](../examples/class.diagramplay) |
 
-구성도는 `box`, `person`, `store`, `external` 같은 카드를 선으로 연결한다. 그룹은 관련 카드를 감싸는 경계이며 중첩할 수 있다. 다음은 첫 예제의 서비스와 저장소를 묶는 선언 조각이다. 기존 선언을 이 블록으로 옮기며 같은 카드를 중복 선언하지 않는다.
-
-```text
-group backend "주문 시스템" direction=down {
-  box service "주문 서비스"
-  store records "저장소"
-}
-```
-
-전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `tone=blue`는 색 역할이다. 기본 중성 카드로 충분하면 생략한다. 사람과 서비스 브랜드 외의 기술 역할은 카드 이름으로 구분한다. `appearance=filled|outline`에 `tone`을 생략하면 무채색 `gray` 계열을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
-
-[구성도 레퍼런스](reference/architecture.md)는 그룹, 아이콘과 번호 선을 설명한다. 내장 아이콘과 파일 기반 사용자 아이콘을 고르는 규칙은 [번호, 배지, 아이콘, 복제 개수](design/figure-syntax.md#번호-배지-아이콘-복제-개수)에 있다.
-
-### 카드에 설명과 값 넣기
-
-장면이 없어도 카드 안에 설명과 현재 값을 표시할 수 있다. 다음 원본은 정적인 카드 하나이다.
-
-```diagramplay name=card
-diagramplay
-title "서비스의 설명과 현재 값"
-box service "주문 서비스" {
-  text "주문을 검사한 뒤 저장합니다."
-  value pending "처리 중" from=2
-}
-```
-
-![서비스의 설명과 현재 값](usage-card.svg)<!-- diagramplay -->
-
-본문에는 `text`, `value`, 작은 관계 `graph`, 내부 `chart`를 선언한 순서로 넣는다. 장면에서 `show`로 설명을 추가하고 `clear`로 글과 작은 관계 그래프를 비워도 값 줄은 남는다. 다음 장면에서는 선언한 본문이 복원된다. 내부 차트의 선과 보기는 바깥 카드를 가리킨다. 카드 본문은 그래프 보기에 표시된다. 전체 규칙은 [카드 선언](design/figure-syntax.md#카드-선언), 조합은 [구조 그림](reference/flow.md)에 있다.
-
-### API 계약
-
-API 카드는 요청·응답의 칸을 이름으로 연결한다. `create.body`는 화면 좌표가 아니라 `create` 카드의 `body` 칸이다.
-
-```diagramplay name=api
-diagramplay
-title "요청 필드가 저장될 곳"
-person client "사용자"
-api create "POST /orders" {
-  body "OrderRequest"
-  created "201 OrderResponse"
-}
-store records "주문 저장소"
-client -> create.body "요청"
-create.body -> records "저장"
-view graph down
-```
-
-![요청 필드가 저장될 곳](usage-api.svg)<!-- diagramplay -->
-
-HTTP 요청을 실제로 보내거나 OpenAPI 문서를 가져오는 기능은 아니다. 계약에서 설명할 칸을 직접 적는다. 칸의 선언 규칙은 [카드 선언](design/figure-syntax.md#카드-선언), 인증·외부 결제·테이블을 잇는 예는 [API 예제](../examples/api.diagramplay)를 확인한다.
-
-### 클래스와 인터페이스
-
-필드와 메서드는 카드 안에, 클래스 사이의 관계는 카드 밖에 적는다.
-
-```diagramplay name=class
-diagramplay
-title "저장소 계약과 구현"
-interface repository "Repository" {
-  method save "(order: Order): void" visibility=public
-}
-class sql-repository "SqlRepository" {
-  field table "string" visibility=private
-  method save "(order: Order): void" visibility=public
-}
-sql-repository -> repository relation=realization
-view graph down
-```
-
-![저장소 계약과 구현](usage-class.svg)<!-- diagramplay -->
-
-`relation`은 연관 `association`, 의존 `dependency`, 상속 `inheritance`, 구현 `realization`, 집합 `aggregation`, 합성 `composition`을 구분한다. 클래스 멤버는 연결점이 아니므로 관계는 카드끼리 연결한다. `abstract`, `static`, 다중성과 자기 관계는 [클래스 카드](design/figure-kinds.md#클래스), 더 큰 조합은 [클래스 예제](../examples/class.diagramplay)에 있다.
-
-### 메시지 순서
-
-순서 그림도 카드를 먼저 선언하지만 연결을 별도로 선언하지 않는다. 보기 안에 참여자의 가로 순서를 놓고, 메시지를 장면 안에 적는다.
-
-```diagramplay name=sequence
-diagramplay
-title "저장 완료 뒤에 응답하기"
-person client "사용자"
-box service "주문 서비스"
-store records "저장소"
-view sequence {
-  client service records
-}
-scene "주문 접수" mode=static
-  client -> service "주문"
-  service -> records "저장"
-  records -> service "저장 완료" dashed
-  service -> client "주문 번호" dashed
-```
-
-![저장 완료 뒤에 응답하기](usage-sequence.svg)<!-- diagramplay -->
-
-`mode=static`은 메시지 전체를 한 번에 보여 준다. `once`로 바꾸면 같은 메시지를 순서대로 설명한다. 한 장면에 여러 가능성을 나누려면 `fragment alt`와 `branch`, 반복에는 `fragment loop`, 병렬에는 `fragment par`, 선택적 실행에는 `fragment opt`를 쓴다. `activate`·`deactivate`는 활성 구간, `note`는 주석, `create`·`destroy`는 참여자의 생명주기이다. 상세 예제는 [순서 그림](reference/sequence.md)을 확인한다.
-
-### 상태와 재시도
-
-상태 그림은 같은 그래프 보기와 장면 문법을 사용한다. 카드가 서비스 대신 상태를 뜻하고 `start`, `final`로 시작과 끝을 표시한다.
-
-```diagramplay name=state
-diagramplay
-title "작업의 정상 처리와 재시도"
-state queued "대기"
-state running "처리 중"
-state done "완료"
-start queued
-final done
-queued -> running "시작"
-running -> done "성공"
-running -> queued "재시도"
-view graph down
-scene "정상 처리"
-  queued -> running
-  running -> done
-scene "재시도"
-  queued -> running
-  running -> queued
-```
-
-![작업의 정상 처리와 재시도](usage-state.svg)<!-- diagramplay -->
-<!-- diagramplay scenes v1 name=state -->
-<details>
-<summary>재시도</summary>
-
-![작업의 정상 처리와 재시도 (재시도)](usage-state.scene-2.svg)<!-- diagramplay -->
-
-</details>
-<!-- /diagramplay scenes v1 name=state -->
-
-같은 구조 위에서 경로만 바꾼다. 실패 횟수, 재시도 정책, 트랜잭션 보장까지 이 그림이 자동으로 정의하지는 않는다. 필요한 정책은 본문에 설명하거나 값과 조건을 추가해 표현한다. 자세한 내용은 [상태 그림](reference/state.md)을 확인한다.
-
-### 테이블, 관계와 일반 표
-
-테이블 카드는 열과 키, 외래 키 관계를 설명한다. 일반적인 속성 비교나 목록 표는 문서의 Markdown 표를 사용하고, 열 사이의 참조를 설명할 때 DiagramPlay 테이블을 사용한다.
-
-```diagramplay name=tables
-diagramplay
-title "주문이 사용자를 참조하는 관계"
-table users "users" {
-  id bigint pk
-  name text required
-}
-table orders "orders" {
-  id bigint pk
-  user_id bigint fk=users.id required
-}
-view graph down
-scene "관계"
-scene "사용자 찾기"
-  orders.user_id -> users.id time=800ms
-```
-
-![주문이 사용자를 참조하는 관계](usage-tables.svg)<!-- diagramplay -->
-<!-- diagramplay scenes v1 name=tables -->
-<details>
-<summary>사용자 찾기</summary>
-
-![주문이 사용자를 참조하는 관계 (사용자 찾기)](usage-tables.scene-2.svg)<!-- diagramplay -->
-
-</details>
-<!-- /diagramplay scenes v1 name=tables -->
-
-외래 키 선언이 연결을 만든다. `from="0..*" to="1"`을 같은 열에 붙이면 각 끝의 다중성을 표시한다. 외래 키 없이 직접 적는 선은 설명용 관계이다. 같은 관계를 `orders.user_id -> users.id`로 장면 밖에 다시 선언하지 않는다. 복합 키는 테이블 안에 `pk (tenant_id, id)`와 `fk (tenant_id, user_id) -> users (tenant_id, id)`처럼 열 묶음으로 적는다. 열의 자료형은 표시할 계약이고, SQL을 실행하거나 DB 스키마를 자동으로 변경하지 않는다. 고유 키와 참조 동작은 [데이터 관계 그림](reference/data.md)에 있다.
-
-### 배열, 비트와 포인터
-
-`grid`는 카드 안의 칸을 구성한다. `item`의 `row`, `col`은 0부터 세며 `rows`, `cols`는 차지하는 칸 수이다. 이 숫자는 데이터 구조의 의미이며 화면의 픽셀 좌표가 아니다. `light address.page`로 칸을 강조하고 `address.page -> page-table`처럼 특정 칸을 연결한다.
-
-[칸 격자](reference/grid.md)에서 최소 문법을 익힌 뒤 [메모리](../examples/memory.diagramplay), [스택](../examples/stack.diagramplay), [포인터](../examples/pointer.diagramplay)를 확인한다. 생략 구간 `gap`은 설명용 표시이므로 이동이나 강조의 대상이 아니다.
-
-### 차트와 측정값
-
-차트는 계열을 먼저 선언하고 행에 값을 적는다. 단위는 축 제목에 붙인다. 보기에 아직 배치하지 않은 카드가 차트와 추적뿐이고 그룹에 속한 카드나 명시한 `graph` 보기가 없으면, 각 차트에 `plot` 보기가 생긴다. 연결선 유무로 결정하지 않는다. 아직 어느 보기에 배치하지 않은 일반 카드와 섞이면 그래프 안의 차트 카드로 놓이므로, 차트만 문서 폭으로 보이려면 `view plot` 블록 안에 차트 이름을 적는다.
-
-```diagramplay name=chart
-diagramplay
-title "대기와 처리 시간을 구분하기"
-chart latency "요청별 시간" bar "예시 데이터. 단위는 ms" {
-  x "시간(ms)"
-  series work "처리"
-  series wait "대기"
-  row "요청 A" work=80 wait=20
-  row "요청 B" work=85 wait=90
-}
-scene "전체 값"
-scene "계열 비교"
-  reveal latency.work
-  wait 700ms
-  reveal latency.wait
-```
-
-![대기와 처리 시간을 구분하기](usage-chart.svg)<!-- diagramplay -->
-<!-- diagramplay scenes v1 name=chart -->
-<details>
-<summary>계열 비교</summary>
-
-![대기와 처리 시간을 구분하기 (계열 비교)](usage-chart.scene-2.svg)<!-- diagramplay -->
-
-</details>
-<!-- /diagramplay scenes v1 name=chart -->
-
-`reveal`에 나온 계열만 장면 시작 때 숨었다가 드러난다. `light latency "요청 B"`는 특정 행을 강조한다. 값 이름을 행의 숫자 자리에 넣으면 값이 바뀔 때 차트도 따라 바뀐다. 계열 색·무늬·번호와 범례는 렌더러가 정하므로 차트마다 별도 CSS를 만들지 않는다.
-
-| 설명할 질문 | 후보 |
-|---|---|
-| 항목별 크기, 두 조건 비교 | `bar`, `dumbbell`, `difference` |
-| 구성값의 합계와 비율 | `stacked`, `percent`, `pie`, `donut` |
-| 시간이나 순서에 따른 변화 | `line`, `step`, `area` |
-| 분포와 누적 확률 | `histogram`, `box`, `ecdf` |
-| 두 변수의 관계, 교차표 | `scatter`, `heatmap` |
-| 증감이 최종 합계에 미치는 영향 | `waterfall` |
-
-종류마다 입력과 계열 수의 제약이 다르다. [차트 레퍼런스](reference/charts.md)의 표에서 해당 종류의 행 문법을 먼저 고른다. 빠진 값 `-`와 0은 다르다. 결측 처리 방법은 [차트 문법의 빠진 값과 0](reference/charts.md#문법)을 확인한다. 모든 차트에 같은 형식의 행을 복사하면 안 된다.
-
-값은 원본에 행으로 적거나 `data "results.json" at "/rows"`로 JSON 배열을 읽는다. 경로는 CLI에서는 원본 파일의 폴더, API에서는 `baseDir` 기준이고 그 폴더 안이어야 한다(절대 경로, `../`, 밖을 가리키는 링크는 오류). 사용자 아이콘 세트 폴더(`icons 이름 "폴더"`)도 같다. 두 방식은 같은 값·구간 유효성 검사를 받는다. 자료 출처, 단위, 표본과 측정 조건은 본문에 설명한다. 제목과 부제는 표시 글이며 특정 언어의 문구가 자료의 허용 여부를 바꾸지 않는다. 신뢰구간을 지원하는 종류에서 구간을 표시하려면 `.low`와 `.high`를 함께 적는다. 자세한 키 대응은 [차트의 값 출처](design/charts.md#값-출처)를 확인한다.
-
-### 실제 시간의 추적과 여러 보기
-
-호출 관계와 측정한 시간을 한 원본에서 설명할 수 있다. 다음 수치는 작성법을 위한 예시이다.
-
-```diagramplay name=trace
-diagramplay
-title "호출 관계와 소요 시간"
-box service "주문 서비스"
-store records "저장소"
-service -> records "조회"
-trace request "요청 추적" unit=ms {
-  span total "요청 전체" lane=service at=0 dur=120
-  span query "데이터 조회" lane=records at=20 dur=80
-}
-view graph down "호출 관계"
-view time "소요 시간" {
-  request
-}
-```
-
-![호출 관계와 소요 시간](usage-trace.svg)<!-- diagramplay -->
-
-`trace`에는 `span id "표시 이름" lane=카드 at=시작 dur=길이`를 적는다. 호출 관계 없이 시간만 보이려면 카드를 선언하지 않고 따옴표 레인 이름(`lane="주문 서비스"`)을 쓴다. 그러면 시간 보기 하나만 그려진다. `unit=ms|us|s`는 측정값의 단위이고 `at`, `dur`는 그 단위의 숫자이다. 이는 `track time=700ms` 같은 애니메이션 시간과 다르다. 같은 레인에서 겹치는 구간은 다른 줄에 배치한다.
-
-[추적 예제](../examples/trace.diagramplay)는 호출 관계를 `graph`, 측정 구간을 `time` 보기로 나란히 설명한다. 같은 카드를 그래프와 순서 보기 양쪽에 배치할 수도 있다. 보기는 위에서 아래로 쌓이며 같은 논리 사건이 여러 보기에 함께 표시된다. 이를 위해 카드를 복제하거나 사건을 두 번 적지 않는다. [통합 예제](../examples/integration.diagramplay)에서 여러 보기의 조합을 확인한다.
+카드 흐름은 별도 시작·종료 점 없이 첫 카드부터 읽는다. API 요청·응답의 필드도 [api 예제](../examples/api.diagramplay)처럼 남는다. 데이터 관계와 클래스는 그래프 배치와 공통 선을 공유한다. 보기 전략은 `graph`, `sequence` 두 가지다.
 
 ## 구조에 장면 추가하기
 
-[첫 그림](#첫-그림-만들기)의 `request.diagramplay` 마지막에 아래 줄을 붙이고 `node src/cli.js render request.diagramplay --html`을 다시 실행한다. HTML을 새로 열면 구조와 요청 이동을 탭으로 비교할 수 있다.
+카드 본문은 `text`와 `value`를 선언한 순서로 놓는다. `show id "설명"`은 내용을 추가하고 `clear id`는 값 줄을 보존하며 설명을 비운다. 다음 장면은 선언 본문에서 다시 시작한다.
 
-```text
-scene "구조" mode=static
+- `a -> b`: 한 번 이동. 그래프에는 먼저 선을 선언한다.
+- `a -> b & c -> d`: 동시에 출발하는 한 박자.
+- `track a, b -> api -> db every=2s time=1500ms`: 여러 출발지의 반복 트래픽. 같은 장면에 박자 줄과 섞지 않는다.
+- `light id` 또는 `light table.column`: 도형·그룹·컬럼 강조.
+- `wait 1s`: 박자 사이 멈춤.
+- `set="n+1"`, `on api n+1`: 도착 시 값 변경.
 
-scene "요청 처리"
-  client -> service time=700ms
-  service -> records time=700ms
+`when`, `wait`, `reserve`, `timeout`, `else`, `lost`, `legs`, `keep`은 [재생 계약](design/playback.md)을 따른다. 큐와 값의 진행 막대·슬롯 표시는 다이어그램의 현재 상태를 나타낸다. 분석 차트를 생성하는 기능은 아니다.
+
+## NHN Cloud 아키텍처
+
+NHN 공식 박스형 아이콘은 그룹 경계에, 서비스·리소스 아이콘은 독립 카드에만 쓴다. 모든 카드에 아이콘을 붙이지 않는다. 원본 색을 유지하고 일반 역할 아이콘을 자동 삽입하지 않는다. `shape=tile`은 카드 면과 좌우 여백을 유지한다. 테두리 없는 `shape=symbol`은 명시한 경우에만 쓴다.
+
+Region·Availability Zone·Auto Scaling Group은 점선, Cloud·VPC·Subnet·Security Group과 서비스 경계는 실선이다. 알려진 그룹 아이콘은 의미를 자동 적용한다. 아이콘 없는 영역은 `boundary=availability-zone`처럼 뜻을 명시한다. 일반 그룹의 `dashed`는 작성자가 고른다. 전체 이름은 [문법 표](design/figure-syntax.md#문법-표)에 있다.
+
+## 읽는 화면의 동작
+
+일반 HTML은 그림을 컨테이너 가로 폭에 맞춰 축소하며 세로는 길어질 수 있다. 화면 폭 때문에 그래프를 접지 않는다. 전체화면에서는 확대·축소·이동할 수 있다. 조작부는 장면 탭, 문법 복사, HTML 다운로드와 전체화면이다.
+
+## Markdown과 홈페이지에 넣기
+
+Markdown의 `diagramplay` 울타리 블록을 작성한 뒤 실행한다.
+
+```sh
+npx diagramplay md README.md
+npx diagramplay md README.md --check --strict
 ```
 
-카드와 선을 다시 선언하지 않는다. 장면 밖 `->`는 그래프의 연결을 선언하고, 장면 안 `->`는 그 연결을 따라 이동한다. 이미 선에 `"요청"`이 쓰여 있으므로 이동에 같은 글을 반복하지 않아도 된다. 같은 글을 양쪽에 쓰면 중복 라벨 경고가 발생할 수 있다.
-
-| 장면 모드 | 결과 | 주로 쓰는 경우 |
-|---|---|---|
-| `static` | 장면의 마지막 상태를 처음부터 표시 | 구조, 특정 경로의 강조, 발표용 정지 그림 |
-| `once` | 한 번 재생하고 마지막 상태 유지 | 요청 순서와 상태 전이 설명 |
-| `loop` | 같은 장면을 반복 | 계속 들어오는 트래픽과 순환 과정 |
-
-`mode`를 생략하면 내용이 있는 장면은 `once`, 빈 장면은 `static`이다. 장면이 두 개 이상이면 HTML 아래에 탭이 나오고, 한 개 이하면 탭 줄을 숨긴다. 탭을 눌러도 다음 장면으로 자동 진행하지 않는다.
-
-장면은 선언한 시작 값에서 출발한다. 이전 장면의 값을 이어 쓰려면 `keep="값이름"`, 시작 값을 바꾸려면 `set="값이름=숫자"`를 장면에 적는다. 탭을 임의 순서로 눌러도 빌드할 때 계산한 해당 장면의 시작 상태를 사용한다.
-
-### 이동, 강조, 설명 바꾸기
-
-- `a -> b`: 경로를 따라 이동한다. `time=700ms`로 그 이동 시간을 지정할 수 있다.
-- `a -> b & c -> d`: 한 박자에서 함께 이동한다.
-- `light a b`: 이동하는 점 없이 대상을 강조한다. 테이블 열은 `light orders.id`처럼 가리킨다.
-- `show a "설명"`: 카드 안에 설명 글을 표시한다. `clear a`는 표시한 글을 걷는다.
-- `wait 1s`: 다음 박자 전에 기다린다.
-- `reveal chart.series`: 차트의 한 계열을 드러낸다.
-
-순차적인 박자와 계속 출발하는 `track`은 한 장면에 섞지 않는다. 단계 설명은 박자 장면으로, 독립적인 트래픽은 `track` 장면으로 나눈다.
-
-## 동시에 움직이는 트래픽과 큐
-
-다음 예제는 접수량이 처리량보다 많을 때의 큐를 보여 준다. `queue` 자체가 찬 칸 수를 나타내는 값이므로 별도의 큐 길이 변수를 만들지 않는다.
-
-```diagramplay name=queue
-diagramplay
-title "접수와 처리가 독립적으로 진행되는 큐"
-box producer "접수"
-queue jobs "대기 작업" slots=4 from=1
-box worker "처리"
-box retry "재시도 보관"
-value done "완료" on=worker from=0
-on worker done+1
-producer -> jobs
-jobs -> worker
-producer -> retry quiet
-view graph down
-
-scene "구조"
-
-scene "접수가 더 빠를 때" mode=loop for=8s
-  track producer -> jobs at=0s every=1s time=700ms wait="jobs<4" timeout=1s else=retry reserve="jobs+1"
-  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1" tone=green
-```
-
-![접수와 처리가 독립적으로 진행되는 큐](usage-queue.svg)<!-- diagramplay -->
-<!-- diagramplay scenes v1 name=queue -->
-<details>
-<summary>접수가 더 빠를 때</summary>
-
-![접수와 처리가 독립적으로 진행되는 큐 (접수가 더 빠를 때)](usage-queue.scene-2.svg)<!-- diagramplay -->
-
-</details>
-<!-- /diagramplay scenes v1 name=queue -->
-
-`every`는 출발 간격이고 `time`은 한 이동에 걸리는 시간이다. 이동 시간이 출발 간격보다 길면 여러 점이 같은 경로 위에 동시에 존재한다. `for=8s`는 장면의 논리 길이이며 실서비스의 실행 시간이 아니다. 구간별 속도가 다르면 `legs="500ms, -"`처럼 경로의 각 구간 시간을 나눌 수 있다.
-
-| 옵션 | 의미 | 큐 예제에서의 역할 |
-|---|---|---|
-| `at` | 첫 출발 시각 | 소비자가 500ms 뒤부터 출발 |
-| `every` | 반복 출발 간격 | 생산 1초, 소비 2초 |
-| `when` | 출발 때 조건을 검사하고 거짓이면 건너뜀 | 대기가 필요 없는 선택적 요청 |
-| `wait` | 조건이 참이 될 때까지 출발을 보류 | 빈자리 또는 작업을 기다림 |
-| `reserve` | 출발할 때 값을 예약·변경 | 같은 빈자리를 두 요청이 차지하지 않도록 큐 수를 먼저 변경 |
-| `timeout`, `else` | 기다림의 제한과 대체 도착지 | 가득 찬 큐 대신 보관함으로 이동 |
-| `set` | 도착할 때 값을 변경 | 처리 결과 반영 |
-| `lost` | 경로의 지정 비율에서 이동을 끝냄 | `lost=50%`로 중간 유실 표현 |
-
-`on worker done+1`은 점이 `worker`에 도착할 때마다 완료 수를 올린다. `reserve`로 이미 큐 수를 바꾸었다면 같은 수를 `on`에서 다시 바꾸지 않는다. `value pending "진행 중" from=0`처럼 값만 선언하거나 카드 안에 선언해 표시할 수도 있다. `ref=jobs`는 큐 값의 별도 표시 이름을 만들 때 사용한다.
-
-장면의 논리 사건은 빌드할 때 계산된다. 재생기는 같은 시간표를 표시하며 실제 메시지 브로커를 실행하지 않는다. `speed=1.5`는 화면의 재생 배속만 바꾸고 `every`, `time`과 사건 사이의 논리 관계는 유지한다. 의도적으로 영원히 기다리는 모습을 설명할 때만 `stuck`을 사용한다. 조건·예약·값 유지의 더 큰 조합은 [queue 예제](../examples/queue.diagramplay)와 [재생 계약](design/playback.md)을 확인한다.
+원본과 도구가 소유한 이미지 줄·SVG를 함께 관리한다. 전체화면과 장면 조작이 필요하면 HTML 결과를 홈페이지에 넣는다. [반영 계약](design/markdown.md)을 따른다.
 
 ## CLI 출력과 검사
 
-| 목적 | 명령 |
-|---|---|
-| 원본만 검사 | `node src/cli.js check request.diagramplay --strict` |
-| SVG 만들기 | `node src/cli.js render request.diagramplay` |
-| SVG와 모든 장면의 HTML | `node src/cli.js render request.diagramplay --html` |
-| 선택한 장면의 정지 SVG | `node src/cli.js render request.diagramplay --static --scene "요청 처리"` |
-| 별도 폴더에 결과 쓰기 | `node src/cli.js render request.diagramplay --html --out figures` |
-| 폴더의 원본을 갤러리로 만들기 | `node src/cli.js gallery . --out preview --title "설계 그림"` |
-| 진단을 JSON으로 받기 | `node src/cli.js check request.diagramplay --json` |
-| 문서에 넣을 그림의 품질 검사 | `node src/cli.js check request.diagramplay --docs --strict` |
-| Mermaid·DBML·D2·draw.io·Excalidraw를 원본으로 옮기기 | `node src/cli.js import flow.mmd --out flow.diagramplay` |
-
-SVG의 `--scene` 번호는 1부터이다. 생략하면 첫 장면이고 장면이 없는 그림에는 지정하지 않는다(`diagramplay md`는 장면이 둘 이상인 블록에 생략하면 모든 장면을 `.scene-2.svg`처럼 이름 붙여 쓰고 둘째 장면부터 `<details>`로 둔다). HTML은 모든 장면을 포함하므로 `--static`이나 SVG의 선택 장면이 HTML의 장면 목록을 줄이지 않는다. `gallery`는 지정한 폴더의 `.diagramplay`를 읽고 목록·문서 미리보기·각 그림의 HTML과 SVG를 만든다. 하위 폴더를 재귀적으로 찾는 명령은 아니다. `--out`을 생략하면 입력 폴더 아래 `out`에 쓰고, `--title`을 생략하면 입력 폴더명을 목록 제목으로 사용한다.
-
-`--strict`는 경고도 실패로 취급한다. `--docs`는 화면 오류 검사 뒤에 문서 독자가 읽기 좋은지(종류 꼬리표, 강조, 원본 머리 `require` 줄의 요구 항목, 긴 이름, 접힌 사슬, 680px 본문 단의 글 크기)를 더 본다([문서 품질 검사](design/figure-quality.md)). `--json`은 진단마다 JSON 한 줄을 출력하며, 일반 진단은 파일·줄·메시지로 나온다. CLI의 종료 코드는 성공 0, 원본·검사·입출력 실패 또는 낡은 결과 1, 사용법 오류 2이다. 여러 원본의 `render`는 모든 원본의 진단을 알린 뒤 하나라도 실패하면 어떤 원본의 결과도 쓰지 않는다(`gallery`, `md`와 같은 규칙). 출력 경로 충돌은 쓰기 전에 전체를 거절한다.
-
-대규모 원본의 안전 한도는 `--budget 이름=값`으로 조정한다. 여러 한도는 `--budget events=20000 --budget chain=200`처럼 옵션을 반복하며, 같은 이름은 마지막 값이 적용된다. 무조건 한도를 높이기 전에 그림을 설명 단위로 나눈다. 시간 값에는 `ms` 또는 `s`를 붙이고 시작 시각 `at=0s`는 허용한다. 이동 시간·반복 간격·대기 길이는 양수여야 한다. 한 시간의 상한과 조건부 사건의 정밀도는 [재생 계약](design/playback.md#시간-상한)을 따른다.
-
-### 다른 도구의 원본 가져오기
-
-`diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.diagramplay] [--json]`은 원본 하나를 옮겨 표준 출력에 쓴다. 형식을 적지 않으면 확장자(`.mmd`, `.mermaid`, `.dbml`, `.d2`, `.drawio`, `.excalidraw`)로 정한다. `--out`을 주면 그 파일에 쓰고, 그 파일이 이미 있으면 바꾸지 않고 오류(종료 1)이다. `-`는 표준 입력이고 형식을 적어야 한다.
-
 ```sh
-node src/cli.js import flow.mmd --out flow.diagramplay
-cat schema.dbml | node src/cli.js import dbml - > schema.diagramplay
+npx diagramplay render request.diagramplay --out output
+npx diagramplay check request.diagramplay --json
+npx diagramplay gallery examples/*.diagramplay --out preview
+npx diagramplay import mermaid flow.mmd --out flow.diagramplay
+npx diagramplay import dbml schema.dbml --out schema.diagramplay
 ```
 
-옮기지 못한 문장은 `flow.mmd:12: warning: ...`처럼 원본 줄과 함께 알리고 건너뛴다(code `import-skip`). 모양을 바꿔 옮긴 문장(굵은 선, 육각형, 빠진 사건 글)도 경고한다(code `import-change`). 옮긴 원본은 한 번 빌드해 보고, 배치 검사가 손볼 곳을 찾으면 새 파일의 줄로 경고하되 파일은 쓴다. 그 경고를 고친 뒤 `render --strict`로 확인한다. 형식별 대응과 건너뛰는 문장 목록은 [가져오기](design/import.md)에 있다. JavaScript에서는 `importDiagram(format, text)`가 `{ source, warnings }`를 돌려주고, 그림 종류를 모르거나 옮길 카드가 없으면 `FigureError`(code `import`)를 던진다.
+오류가 있으면 결과를 쓰지 않는다. `--strict`는 경고도 실패로 처리한다. `--docs`는 문서 품질 검사를 추가한다. `--budget events=600000`처럼 이름 있는 한도를 올릴 수 있다. 예산 이름은 `events`, `chain`, `chip-index`다. [그림 검사](design/figure-check.md), [문서 품질](design/figure-quality.md), [가져오기](design/import.md)를 참고한다.
 
 ## JavaScript에서 조립하기
 
-공개 함수는 `buildFigure`, `toSvg`, `toHtml`이고, 다른 도구의 원본을 옮기는 `importDiagram`과 형식 이름 목록 `IMPORT_FORMATS`가 있다. 원본을 한 번 빌드하고 그 결과로 두 출력을 만든다. 오류 클래스 `FigureError`도 같은 진입점에서 가져온다. 아래 코드는 `.mjs` 파일이나 `package.json`에 `"type": "module"`이 있는 프로젝트에서 실행한다.
-
 ```js
-import { readFile, writeFile } from 'node:fs/promises';
-import { buildFigure, FigureError, toSvg, toHtml } from 'diagramplay';
-
-const source = await readFile('request.diagramplay', 'utf8');
-try {
-  const result = await buildFigure(source, {
-    strict: true,
-    allowFileAccess: false,
-  });
-  await writeFile('request.svg', await toSvg(result));
-  await writeFile('request.html', await toHtml(result, '요청 경로'));
-} catch (error) {
-  if (!(error instanceof FigureError)) throw error;
-  process.exitCode = 1;
-  for (const problem of error.problems) {
-    console.error(`${problem.line}:${problem.column} ${problem.code}: ${problem.message}`);
-  }
-}
+import { buildFigure, toSvg, toHtml } from 'diagramplay';
+const result = await buildFigure(source, { strict: true, baseDir: process.cwd() });
+const svg = await toSvg(result, { scene: 0 });
+const html = await toHtml(result, '요청 처리');
 ```
 
-세 함수 모두 Promise를 반환하며 파일을 쓰지 않는다. `buildFigure(source, options?)`의 결과는 `BuiltFigure`이고 두 렌더러에 그대로 전달한다. 공개 경고 목록은 `result.warnings`이다. 내부 그림·장면·시간표의 필드와 JSON 직렬화 형식은 공개 계약이 아니므로 직접 수정하거나 저장해서 복원하지 않는다.
+`buildFigure`의 옵션은 `strict`, 사용자 아이콘의 기준 `baseDir`, `allowFileAccess`, `budget`, 명시적 배치 제약 `layoutWidth`다. 기본은 자연 배치이며 `layoutWidth`는 HTML 화면 맞춤 옵션이 아니다. 반환값은 불투명한 빌드 결과다. `toSvg`에는 `scene`, `isStatic`, `name`을, `toHtml`에는 이름과 `{ source }`를 전달한다. 공개 타입의 정본은 [index.d.ts](../src/index.d.ts)다.
 
-| 빌드 옵션 | 기본값 | 계약 |
-|---|---|---|
-| `baseDir` | 현재 작업 폴더 | 외부 JSON과 사용자 아이콘 경로의 기준 폴더. 원본의 경로는 이 폴더 밖을 읽지 못한다 |
-| `strict` | `false` | 경고를 오류로 승격해 `FigureError`로 전달 |
-| `budget` | 이름별 기본 한도 | `grid-elements`, `grid-path-commands`, `events`, `chain`, `chip-index`의 한도를 양의 안전한 정수로 지정 |
-| `layoutWidth` | 기본 배치 폭 | 그래프 보기의 배치 목표 폭(px). 양의 유한수이며 그래프 보기가 있는 문서에서만 사용 |
-| `allowFileAccess` | `true` | `false`이면 원본에 외부 JSON이나 파일 기반 아이콘 세트가 있을 때 거부 |
+예제 목록과 단독 HTML 재생 화면의 테마 선택으로 시스템·라이트·다크를 비교할 수 있다. 테마만 바뀌며 고른 장면과 재생은 유지된다. 삽입 화면은 목록 쪽 선택을 따른다.
 
-외부 JSON이나 사용자 아이콘 세트를 허용하는 서버 도구는 읽을 범위와 경로 정책을 정하고 `baseDir`를 명시한다. 원본이 읽는 경로는 `baseDir` 안으로 제한되고(밖이면 그 줄의 오류), 링크도 따라간 실제 경로로 판단한다. 다만 `baseDir` 안의 파일은 모두 읽을 수 있으므로 `baseDir` 자체를 좁게 고르는 것은 호출하는 쪽의 몫이다. 검증되지 않은 문서 입력을 받는 곳에서는 `allowFileAccess: false`를 유지한다. 내장 글꼴과 아이콘을 읽는 동작은 이 옵션과 무관하다.
-
-`toSvg(result, { scene: 0, isStatic: true, name: 'request' })`는 첫 장면의 마지막 상태를 담은 SVG 문자열을 반환한다. API의 장면 번호는 0부터이며 CLI는 1부터이다. `scene`은 장면 이름도 받으며 생략하면 첫 장면이다. `isStatic`의 기본값은 `false`이다. `name`은 원본에 `title`이 없을 때 쓸 제목이며 기본값은 빈 문자열이다. 장면이 있는 그림에서 존재하지 않는 번호나 이름을 선택하면 `RangeError`이다.
-
-`toHtml(result, '제목', options?)`은 모든 장면과 필요한 글꼴·스타일·재생 코드를 포함한 HTML 문자열을 반환한다. 두 번째 인자는 원본에 `title`이 없을 때 쓸 제목이며 생략하면 빈 문자열이다. 좁은 폭의 배치도 검사하므로 빌드가 성공한 뒤라도 이 단계에서 `FigureError`가 발생할 수 있다. 복사할 원문을 따로 보존하는 호스트는 `toHtml(result, '제목', { source: originalSource })`로 지정한다. `source`를 생략하거나 `undefined`로 주면 빌드에 쓴 원문을 담고, 빈 문자열은 그대로 담는다. 문자열이 아닌 `source`는 `TypeError`다. 이 옵션은 복사 버튼과 내려받는 HTML 안의 원문에만 적용하며 빌드 결과와 그림을 바꾸지 않는다.
-
-`FigureError.name`은 `FigureError`이며 `problems`는 `FigureDiagnostic` 목록이다. 각 진단은 `severity`(`error` 또는 `warning`), `code`, `line`, `column`, `message`를 가진다. 줄과 열은 1부터 시작하며 원본 위치를 모르면 0이다. `warnings`도 같은 형식을 사용한다. `code`는 문자열이므로 연동 코드는 모르는 코드도 표시해야 한다. 진단을 분류할 때 사람이 읽는 `message`를 파싱하지 않는다. 잘못된 예산 옵션은 `TypeError`이고 그 밖의 실행 오류는 예시처럼 다시 던진다.
-
-TypeScript에서는 `import type { BuildOptions, BuiltFigure, FigureDiagnostic, HtmlOptions, ImportFormat, ImportResult, SvgOptions } from 'diagramplay'`로 타입을 가져온다. Node.js 프로젝트는 `module: "NodeNext"` 설정으로 같은 ESM 진입점을 사용한다. 타입의 정본은 [공개 선언](../src/index.d.ts)이다. 내부 모듈 경로 대신 공개 진입점을 가져오고, 디자인을 맞추기 위해 결과 SVG나 HTML을 정규식으로 덮어쓰지 않는다.
-
-## 문제가 있을 때
-
-| 증상 | 먼저 확인할 것 |
-|---|---|
-| 첫 줄에서 문법 오류 | 첫 의미 줄이 숫자나 옵션 없는 `diagramplay`인지 |
-| 이름 검색 실패 | 표시 이름 대신 식별자를 썼는지, 철자와 대소문자. 진단의 `Did you mean`이 가까운 이름을 알린다 |
-| Mermaid·D2 꼴(`A[글]`, `a --> b`, `a: 글`)을 씀 | 진단이 같은 뜻의 DiagramPlay 꼴을 알린다([시작 선언과 없앤 형태](design/figure-syntax.md#시작-선언과-없앤-형태)) |
-| 이동 경로 검색 실패 | 그래프에서는 연결을 먼저 선언했는지, 순서 보기에는 참여자가 있는지 |
-| 정지 상태 | 장면이 `static`인지, SVG가 첫 정지 장면인지, 움직임 줄이기가 켜졌는지 |
-| 이동 글이 겹침 | 같은 글을 연결과 이동 양쪽에 썼는지 |
-| 큐 수의 중복 변화 | 같은 사건을 `reserve`, `set`, `on`에서 중복 적용했는지 |
-| 그림을 바꿨는데 SVG가 그대로 | `md` 또는 `render`를 다시 실행했는지, `--check`가 통과하는지 |
-| 홈페이지에서만 `data`가 거절됨 | 삽입 빌드의 파일 읽기 금지 계약인지 |
-| 차트 값이 거절됨 | 종류별 행 문법·계열 수·부호·결측·단위를 지켰는지 |
-| 모바일에서 읽기 어려움 | 한 그림에 너무 많은 대상을 넣었는지, 세로 방향이나 보기 분리가 적절한지 |
-
-지원하는 표현과 아직 전용 문법이 없는 범위는 [표현 범위](design/expression-coverage.md)에 있다. 배치 검사 항목은 [그림 검사](design/figure-check.md), 문법 진단은 [그림 문법의 오류와 경고](design/figure-syntax.md#오류와-경고)에서 찾는다. 해결되지 않으면 [이슈](https://github.com/woonyong-choi/diagramplay/issues)에 재현 가능한 최소 원본, 실행 명령, 패키지 버전과 진단을 남긴다.
-
-자동 검사 통과는 읽기 쉬움의 전부가 아니다. 원본을 고친 뒤 본문 폭과 모바일 폭에서 라벨·선·탭·움직임을 직접 확인한다. 개별 그림의 CSS나 좌표를 덧대기 전에 공통 배치와 부품의 문제인지 먼저 판단한다.
+개발 작업본에서 `npm run compare`는 복잡한 다섯 표현의 비교 페이지를 만든다. 개요는 전체 구조를 비교하며, 세부 글자와 연결은 상세 화면의 재생·전체화면 확대에서 확인한다.

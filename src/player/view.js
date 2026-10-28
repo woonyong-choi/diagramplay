@@ -5,13 +5,12 @@
 /**
  * 그림 틀에 문법 복사, HTML 다운로드, 전체화면 단추와 확대·축소를 붙인다.
  * @param root `.fl-figure` 요소. 안에 `.fl-copy`, `.fl-download`, `.fl-full`, `.fl-zoom` 단추와 `.dp-panels`가 있다
- * @param data { metrics: { zoomMax, zoomStep }, width, height, responsive? }. width, height는 장면 크기다
- * @param swapLayout 좁은 배치로 바꾸는 함수(isNarrow) → 그 배치의 데이터. 좁은 배치가 없는 그림은 undefined
+ * @param data { metrics: { zoomMax, zoomStep }, width, height }. width, height는 장면 크기다
  */
-function figureView(root, data, swapLayout) {
+function figureView(root, data) {
   // 보는 상태 한 덩어리. zoom은 전체 화면의 확대 배수(1이면 그림 전체가 보임), drag는 끄는 중인 손짓이다.
   const viewer = { root, canvas: root.querySelector('.fl-canvas'), panels: root.querySelector('.dp-panels'), metrics: data.metrics, data, zoom: 1, drag: undefined, fullButton: root.querySelector('.fl-full') };
-  bindResponsiveView(viewer, swapLayout);
+  bindResponsiveView(viewer);
   bindExport(root);
   bindFull(viewer);
   bindZoom(viewer);
@@ -21,15 +20,11 @@ function figureView(root, data, swapLayout) {
 
 // 좁은 배치가 있는 그림은 화면 폭에 맞춰 배치를 고른다.
 // 좁은 배치로 바꾸는 기준은 가장 넓은 판의 상자 폭(box.w)이다. 확대 중(전체 화면)에는 하지 않는다.
-function bindResponsiveView(viewer, swapLayout) {
+function bindResponsiveView(viewer) {
   const { root } = viewer;
   // 판정은 처음(넓은) 배치의 판으로 한 번만 정한다. 좁은 배치로 바꾼 뒤의 판 폭으로 다시 정하면 같은 폭에서 두 배치를 오간다.
-  const { responsive } = viewer.data;
-  const widest = Math.max(...viewer.data.panels.map((panel) => panel.box.w));
   viewer.fit = () => {
     if (root.classList.contains('full')) return;
-    const isNarrow = Boolean(swapLayout && responsive && root.clientWidth < responsive.breakpoint && root.clientWidth < widest);
-    if (swapLayout) viewer.data = { ...viewer.data, ...swapLayout(isNarrow) };
     updateCanvasFocus(viewer);
   };
   new ResizeObserver(viewer.fit).observe(root);

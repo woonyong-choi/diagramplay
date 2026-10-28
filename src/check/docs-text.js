@@ -34,7 +34,7 @@ export function checkRequires({ figure }, texts, problems) {
   const fail = say(problems, 15, 'error');
   for (const { alternatives, line } of figure.requires ?? []) {
     if (alternatives.some((want) => texts.some((text) => text.includes(fold(want))))) continue;
-    fail(line, `${alternatives.map((a) => `"${a}"`).join(' or ')} is not in the figure. Add it to a card, a line or a chart, or remove the require line`);
+    fail(line, `${alternatives.map((a) => `"${a}"`).join(' or ')} is not in the figure. Add it to a card or a line, or remove the require line`);
   }
 }
 

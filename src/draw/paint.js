@@ -1,6 +1,6 @@
 // 고른 색(tone)의 CSS 변수. 값은 문법이 고른 색 이름(color/tone.js)과 표현(look.js)이고, 색은 역할 토큰 `color.paint.<이름>`의 단계(fill 옅은 면, outline 경계, ink 글자)다.
 // 면·경계·제목과 켜짐의 역할은 정본 figure.css가 소유한다. 고른 색의 CSS 규칙은 쓴 색에만 결과 파일에 들어간다.
-import { lookOf, faceOf } from './look.js';
+import { faceOf, lookOf } from './look.js';
 
 // cost: time O(s + g + r), heap O(c), stack O(1)
 // vars: s = 도형 수, g = 그룹 수, r = 카드 줄 수, c = 고른 색 수

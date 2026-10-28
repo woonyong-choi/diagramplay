@@ -1,13 +1,13 @@
 // 연결선(Connector)과 선 라벨(EdgeLabel)을 그린다. 구조, 순서, 상태, 데이터 관계 그림의 모든 선이 이 두 함수만 거친다.
 // 선 경로의 기하는 layout과 route.js가 정하고, 화살촉은 draw/arrow.js 한 곳이 정의한다. 선 라벨 알약의 크기는 measure/sizes.js의 sizePill이 정한다.
-import { BADGE_STYLE, hasPill, sizePill } from '../measure/pills.js';
-import { pillFace } from './pill.js';
-import { STYLE } from '../measure/texts.js';
-import { routePolyline } from '../math/route.js';
-import { centerBaseline, escapeXml, renderRich, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { centerBaseline, escapeXml, roundCoord as r, renderRich } from '../format/text.js';
+import { routePolyline } from '../math/route.js';
+import { BADGE_STYLE, hasPill, sizePill } from '../measure/pills.js';
+import { STYLE } from '../measure/texts.js';
 import { edgeMarker } from './arrow.js';
 import { cutClip } from './crossings.js';
+import { pillFace } from './pill.js';
 import { sceneTag } from './scene-tag.js';
 
 const SPACE = values.spacing;
@@ -42,13 +42,11 @@ function edgeClass(e, j, decorate) {
 // cost: time O(n), heap O(out), stack O(1)
 // vars: n = 라벨 글자 수, out = 만든 SVG 글자 수
 // basis: estimate
-/** 선의 라벨 묶음(알약, 번호 원, 글)과 선 끝 알약(삭제 정책). 자리는 배치가 정했다. 그릴 알약이 없으면 undefined다. */
+/** 관계 설명의 알약, 번호 원과 글. 자리는 배치가 정하며 다중성은 선 끝에 따로 그린다. */
 export function drawEdgeLabel(e, j, { decorate, glyphs, scene }) {
-  const ends = (e.endpointLabels ?? []).filter((label) => label.isPill).map((label) => `<g class="fl-pill" data-end="${label.end}">${drawPillFrame(label, decorate('pill', j))}${drawLabelText(label.text, { x: label.x, y: label.y, cls: decorate('pilltext', j) }, glyphs)}</g>`);
-  const main = hasPill(e) && e.labelAt ? [drawMainPill(e, j, { decorate, glyphs })] : [];
-  if (!main.length && !ends.length) return undefined;
+  if (!hasPill(e) || !e.labelAt) return undefined;
   const tag = sceneTag(e, scene.shownSi);
-  return `<g id="l-${j}" class="${edgeClass(e, j, decorate)}${tag.off}"${tag.attr}>${[...main, ...ends].join('')}</g>`;
+  return `<g id="l-${j}" class="${edgeClass(e, j, decorate)}${tag.off}"${tag.attr}>${drawMainPill(e, j, { decorate, glyphs })}</g>`;
 }
 
 // 선 라벨 알약 하나(라벨과 번호 원)
@@ -61,7 +59,7 @@ function drawMainPill(e, j, { decorate, glyphs }) {
   return `<g class="fl-pill">${frame}${number}${text}</g>`;
 }
 
-// 알약 테두리. 가운데 { x, y }와 크기 { w, h }, 움직이는 SVG가 넣는 박자 class(state)
+// 채운 알약 면. 가운데 { x, y }와 크기 { w, h }, 움직이는 SVG가 넣는 박자 class(state)
 function drawPillFrame({ x, y, w, h }, state) {
   return pillFace({ x: x - w / 2, y: y - h / 2, w, h }, 'edge', ` ${state}`);
 }

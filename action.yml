@@ -31,7 +31,7 @@ inputs:
     required: false
     default: ''
   budget:
-    description: 'Raises generation budgets, as `name=value` items separated by spaces or commas, for example `grid-elements=2000000 grid-path-commands=4000000`. Each value is a positive whole number, and an unknown name or a bad value fails the step before any figure is built. Empty keeps the defaults.'
+    description: 'Raises generation budgets, as `name=value` items separated by spaces or commas, for example `events=600000 chain=10000`. Each value is a positive whole number, and an unknown name or a bad value fails the step before any figure is built. Empty keeps the defaults.'
     required: false
     default: ''
 runs:

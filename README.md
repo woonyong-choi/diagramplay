@@ -46,7 +46,7 @@ request.html
 
 ## 해결하는 문제
 
-문서에서 요청의 이동과 값 변화를 설명하려면 구조와 실행 순서를 함께 보여 줘야 합니다. DiagramPlay는 상자 같은 구성 요소와 연결을 텍스트로 적고, 시간에 따른 동작을 장면으로 더해 같은 그림에서 보여 줍니다. 구조, 순서, 상태, 데이터 관계와 차트를 한 원본에서 함께 설명할 수 있습니다.
+문서에서 요청의 이동과 값 변화를 설명하려면 구조와 실행 순서를 함께 보여 줘야 합니다. DiagramPlay는 상자 같은 구성 요소와 연결을 텍스트로 적고, 시간에 따른 동작을 장면으로 더해 같은 그림에서 보여 줍니다. 아키텍처, 카드 흐름, 시퀀스, ERD와 클래스를 한 원본에서 함께 설명할 수 있습니다.
 
 정지 그림의 배치와 도형을 직접 편집하는 일이 목적이면 그래픽 편집기가 더 맞습니다. DiagramPlay는 텍스트로 관리하는 문서에서 흐름과 값의 변화를 재생할 때 쓰는 도구입니다.
 
@@ -58,10 +58,10 @@ request.html
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/how-it-works-dark.svg">
-  <img src="docs/assets/how-it-works-light.svg" alt="합성 데이터: 개발자의 질문이 Screen에서 Engine을 거쳐 Codex CLI로 이동하는 그림">
+  <img src="docs/assets/how-it-works-light.svg" alt="설명용 모형: 텍스트 원본이 배치와 시간표를 거쳐 SVG·HTML로 생성되는 흐름">
 </picture>
 
-합성 데이터로 만든 질문 전달 예제입니다. [원본](docs/assets/how-it-works.diagramplay)과 [처리 흐름](docs/architecture.md#처리-흐름)을 함께 볼 수 있습니다. 그림 종류를 고르는 방법은 [목적에 맞는 보기 선택하기](docs/usage.md#목적에-맞는-보기-선택하기)에 있습니다.
+그림 생성 흐름을 설명하는 예제입니다. [원본](docs/assets/how-it-works.diagramplay)과 [처리 흐름](docs/architecture.md#처리-흐름)을 함께 볼 수 있습니다. 그림 종류를 고르는 방법은 [목적에 맞는 보기 선택하기](docs/usage.md#목적에-맞는-보기-선택하기)에 있습니다.
 
 ## 상태
 

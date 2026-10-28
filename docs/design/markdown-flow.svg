@@ -17,6 +17,7 @@
   --color-line: var(--color-gray-282);
   --color-state-active: var(--color-category-blue-light-border);
   --color-state-active-text: var(--color-category-blue-light-ink);
+  --color-state-on-active: var(--color-gray-0);
   --color-ui-focus: var(--color-action-link);
   --color-data-grid: var(--color-gray-212);
   --color-data-category-1: var(--color-category-blue-solid);
@@ -29,15 +30,20 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
+  --color-figure-label-ink: var(--color-ink);
+  --color-figure-label-active-ink: var(--color-state-on-active);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
   --color-soft: var(--primitive-soft);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   --color-action-link: var(--primitive-link);
   --color-category-blue-anchor: #1e6bd6;
   --color-category-blue-fill: var(--color-category-blue-anchor);
+  --color-category-blue-on: var(--color-gray-0);
   --color-category-blue-light-border: #1e6bd6;
   --color-category-blue-light-ink: #1161cb;
   --color-category-blue-light-tint-3: #d5e4fa;
@@ -60,6 +66,7 @@
   --primitive-soft: #e9edf2;
   --primitive-small-text: 15px;
   --primitive-tiny-text: 13px;
+  --primitive-help-border: #ebecef;
   --primitive-search-hover: #d9e6ff;
   --primitive-help-hover: #ebf1ff;
   --primitive-help-title-color: #3d4856;
@@ -92,6 +99,7 @@
   --color-line: var(--primitive-figure-dark-line);
   --color-state-active: var(--color-category-blue-dark-border);
   --color-state-active-text: var(--color-category-blue-dark-ink);
+  --color-state-on-active: var(--color-category-blue-on);
   --color-data-grid: var(--primitive-figure-dark-edge);
   --color-figure-icon: var(--color-category-blue-dark-border);
   --color-figure-queue-empty: var(--color-gray-910);
@@ -102,10 +110,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
   }
@@ -115,6 +125,7 @@
   --color-line: var(--primitive-figure-dark-line);
   --color-state-active: var(--color-category-blue-dark-border);
   --color-state-active-text: var(--color-category-blue-dark-ink);
+  --color-state-on-active: var(--color-category-blue-on);
   --color-data-grid: var(--primitive-figure-dark-edge);
   --color-figure-icon: var(--color-category-blue-dark-border);
   --color-figure-queue-empty: var(--color-gray-910);
@@ -125,10 +136,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
 }
@@ -137,6 +150,7 @@
   --color-line: var(--color-gray-282);
   --color-state-active: var(--color-category-blue-light-border);
   --color-state-active-text: var(--color-category-blue-light-ink);
+  --color-state-on-active: var(--color-gray-0);
   --color-data-grid: var(--color-gray-212);
   --color-figure-icon: var(--color-category-blue-light-border);
   --color-figure-queue-empty: var(--color-gray-59);
@@ -147,10 +161,12 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   color-scheme: light;
 }
@@ -324,11 +340,20 @@
   stroke-dasharray: var(--dash-card) var(--dash-card);
 }
 
-/* 알약은 모두 같은 중립 흰 면과 평소 경계다: 선 라벨, 배지와 개수. */
-.fl .pill,
+/* 관계 라벨은 번호 유무와 관계없이 같은 채움과 대비 글자를 사용한다. */
+.fl .fl-pill {
+  --fx-ink-rest: var(--color-figure-label-ink);
+  --fx-ink: var(--color-figure-label-active-ink);
+}
+
+.fl .pill {
+  fill: var(--color-figure-label-fill);
+  stroke: none;
+}
+
 .fl .badge-pill {
-  fill: var(--color-ui-card);
-  stroke: var(--fx-edge-rest);
+  fill: var(--color-figure-label-fill);
+  stroke: none;
 }
 
 .fl .fl-mini-pill {
@@ -607,7 +632,7 @@
 
 .fl .a0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 </style>
-<defs></defs>
+
 <rect x="0.5" y="0.5" width="726.2" height="85.3" class="fl-canvas-surface"/>
 <g transform="translate(0 0)">
 
@@ -619,6 +644,6 @@
 <g id="e-2" class="fl-edge "><defs><marker id="fl-arrow-2" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="p-2" d="M 356.3 47.3 L 116 47.3" class="fl-path" marker-end="url(#fl-arrow-2)"/></g>
 
 
-<g class="fl-pills"><g id="l-0" class="fl-edge"><g class="fl-pill"><rect x="120" y="9.7" width="106.8" height="18" rx="9" class="pill "/><text x="173.4" y="23.3" class="edgelabel ">diagramplay 블록</text></g></g><g id="l-1" class="fl-edge"><g class="fl-pill"><rect x="505.5" y="17.5" width="71.6" height="18" rx="9" class="pill "/><text x="541.3" y="31.2" class="edgelabel ">그림 만들기</text></g></g><g id="l-2" class="fl-edge"><g class="fl-pill"><rect x="266.8" y="52.3" width="85.5" height="18" rx="9" class="pill "/><text x="309.6" y="66" class="edgelabel ">이미지 줄 넣기</text></g></g></g>
+<g class="fl-pills"><g id="l-0" class="fl-edge"><g class="fl-pill"><rect x="182.8" y="9.7" width="106.8" height="18" rx="9" class="pill "/><text x="236.2" y="23.3" class="edgelabel ">diagramplay 블록</text></g></g><g id="l-1" class="fl-edge"><g class="fl-pill"><rect x="517.5" y="17.5" width="71.6" height="18" rx="9" class="pill "/><text x="553.3" y="31.2" class="edgelabel ">그림 만들기</text></g></g><g id="l-2" class="fl-edge"><g class="fl-pill"><rect x="193.4" y="51.3" width="85.5" height="18" rx="9" class="pill "/><text x="236.2" y="65" class="edgelabel ">이미지 줄 넣기</text></g></g></g>
 </g>
 </svg>

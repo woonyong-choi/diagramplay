@@ -1,20 +1,20 @@
 // 원본 전체를 읽어 문서 모형(figure) 하나로 만든다. 줄을 머리, 선언, 시간 흐름 세 부분으로 나누고 문장마다 맡을 함수를 고른다.
-import { BLOCK_WORDS, STATEMENTS, VALUES } from './grammar.js';
 import { BLOCK_READERS, openBlock } from './blocks.js';
-import { rejectName, skipBlock } from './names.js';
 import { readDeclaration, readEdge } from './declare.js';
+import { BLOCK_WORDS, STATEMENTS, VALUES } from './grammar.js';
 import { closeGroup } from './group.js';
+import { readHeader } from './header.js';
 import { readIcons } from './icons.js';
 import { tokenizeLine } from './lexer.js';
-import { didYouMean } from './problems.js';
 import { statementMistake } from './mistakes.js';
-import { readTimeline } from './steps.js';
-import { readHeader } from './header.js';
-import { readSequenceControl, prepareSequenceFragments } from './sequence-fragments.js';
+import { rejectName, skipBlock } from './names.js';
 import { readPreamble } from './preamble.js';
+import { didYouMean } from './problems.js';
+import { prepareSequenceFragments, readSequenceControl } from './sequence-fragments.js';
+import { readTimeline } from './steps.js';
+import { validateFigure } from './validate.js';
 import { readOn, readValue } from './value.js';
 import { readView } from './view.js';
-import { validateFigure } from './validate.js';
 
 const SECTIONS = ['header', 'declare', 'timeline'];
 // 블록 밖 줄의 첫 낱말이 될 수 있는 문장 낱말. 모르는 첫 낱말에 가까운 것을 제안할 때 쓴다(선과 이동은 첫 낱말이 이름이라 뺀다).
@@ -53,7 +53,7 @@ export function readFigure(source, problems) {
  * source: 받은 원본 글 그대로(줄바꿈 CRLF, 첫 글자 포함). 읽기 전에 고치지 않고 정리하지 않는다. 문법 복사가 이 글을 쓴다.
  * nodes: { id, shape, label, sub, parent, tone, appearance, line, columns?, members?, cells?, plot?, spans? },
  * groups: { id, label, direction, parent, tone, appearance, line },
- * edges: { from, to, label, quiet, dashed, head, no, line, relation?, fromColumns?, toColumns?, fromCell?, toCell?, fromSpan?, toSpan? },
+ * edges: { from, to, label, quiet, dashed, head, no, line, relation?, fromColumns?, toColumns? },
  * views: { id, strategy, direction, label, members, line, isImplicit }. id는 v1, v2, ...로 resolveViews가 붙인다,
  * steps: { label, mode, speed, line, beats, tracks, forMs, keep, sets, status }
  */
@@ -83,8 +83,6 @@ function emptyFigure(source) {
     // `when`이나 `wait`를 하나라도 썼는지. 안 쓴 원본은 시간표가 이벤트 처리를 거치지 않는다.
     hasConditions: false,
     hasReserve: false,
-    start: undefined,
-    finals: [],
     steps: [],
   };
 }

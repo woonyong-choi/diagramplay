@@ -1,11 +1,9 @@
 // 이동 글 상자가 피할 사각형. 글자(도형 이름과 부제, 테이블 머리와 열, 그룹 제목), 아이콘과 알약 장식, 카드와 큐 안, 도형 테두리(원통 뚜껑 포함), 선 라벨 알약이다.
-import { placeGroupHead } from '../measure/sizes.js';
-import { hasPill, sizePill } from '../measure/pills.js';
-import { STYLE, allTexts, textSpan } from '../measure/texts.js';
-import { plainText } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { queueSlots } from '../measure/queue.js';
-import { contentBox } from '../measure/content.js';
+import { plainText } from '../format/text.js';
+import { hasPill, sizePill } from '../measure/pills.js';
+import { placeGroupHead } from '../measure/sizes.js';
+import { STYLE, allTexts, textSpan } from '../measure/texts.js';
 import { statusBoxes } from './status.js';
 
 const SPACE = values.spacing;
@@ -36,22 +34,7 @@ export function textBoxes(scene) {
  * @returns { x, y, w, h, name }[]
  */
 export function chipObstacles(scene, timeline) {
-  return [...textBoxes(scene), ...shapeBoxes(scene), ...pillBoxes(scene), ...decorBoxes(scene), ...innerBoxes(scene), ...(timeline ? statusObstacles(scene, timeline) : [])];
-}
-
-// cost: time O(s), heap O(s), stack O(1)
-// vars: s = 도형 수
-// basis: estimate
-// 도형 안에서 글자처럼 읽히는 것: 카드가 차지하는 사각형과 큐의 칸. 도형 윤곽 사각형 안에 들어 있어 처음 계획은 이미 윤곽으로 피하므로 `isInner`로 가르고, 윤곽을 덮는 두 번째 계획(chip/plan.js)만 이것을 따로 피한다.
-function innerBoxes(scene) {
-  return scene.items.flatMap((it) => {
-    const name = plainText(it.label ?? it.id);
-    const card = it.content ? [{ ...contentBox(it), name, isInner: true }] : [];
-    if (it.shape !== 'queue') return card;
-    const slots = queueSlots(it);
-    const [x0, y0] = [Math.min(...slots.map((s) => s.x)), Math.min(...slots.map((s) => s.y))];
-    return [...card, { x: x0, y: y0, w: Math.max(...slots.map((s) => s.x + s.w)) - x0, h: Math.max(...slots.map((s) => s.y + s.h)) - y0, name, isInner: true }];
-  });
+  return [...textBoxes(scene), ...shapeBoxes(scene), ...pillBoxes(scene), ...decorBoxes(scene), ...(timeline ? statusObstacles(scene, timeline) : [])];
 }
 
 // cost: time O(s + p), heap O(p), stack O(1)
@@ -82,7 +65,6 @@ function decorBoxes(scene) {
 // 도형이 그려진 테두리 사각형(isFrame). 원통은 위아래 뚜껑까지 넓힌다. 글 상자는 보이는 동안 이 사각형 안의 글자를 가리지 않고, 윤곽은 자리가 모자랄 때만 덮는다.
 function shapeBoxes(scene) {
   return scene.items.flatMap((it) => {
-    if (it.shape === 'grid') return [];
     const name = plainText(it.label ?? it.id);
     const cap = it.shape === 'store' ? it.marginTop : 0;
     return [{ x: it.x, y: it.y - cap, w: it.w, h: it.h + cap * 2, name, isFrame: true }];

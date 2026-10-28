@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { insideBase, OUTSIDE } from '../compile/base-path.js';
 
-import { sanitizeIcon } from './sanitize.js';
 import { getIconCatalog, readIcon } from '@woonyong-choi/design-tokens/ui/build/icons.mjs';
+import { sanitizeIcon } from './sanitize.js';
 
 const CATALOG = getIconCatalog();
+export const BOUNDARY_NAMES = Object.freeze(Object.keys(CATALOG.diagram.boundaries));
 export const DEFAULT_SET = 'builtin';
 export const ICON_NAMES = Object.freeze(Object.fromEntries([
   ...Object.entries(CATALOG.icons).map(([name, icon]) => [name, icon.category === 'brands' && CATALOG.brands[name]?.type !== 'general' ? 'brand' : 'concept']),
@@ -50,23 +51,34 @@ export function attachIcons(figure, baseDir, problems) {
     else folders.set(set.name, folder);
   }
   for (const item of [...figure.nodes, ...figure.groups]) {
-    if (item.icon === undefined) continue;
-    const ref = splitIconRef(item.icon);
+    const isGroup = figure.groups.includes(item);
+    const icon = item.icon ?? (isGroup ? CATALOG.diagram.groupMarker : undefined);
+    if (icon === undefined) continue;
+    const ref = splitIconRef(icon);
     // 이름이 틀린 참조는 원본 읽기(source/icons.js checkIcons)가 그 줄에 이미 알렸다. 같은 원인을 두 번 알리지 않는다.
     if (!isNamed(ref, figure.iconSets) || (ref.set !== DEFAULT_SET && !folders.has(ref.set))) continue;
     try {
       item.iconData = loadIcon(ref, { folders, baseDir, paint: figure.iconSets.find((set) => set.name === ref.set)?.paint });
       if (item.iconData.library === 'nhn-cloud') {
-        const isGroup = figure.groups.includes(item);
         if (isGroup && item.iconData.type !== 'group') problems.error(item.line, 'NHN group headings require a box-type group icon');
         if (isGroup && !item.label?.trim()) problems.error(item.line, 'NHN groups require an explicit label');
         if (!isGroup && item.iconData.type === 'group') problems.error(item.line, 'NHN box-type icons belong on group boundaries, not inside nodes');
         if (!isGroup && ['service', 'resource'].includes(item.iconData.type) && !item.tile) problems.error(item.line, 'NHN service and resource icons use shape=tile or shape=symbol; use a box-type icon on a group for a service boundary');
       }
     } catch (error) {
-      problems.error(item.line, `cannot use icon "${item.icon}": ${error.code === 'ENOENT' ? 'the file does not exist' : error.message}`);
+      problems.error(item.line, `cannot use icon "${icon}": ${error.code === 'ENOENT' ? 'the file does not exist' : error.message}`);
     }
   }
+  for (const group of figure.groups) {
+    const inferred = group.icon ? group.iconData?.boundary?.type : undefined;
+    if (group.boundary && inferred && group.boundary !== inferred) problems.error(group.line, 'boundary conflicts with the NHN group icon');
+    const kind = group.boundary ?? inferred ?? (group.icon && group.iconData?.library === 'nhn-cloud' ? 'service' : undefined);
+    if (kind) {
+      group.boundary = kind;
+      group.dashed = CATALOG.diagram.boundaries[kind].line === 'dashed';
+    }
+  }
+
 }
 
 // cost: time O(s), heap O(1), stack O(1)
@@ -92,7 +104,7 @@ function loadIcon(ref, { folders, baseDir, paint }) {
   if (ref.set === DEFAULT_SET) {
     const canonical = Object.hasOwn(CATALOG.icons, ref.name) ? ref.name : CATALOG.aliases[ref.name];
     const asset = CATALOG.brands[canonical];
-    return { svg: readIcon(ref.name), role: ICON_NAMES[ref.name], library: asset?.library, type: asset?.type, monochrome: CATALOG.libraries.find(library => library.name === asset?.library)?.presentation?.[asset?.type] === 'monochrome' };
+    return { svg: readIcon(ref.name), role: ICON_NAMES[ref.name], library: asset?.library, type: asset?.type, boundary: asset?.boundary, monochrome: CATALOG.libraries.find(library => library.name === asset?.library)?.presentation?.[asset?.type] === 'monochrome' };
   }
   const file = insideBase(baseDir, join(folders.get(ref.set), `${ref.name}.svg`));
   if (file === undefined) throw new Error(OUTSIDE);

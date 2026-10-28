@@ -1,7 +1,7 @@
 // 원본의 시간과 숫자 값을 읽는다.
-import { MIN_VALUE } from './chart-limits.js';
-import { NUMBER_PATTERN, TIME_PATTERN } from './words.js';
+import { MIN_VALUE } from './number-limits.js';
 import { closest } from './problems.js';
+import { NUMBER_PATTERN, TIME_PATTERN } from './words.js';
 
 /** 1초의 밀리초. 원본의 `s` 단위를 읽고 화면 시각을 초로 적는 곳이 함께 쓴다. */
 export const MS_PER_SECOND = 1000;

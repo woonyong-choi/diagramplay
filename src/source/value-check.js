@@ -1,6 +1,6 @@
 // 값 선언과 값 바꾸기 식을 파일을 다 읽은 뒤 확인한다. 도형 이름, 참조 사슬, 식이 가리키는 값과 도형이 맞는지 본다.
-import { indicatorTypeProblem } from './indicators.js';
 import { CARD_SHAPES } from './grammar.js';
+import { indicatorTypeProblem } from './indicators.js';
 import { unknownName } from './problems.js';
 import { movesOf, rootOf } from './value-refs.js';
 import { NUMBER_PATTERN } from './words.js';
@@ -36,7 +36,7 @@ export function checkValuesShown(figure, names, problems) {
   for (const value of figure.values.filter((v) => !v.queue && v.on !== undefined)) {
     const id = value.on?.split('.')[0];
     const target = names.get(id);
-    if (target && (CARD_SHAPES.includes(target.shape) || value.cell) && !isCardDrawn(figure, id)) problems.error(value.line, `value "${value.id}" is on "${value.on}", which no graph view shows. A sequence view draws only the head. Put "${value.on}" in a graph view`);
+    if (target && (CARD_SHAPES.includes(target.shape)) && !isCardDrawn(figure, id)) problems.error(value.line, `value "${value.id}" is on "${value.on}", which no graph view shows. A sequence view draws only the head. Put "${value.on}" in a graph view`);
   }
 }
 
@@ -61,16 +61,8 @@ function checkDeclaration(value, { byId, names, figure }, problems) {
   const [id, part, ...extra] = value.on?.split('.') ?? [];
   const target = names.get(id);
   if (value.on !== undefined && !target && !figure.rejectedNames.has(id)) problems.error(value.line, unknownName('node', id, figure.nodes.map((n) => n.id)));
-  else if (target && part !== undefined) {
-    const cell = target.shape === 'grid' && target.cells.find((c) => c.id === part);
-    if (extra.length || !part) problems.error(value.line, `write a value target as grid.cell. Found "${value.on}"`);
-    else if (target.shape !== 'grid') problems.error(value.line, `only a grid item can hold a cell value. Found "${value.on}"`);
-    else if (!cell) problems.error(value.line, unknownName('cell', part, target.cells.map((c) => c.id)));
-    else if (cell.kind === 'gap') problems.error(value.line, `"${value.on}" is a gap. Put a value on an item instead`);
-    else if (cell.valueId !== undefined) problems.error(value.line, `"${value.on}" already holds value "${cell.valueId}". A cell holds one value`);
-    else { cell.valueId = value.id; value.cell = part; }
-  } else if (target && !CARD_SHAPES.includes(target.shape)) problems.error(value.line, `a ${target.shape} has no card. Put a value on ${CARD_SHAPES.join(', ')} or grid.cell`);
-  if (value.indicator && (value.on === undefined || part !== undefined)) problems.error(value.line, 'display= needs a visible card value; hidden values and grid cells do not take display=');
+  else if (target && !CARD_SHAPES.includes(target.shape)) problems.error(value.line, `a ${target.shape} has no card. Put a value on ${CARD_SHAPES.join(', ')}`);
+  if (value.indicator && (value.on === undefined || part !== undefined)) problems.error(value.line, 'display= needs a visible card value; hidden values and fields do not take display=');
   if (value.ref === undefined) return;
   if (!byId.has(value.ref)) problems.error(value.line, unknownName('value', value.ref, byId.keys()));
   else checkChain(value, byId, problems);

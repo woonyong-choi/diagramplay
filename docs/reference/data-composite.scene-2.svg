@@ -18,6 +18,7 @@
   --color-outline: var(--color-gray-529);
   --color-line: var(--color-gray-282);
   --color-state-active: var(--color-category-blue-light-border);
+  --color-state-active-fill: var(--color-category-blue-fill);
   --color-state-active-text: var(--color-category-blue-light-ink);
   --color-state-on-active: var(--color-gray-0);
   --color-ui-focus: var(--color-action-link);
@@ -32,11 +33,16 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
+  --color-figure-label-ink: var(--color-ink);
+  --color-figure-label-active-fill: var(--color-state-active-fill);
+  --color-figure-label-active-ink: var(--color-state-on-active);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
   --color-soft: var(--primitive-soft);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   --color-action-link: var(--primitive-link);
   --color-category-blue-anchor: #1e6bd6;
@@ -64,6 +70,7 @@
   --primitive-soft: #e9edf2;
   --primitive-small-text: 15px;
   --primitive-tiny-text: 13px;
+  --primitive-help-border: #ebecef;
   --primitive-search-hover: #d9e6ff;
   --primitive-help-hover: #ebf1ff;
   --primitive-help-title-color: #3d4856;
@@ -107,10 +114,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
   }
@@ -131,10 +140,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   color-scheme: dark;
 }
@@ -154,10 +165,12 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   color-scheme: light;
 }
@@ -331,11 +344,20 @@
   stroke-dasharray: var(--dash-card) var(--dash-card);
 }
 
-/* 알약은 모두 같은 중립 흰 면과 평소 경계다: 선 라벨, 배지와 개수. */
-.fl .pill,
+/* 관계 라벨은 번호 유무와 관계없이 같은 채움과 대비 글자를 사용한다. */
+.fl .fl-pill {
+  --fx-ink-rest: var(--color-figure-label-ink);
+  --fx-ink: var(--color-figure-label-active-ink);
+}
+
+.fl .pill {
+  fill: var(--color-figure-label-fill);
+  stroke: none;
+}
+
 .fl .badge-pill {
-  fill: var(--color-ui-card);
-  stroke: var(--fx-edge-rest);
+  fill: var(--color-figure-label-fill);
+  stroke: none;
 }
 
 .fl .fl-mini-pill {
@@ -626,7 +648,7 @@
 .fl .a5 { animation: a5 1.3s 1 forwards linear; }
 @keyframes a6 { 0%,69.223% { color: var(--fx-edge) } 69.231%,100% { color: var(--fx-line-rest) } }
 .fl .a6 { animation: a6 1.3s 1 forwards linear; }
-@keyframes a7 { 0%,69.223% { stroke: var(--fx-edge) } 69.231% { stroke: var(--fx-edge) } 99.992%,100% { stroke: var(--fx-edge-rest) } }
+@keyframes a7 { 0%,69.223% { fill: var(--color-figure-label-active-fill) } 69.231% { fill: var(--color-figure-label-active-fill) } 99.992%,100% { fill: var(--color-figure-label-fill) } }
 .fl .a7 { animation: a7 1.3s 1 forwards linear; }
 .fl .sa0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 .fl .sa1 { fill: var(--fx-face); }
@@ -634,7 +656,7 @@
 .fl .sa3 { opacity: 1; visibility: visible; }
 .fl .sa4 { opacity: 1; }
 </style>
-<defs></defs>
+
 <rect x="0.5" y="0.5" width="633.2" height="215" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 
@@ -643,7 +665,7 @@
 <g id="e-0" class="fl-edge a6" role="img" aria-label="orders [0..*] references users [1]: FK1 · RESTRICT"><defs><marker id="fl-arrow-0" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="p-0" d="M 206.8 96 L 418.9 96" class="fl-path" marker-end="url(#fl-arrow-0)"/><text class="edgelabel fl-end-label a5" data-end="from" x="220.2" y="115.7">0..*</text><text class="edgelabel fl-end-label a5" data-end="to" x="412.2" y="115.7">1</text></g>
 
 <g class="fl-packet p1-0" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="1.3s" repeatCount="1" fill="freeze" calcMode="discrete" keyTimes="0;0.69231" values="1;0"/><animateMotion dur="1.3s" repeatCount="1" fill="freeze" calcMode="spline" keyTimes="0;0.69231;1" keySplines="0 0 1 1;0 0 1 1" keyPoints="0;1;1"><mpath href="#p-0" xlink:href="#p-0"/></animateMotion></g>
-<g class="fl-pills"><g id="l-0" class="fl-edge"><g class="fl-pill"><rect x="216.8" y="74" width="99.8" height="18" rx="9" class="pill a7"/><text x="266.7" y="87.7" class="edgelabel a5">FK1 · RESTRICT</text></g></g></g>
+<g class="fl-pills"><g id="l-0" class="fl-edge"><g class="fl-pill"><rect x="262.9" y="74" width="99.8" height="18" rx="9" class="pill a7"/><text x="312.9" y="87.7" class="edgelabel a5">FK1 · RESTRICT</text></g></g></g>
 </g>
 <g class="fl-still" transform="translate(0 0)">
 
@@ -652,6 +674,6 @@
 <g id="still-e-0" class="fl-edge " role="img" aria-label="orders [0..*] references users [1]: FK1 · RESTRICT"><defs><marker id="still-fl-arrow-0" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="still-p-0" d="M 206.8 96 L 418.9 96" class="fl-path" marker-end="url(#still-fl-arrow-0)"/><text class="edgelabel fl-end-label " data-end="from" x="220.2" y="115.7">0..*</text><text class="edgelabel fl-end-label " data-end="to" x="412.2" y="115.7">1</text></g>
 
 
-<g class="fl-pills"><g id="still-l-0" class="fl-edge"><g class="fl-pill"><rect x="216.8" y="74" width="99.8" height="18" rx="9" class="pill "/><text x="266.7" y="87.7" class="edgelabel ">FK1 · RESTRICT</text></g></g></g>
+<g class="fl-pills"><g id="still-l-0" class="fl-edge"><g class="fl-pill"><rect x="262.9" y="74" width="99.8" height="18" rx="9" class="pill "/><text x="312.9" y="87.7" class="edgelabel ">FK1 · RESTRICT</text></g></g></g>
 </g>
 </svg>

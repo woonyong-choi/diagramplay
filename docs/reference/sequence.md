@@ -30,7 +30,7 @@ scene "요청과 응답"
 
 ## 문법
 
-줄 종류와 선택 사항은 [그림 문법](../design/figure-syntax.md#문법-표)의 문법 표가 정본이고, 순서 보기의 줄은 [카드와 보기](../design/figure-kinds.md#순서-보기)에 있다. 순서 보기의 참여자는 `person`, `box`, `external`, `store`, `queue`이고, 테이블, API, 클래스는 칸과 멤버 없이 카드 머리만 참여자로 표시된다.
+줄 종류와 선택 사항은 [그림 문법](../design/figure-syntax.md#문법-표)의 문법 표가 정본이고, 순서 보기의 줄은 [카드와 보기](../design/figure-kinds.md#순서-보기)에 있다. 순서 보기의 참여자는 `person`, `box`, `external`, `store`, `queue`이고, 테이블, API, 클래스는 컬럼과 멤버 없이 카드 머리만 참여자로 표시된다.
 
 ## 장면과 움직임
 

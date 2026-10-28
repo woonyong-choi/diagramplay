@@ -12,11 +12,6 @@ const CANVAS_WIDE = values.spacing.figure["figure-canvas-wide"];
 const COLUMN = values.spacing.figure.chart.width;
 /** 그림 둘레 안쪽 여백. 배치와 차트가 내용 둘레에 같은 값을 둔다. 그림 폭이 내용 폭이라 이 여백이 캔버스의 빈 테두리 전부다. */
 export const FIGURE_PAD = values.spacing["4"];
-/**
- * 좁은 화면(`size.figure-compact-width`)에서 그림 컨테이너가 가지는 폭. 컨테이너는 화면 폭에서 좌우 바깥 여백(`spacing.6`)을 뺀 값이고 그림 안쪽에는 여백이 없다.
- * 좁은 배치의 그래프와 차트가 목표로 삼는 폭이다. 그래프가 이 폭을 넘으면 HTML은 틀 폭에 맞춰 줄여 보인다.
- */
-export const COMPACT_WIDTH = values.spacing.figure["figure-compact-width"] - values.spacing["6"] * 2;
 /** 보이는 가로세로 비율의 한도. 비율이 이 값이나 그 역수를 넘으면 그림이 읽히지 않는다. */
 export const ASPECT_MAX = values.scale['aspect-max'];
 

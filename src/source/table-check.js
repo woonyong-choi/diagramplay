@@ -31,11 +31,10 @@ export function checkTables(figure, problems) {
   }
 }
 
-// 외래 키 선의 라벨과 삭제 정책. 열 묶음 키는 이름(FK1)이 선 라벨 알약이라 삭제 정책을 그 알약에 잇는다(`FK1 · CASCADE`).
-// 열 하나의 키는 라벨이 없고, 삭제 정책은 참조하는 열 쪽 끝의 선 위 알약이다(layout/end-marks.js). 한 선에 알약이 둘 서지 않는다.
+// 삭제 정책도 관계 설명이므로 일반 라벨과 함께 선 중앙에 놓는다. 다중성만 선 끝에 남는다.
 function foreignKeyMarks(key) {
-  if (key.columns.length === 1) return { label: undefined, ondelete: key.ondelete };
-  return { label: [key.label, key.ondelete && deleteRule(key.ondelete)].filter(Boolean).join(' · '), ondelete: undefined };
+  const label = [key.columns.length > 1 && key.label, key.ondelete && deleteRule(key.ondelete)].filter(Boolean).join(' · ');
+  return { label: label || undefined, ondelete: key.ondelete };
 }
 
 // cost: time O(c+k*log k+f*log f), heap O(c+k+f), stack O(1)

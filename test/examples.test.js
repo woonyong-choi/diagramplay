@@ -1,26 +1,20 @@
 // 표현 예제: examples/ 폴더의 원본을 유효한 씨앗으로 삼아, 모든 예제가 경고 없이 읽히고 모든 장면이 올바른 SVG와 HTML이 되는지 본다.
 // 독립 최소 경계 입력은 charts.test.js(차트 열여섯)와 kinds.test.js(개발 그림)에 있다. 시험 이름 첫 낱말(K30)이 요구사항 번호이고, 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { build, descendants, EXAMPLES, findAll, parseMarkup, textsOf, toHtml, toSvg, valueOf } from './support.js';
+import { build, descendants, EXAMPLES, findAll, parseMarkup, textsOf, toHtml, toSvg } from './support.js';
 
-const CHARTS = ['area', 'bar', 'box', 'difference', 'donut', 'dumbbell', 'ecdf', 'heatmap', 'histogram', 'line', 'percent', 'pie', 'scatter', 'stacked', 'step', 'waterfall'];
-const FIGURES = ['api', 'architecture', 'class', 'flow', 'handshake', 'integration', 'ipv4-header', 'memory', 'memory-address', 'memory-fault', 'sql-join', 'metric', 'pointer', 'queue', 'schema', 'sequence', 'stack', 'state', 'struct-layout', 'tcp-header', 'timing', 'trace', 'value-indicators'];
+const FIGURES = ['architecture', 'flow', 'sequence', 'schema', 'class', 'api', 'queue', 'value-indicators'];
 const ANIMATION = new Set(['animate', 'set', 'animateMotion', 'animateTransform']);
-
-test('K30 the examples are one per expression: chart kinds and the declared development examples', () => {
-  const names = readdirSync(EXAMPLES).filter((f) => f.endsWith('.diagramplay')).map((f) => f.replace(/\.diagramplay$/, '')).sort();
-  assert.deepEqual(names, [...CHARTS, ...FIGURES].sort());
-});
 
 /** 그림에 선언한 카드 제목(`kind id "제목"`). 코드 조각과 줄바꿈이 필요한 긴 글은 뺀다. */
 function declaredTitles(source) {
   return [...source.matchAll(/^\s*(?:person|box|external|store|decision|queue|state|table|api|class|interface|grid|chart|trace|group)\s+[a-z][a-z0-9-]*\s+"([^"]{1,16})"/gm)].map((m) => m[1]).filter((t) => !t.includes('`'));
 }
 
-for (const name of [...CHARTS, ...FIGURES]) {
+for (const name of FIGURES) {
   test(`K30 ${name}.diagramplay builds strictly, every scene is a well-formed picture, and the page is standalone`, async () => {
     const source = readFileSync(join(EXAMPLES, `${name}.diagramplay`), 'utf8');
     const result = await build(source, { baseDir: EXAMPLES });
@@ -53,43 +47,3 @@ for (const name of [...CHARTS, ...FIGURES]) {
     assert.doesNotMatch(html, /\b(src|href)="https?:/);
   });
 }
-
-test('K30 every chart example is the chart kind its file is named after, and says so in its title', async () => {
-  for (const kind of CHARTS) {
-    const source = readFileSync(join(EXAMPLES, `${kind}.diagramplay`), 'utf8');
-    assert.match(source, new RegExp(`^chart\\s+[a-z][a-z0-9-]*\\s+"[^"]*"\\s+${kind}\\b`, 'm'), kind);
-  }
-});
-
-test('#277 pointer insertion shows the same next field before and after, while preserving addresses and traversal', async () => {
-  const source = readFileSync(join(EXAMPLES, 'pointer.diagramplay'), 'utf8');
-  const result = await build(source, { baseDir: EXAMPLES });
-  const inserted = parseMarkup(await toSvg(result, { scene: 2, isStatic: true }));
-  const texts = textsOf(inserted).join(' ');
-
-  for (const label of ['같은 next의 전후 비교', '전: next 0x28', '후: next 0x58', '삽입 전', '삽입 후']) assert.ok(texts.includes(label), `insertion must distinguish ${label}`);
-  for (const label of ['0x10', '0x28', '0x40', '0x58']) assert.ok(texts.includes(label), `node address ${label} is preserved`);
-  assert.equal(valueOf(inserted, 'cur'), '0x58');
-  assert.equal(valueOf(inserted, '방문 수'), '3');
-  const traversed = parseMarkup(await toSvg(result, { scene: 1, isStatic: true }));
-  assert.equal(valueOf(traversed, 'cur'), '0x40');
-  assert.equal(valueOf(traversed, '방문 수'), '3');
-});
-
-test('#279 metric records API 1 CPU at the last surge arrival and keeps that record while live values change', async () => {
-  const source = readFileSync(join(EXAMPLES, 'metric.diagramplay'), 'utf8');
-  const result = await build(source, { baseDir: EXAMPLES });
-  const cases = [
-    { scene: 0, recorded: '미기록', cpus: ['34', '41', '38'], p95: '110' },
-    { scene: 1, recorded: '83', cpus: ['83', '73', '50'], p95: '236' },
-    { scene: 2, recorded: '83', cpus: ['52', '52', '44'], p95: '148' },
-  ];
-
-  for (const { scene, recorded, cpus, p95 } of cases) {
-    const dom = parseMarkup(await toSvg(result, { scene, isStatic: true }));
-    assert.equal(valueOf(dom, 'API 1 CPU 기록(%)'), recorded, `scene ${scene} record`);
-    assert.equal(valueOf(dom, '대시보드 p95'), p95);
-    const texts = textsOf(dom);
-    for (const cpu of cpus) assert.ok(texts.includes(cpu), `scene ${scene} live CPU ${cpu}`);
-  }
-});

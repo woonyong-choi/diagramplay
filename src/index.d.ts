@@ -7,10 +7,10 @@ export interface FigureDiagnostic {
   readonly message: string;
 }
 
-export type BudgetName = 'grid-elements' | 'grid-path-commands' | 'events' | 'chain' | 'chip-index';
+export type BudgetName = 'events' | 'chain' | 'chip-index';
 
 export interface BuildOptions {
-  /** 외부 JSON과 아이콘 경로의 기준. 기본값은 현재 작업 폴더다. */
+  /** 사용자 아이콘 경로의 기준. 기본값은 현재 작업 폴더다. */
   baseDir?: string;
   /** 경고도 FigureError로 전달한다. 기본값은 false다. */
   strict?: boolean;
@@ -61,7 +61,7 @@ export function toSvg(result: BuiltFigure, options?: SvgOptions): Promise<string
 export function toHtml(result: BuiltFigure, name?: string, options?: HtmlOptions): Promise<string>;
 
 /** 가져올 수 있는 다른 도구의 원본 형식. */
-export type ImportFormat = 'mermaid' | 'dbml' | 'd2' | 'drawio' | 'excalidraw';
+export type ImportFormat = 'mermaid' | 'dbml';
 
 /** 가져올 수 있는 형식 이름 목록. */
 export const IMPORT_FORMATS: readonly ImportFormat[];
@@ -74,7 +74,7 @@ export interface ImportResult {
 }
 
 /**
- * Mermaid, DBML, D2, draw.io, Excalidraw 원본 글을 DiagramPlay 원본 글로 옮긴다. 파일은 다루지 않는다.
+ * Mermaid 흐름·순서·ERD·클래스와 DBML 원본 글을 DiagramPlay 원본 글로 옮긴다. 파일은 다루지 않는다.
  * @throws FigureError 형식의 그림 종류를 모르거나 옮길 카드가 없는 경우(code `import`). 모르는 format은 TypeError다.
  */
 export function importDiagram(format: ImportFormat, text: string): ImportResult;

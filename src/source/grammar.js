@@ -2,6 +2,7 @@
 // 파서, 검증, 오류 메시지, 문서 표(docs/design/figure-syntax.md의 문법 표 구간)가 모두 이 표를 읽는다.
 // 기능 추가는 이 표에 항목을 더하는 일이다.
 import { TONES } from '../color/tone.js';
+import { BOUNDARY_NAMES } from '../icons/index.js';
 
 // 원형이 없는 표. `constructor` 같은 낱말이 표 항목으로 잡히지 않게 한다.
 const table = (entries) => Object.assign(Object.create(null), entries);
@@ -34,58 +35,29 @@ export const QUEUE_SLOTS_MAX = 32;
 /** 카드를 쓰는 도형(`show`, `value`가 놓이는 곳). 이름 순서는 오류 안내 글에 그대로 나온다. */
 export const CARD_SHAPES = ['box', 'external', 'store', 'person', 'table', 'api'];
 
-/** 칸(필드)을 가져 `카드.칸`을 연결점으로 쓰는 도형. 클래스 멤버는 연결점이 아니다. */
-export const PART_SHAPES = ['table', 'api', 'grid'];
-
 /**
  * 순서 뷰에 참여자로 놓을 수 있는 도형. 표(`table`), API, 클래스(`classifier`, `interface` 포함)는 칸과 멤버를 그리지 않고 공통 카드 머리(아이콘과 이름)만 참여자로 보이고,
  * 칸과 멤버는 같은 카드를 담은 그래프 보기가 보인다. 논리 카드는 하나라 이름, 값, 상태가 보기 사이에서 같다. 갈림길, 상태, 격자, 차트, 추적은 참여자 모양이 없다.
  */
+export const PART_SHAPES = ['table', 'api'];
+
 export const SEQUENCE_SHAPES = ['person', 'box', 'external', 'store', 'queue', 'table', 'api', 'classifier'];
 
-/** `decimals` 차트 줄이 받는 소수 자릿수의 상한. 값 글자의 자동 자릿수도 이 값까지만 쓴다. */
-export const DECIMALS_MAX = 6;
-
 /** 단계 상태(`status`)를 받는 도형. 원(`box shape=circle`)은 상자의 한 모양이다. 이름 순서는 오류 안내 글에 그대로 나온다. */
-export const STATUS_SHAPES = ['box', 'circle', 'external', 'store', 'person', 'queue', 'decision'];
+export const STATUS_SHAPES = ['box', 'external', 'store', 'person', 'queue', 'decision'];
 
 /**
  * 값 목록. hint는 값이 목록 밖일 때 오류 메시지에 덧붙이는 이유다.
  * 차트 종류의 firstRole은 계열을 보이는 순서에서 먼저 오는 역할이다(기본 main). 계열이 하나나 둘이면 role을 생략한 계열은 선언 순서대로 main, compare를 받고(firstRole이 먼저), 셋 이상이면 생략한 계열은 역할이 없다. main과 compare는 각각 하나 이하이고 reference는 기대값 계열(계획, 목표)이다.
  */
 export const VALUES = {
+  boundary: { items: table(Object.fromEntries(BOUNDARY_NAMES.map(name => [name, {}]))) },
   iconPaint: { default: 'mono', items: table({ mono: {}, source: {} }) },
   fragmentType: { items: table({ alt: {}, loop: {}, par: {}, opt: {} }) },
-  histogramMeasure: { default: 'count', items: table({ count: {}, probability: {}, density: {} }) },
   fragmentRun: { items: table({ on: {}, off: {} }) },
   direction: { default: 'right', items: table({ right: {}, down: {} }) },
-  viewStrategy: { items: table({ graph: {}, sequence: {}, plot: {}, time: {}, timing: {} }) },
+  viewStrategy: { items: table({ graph: {}, sequence: {}, }) },
   sceneMode: { items: table({ static: {}, once: {}, loop: {} }) },
-  traceUnit: { default: 'ms', items: table({ ms: {}, us: {}, s: {} }) },
-  scale: { default: 'linear', items: table({ linear: {}, log: {} }) },
-  zero: { default: 'on', items: table({ on: {}, off: {} }) },
-  // seriesRange는 받는 계열 수의 범위다. 위는 Infinity라 상한이 없고, 계열 색은 범주 색 도우미(color/palette.js)가 번호로 정한다.
-  // allowsMissing은 값 자리에 `-`(빠진 값)를 받는 종류다. 빠진 값은 0이 아니다(막대는 그리지 않고, 선은 끊기고, 비율은 그 행을 정하지 않는다).
-  chartType: {
-    items: table({
-      bar: { rowWord: 'row', seriesRange: [1, Infinity], isInterval: true, allowsMissing: true },
-      stacked: { rowWord: 'row', seriesRange: [1, Infinity], allowsMissing: true },
-      percent: { rowWord: 'row', seriesRange: [2, Infinity], allowsMissing: true },
-      dumbbell: { rowWord: 'row', seriesRange: [2, 2], isInterval: true, firstRole: 'compare' },
-      box: { rowWord: 'row', seriesRange: [0, 0], valueKeys: ['min', 'q1', 'median', 'q3', 'max'], allowsMissing: true },
-      scatter: { rowWord: 'point', seriesRange: [0, Infinity] },
-      line: { rowWord: 'point', seriesRange: [1, Infinity], isInterval: true, numericRows: true, allowsMissing: true },
-      step: { rowWord: 'point', seriesRange: [1, Infinity], numericRows: true, allowsMissing: true },
-      area: { rowWord: 'point', seriesRange: [1, Infinity], numericRows: true },
-      ecdf: { rowWord: 'sample', seriesRange: [0, Infinity], allowsMissing: true },
-      difference: { rowWord: 'row', seriesRange: [1, 1], isInterval: true },
-      heatmap: { rowWord: 'cell', seriesRange: [0, 0] },
-      pie: { rowWord: 'row', seriesRange: [0, 0] },
-      donut: { rowWord: 'row', seriesRange: [0, 0] },
-      histogram: { rowWord: 'sample', seriesRange: [0, 0], allowsMissing: true },
-      waterfall: { rowWord: 'row', seriesRange: [0, 0], allowsMissing: true },
-    }),
-  },
   // 색 이름은 범주 색 도우미의 계열과 무채색 gray다(color/tone.js). 이름이 계열을 따라 늘어난다.
   tone: {
     hint: 'Colors are names, not hex, so the contrast rules hold',
@@ -93,9 +65,8 @@ export const VALUES = {
   },
   // plain은 중립 면에 색 아이콘과 작은 표식, filled는 같은 계열의 옅은 면, outline은 같은 계열 경계와 중립 면이다. filled와 outline에 tone을 적지 않으면 무채색 gray 계열이다.
   appearance: { default: 'plain', items: table({ plain: {}, filled: {}, outline: {} }) },
-  role: { items: table({ main: {}, compare: {}, reference: {} }) },
   head: { default: 'end', items: table({ end: {}, both: {}, none: {} }) },
-  shape: { default: 'rect', items: table({ rect: {}, circle: {}, tile: {}, symbol: {} }) },
+  shape: { default: 'rect', items: table({ rect: {}, tile: {}, symbol: {} }) },
   width: { default: 'standard', items: table({ standard: {}, wide: {} }) },
   status: { items: table({ ok: {}, warn: {}, fail: {}, wait: {} }) },
   deleteAction: { items: table({ restrict: {}, cascade: {}, 'set-null': {}, 'no-action': {} }) },
@@ -104,7 +75,7 @@ export const VALUES = {
 };
 
 /**
- * 문장 낱말. section은 파일 부분(version, header, declare, timeline)이고, in은 블록 안에서만 쓰는 낱말의 블록 종류(chart, class, grid, trace)다.
+ * 문장 낱말. section은 파일 부분(version, header, declare, timeline)이고, in은 블록 안에서만 쓰는 낱말의 블록 종류(class, table, card)다.
  * display는 문서에 적는 꼴이다(선 줄은 첫 낱말이 이름이라 낱말로 가를 수 없다). node는 도형 선언이고 hasSub는 부제를 받는지, scopes는 선택 사항을 찾을 OPTIONS 범위(기본은 낱말 자신)다.
  * positional은 낱말 뒤 자리별 값 목록 이름이다.
  */
@@ -125,55 +96,27 @@ export const STATEMENTS = table({
   store: { section: 'declare', node: { hasSub: true }, scopes: ['node'] },
   decision: { section: 'declare', node: { hasSub: false } },
   queue: { section: 'declare', node: { hasSub: false }, scopes: ['queue'] },
-  state: { section: 'declare', node: { hasSub: false } },
   group: { section: 'declare' },
-  grid: { section: 'declare' },
   icons: { section: 'declare' },
-  item: { section: 'declare', in: 'grid', display: 'item id "글" ["보조 글"]' },
-  gap: { section: 'declare', in: 'grid', scopes: ['gap', 'item'] },
-  region: { section: 'declare', in: 'grid', display: 'region "글" [row=N] [rows=N]' },
   value: { section: 'declare' },
   text: { section: 'declare', in: 'card', scopes: ['show'] },
-  graph: { section: 'declare', in: 'card', scopes: ['graph'] },
   on: { section: 'declare', display: 'on node id+N' },
-  start: { section: 'declare' },
-  final: { section: 'declare' },
   table: { section: 'declare' },
   api: { section: 'declare', display: 'api id "METHOD /url" {' },
   class: { section: 'declare', scopes: ['classifier'] },
   interface: { section: 'declare', scopes: ['classifier'] },
   field: { section: 'declare', in: 'class', scopes: ['member'] },
   method: { section: 'declare', in: 'class', scopes: ['member'] },
-  chart: { section: 'declare', display: 'chart id "title" type ["subtitle"] {' },
-  trace: { section: 'declare', display: 'trace id "title" [unit=ms] {', scopes: ['trace'] },
-  span: { section: 'declare', in: 'trace' },
-  view: { section: 'declare', display: 'view graph|sequence|plot|time|timing ["label"] [{]' },
+  view: { section: 'declare', display: 'view graph|sequence ["label"] [{]' },
   edge: { section: 'declare', scopes: ['edge', 'relation'], display: 'a -> b' },
-  x: { section: 'declare', in: 'chart' },
-  y: { section: 'declare', in: 'chart' },
-  scale: { section: 'declare', in: 'chart', positional: ['scale'] },
-  zero: { section: 'declare', in: 'chart', positional: ['zero'] },
-  decimals: { section: 'declare', in: 'chart' },
-  series: { section: 'declare', in: 'chart' },
-  rule: { section: 'declare', in: 'chart' },
-  missing: { section: 'declare', in: 'chart' },
-  data: { section: 'declare', in: 'chart' },
-  row: { section: 'declare', in: 'chart' },
-  point: { section: 'declare', in: 'chart' },
-  cell: { section: 'declare', in: 'chart' },
-  sample: { section: 'declare', in: 'chart' },
-  bins: { section: 'declare', in: 'chart', display: 'bins minimum maximum count [measure=count|probability|density] or bins auto [measure=count|probability|density]' },
-  total: { section: 'declare', in: 'chart' },
-  link: { section: 'declare', in: 'chart' },
   scene: { section: 'timeline', display: 'scene "label" [mode=static|once|loop] [speed=1]' },
   hop: { section: 'timeline', display: 'a -> b' },
   track: { section: 'timeline', display: 'track a, b -> c -> d' },
   // 읽기 식 `대상:=원천`은 문장이 아니라 `set=`, `on` 줄, 장면 `set=` 안의 식이다. 줄 첫 낱말로 쓸 수 없는 이름이라 문장으로 읽히지 않고 문서 표에만 나온다.
   ':=': { section: 'timeline', display: '대상:=원천' },
-  show: { section: 'timeline', scopes: ['show', 'graph'] },
+  show: { section: 'timeline', scopes: ['show'] },
   clear: { section: 'timeline' },
   light: { section: 'timeline' },
-  reveal: { section: 'timeline' },
   note: { section: 'timeline' },
   activate: { section: 'timeline' },
   deactivate: { section: 'timeline' },
@@ -183,7 +126,7 @@ export const STATEMENTS = table({
 });
 
 /** 도형을 만드는 블록 낱말과 그 블록 종류. 블록은 `{`로 열고 `}`로 닫는다. */
-export const BLOCK_WORDS = table({ table: 'table', api: 'api', class: 'class', interface: 'class', grid: 'grid', chart: 'chart', trace: 'trace' });
+export const BLOCK_WORDS = table({ table: 'table', api: 'api', class: 'class', interface: 'class', });
 
 /**
  * 선택 사항. 키는 `범위.이름`이고 type은 word, text, number, flag다.
@@ -194,6 +137,7 @@ export const OPTIONS = table({
   'fragment.choose': TEXT,
   'fragment.times': COUNT,
   'fragment.run': { type: 'word', values: 'fragmentRun' },
+  'group.boundary': { type: 'word', values: 'boundary' },
   'group.direction': { type: 'word', values: 'direction' },
   'group.dashed': FLAG,
   'group.badge': { ...TEXT, maxLength: BADGE_MAX },
@@ -237,7 +181,7 @@ export const OPTIONS = table({
   'track.stuck': FLAG,
   'track.reserve': { ...TEXT, format: '값 식 목록' },
   'track.legs': { ...TEXT, format: '시간 또는 -의 목록' },
-  'value.on': { type: 'word', format: '도형 이름 또는 격자.칸' },
+  'value.on': { type: 'word', format: '도형 이름' },
   'value.from': { type: 'word', format: '숫자 또는 낱말' },
   'value.display': { type: 'word', format: 'bar 또는 slots' },
   'value.max': { type: 'word', format: `양수, slots는 1~${QUEUE_SLOTS_MAX} 정수` },
@@ -255,29 +199,6 @@ export const OPTIONS = table({
   'show.meta': TEXT,
   'show.mark': { ...TEXT, maxLength: 8 },
   'show.mono': FLAG,
-  'graph.lit': TEXT,
-  'bins.measure': { type: 'word', values: 'histogramMeasure' },
-  'series.role': { type: 'word', values: 'role' },
-  'series.key': TEXT,
-  'point.series': { type: 'word', format: '계열 이름' },
-  'trace.unit': { type: 'word', values: 'traceUnit' },
-  // 레인은 선언한 카드 이름(카드의 이름 글이 레인 이름)이거나, 카드 없이 시간 보기만 그리는 추적의 따옴표 레인 이름이다.
-  'span.lane': { type: 'word', format: '카드 이름 또는 "레인 이름"', allowsText: true },
-  'span.at': { type: 'word', format: '0 이상 숫자' },
-  'span.dur': { type: 'word', format: '0보다 큰 숫자' },
-  'grid.rows': COUNT,
-  'grid.cols': COUNT,
-  'grid.unit': { type: 'word', format: '단위 이름(bit, byte 등)' },
-  'item.key': TEXT,
-  'item.open': FLAG,
-  'item.row': INDEX,
-  'item.col': INDEX,
-  'item.rows': COUNT,
-  'item.cols': COUNT,
-  'gap.count': COUNT,
-  'region.row': INDEX,
-  'region.rows': COUNT,
-  'light.x': { type: 'number', format: '숫자' },
   'column.pk': FLAG,
   'column.unique': FLAG,
   'column.nullable': FLAG,
@@ -313,7 +234,7 @@ export function flagNames(scope) {
 // cost: time O(w), heap O(w), stack O(1)
 // vars: w = 문장 낱말 수
 // basis: estimate
-/** 블록 종류(chart, class, grid, trace, card, table) 안에서만 쓰는 문장 낱말. */
+/** 블록 종류(class, card, table) 안에서만 쓰는 문장 낱말. */
 export function statementsIn(block) {
   return Object.keys(STATEMENTS).filter((word) => STATEMENTS[word].in === block);
 }

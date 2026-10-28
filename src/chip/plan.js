@@ -1,14 +1,14 @@
 import { roundTo } from '../format/numbers.js';
 // 이동 하나의 글 상자 계획. 자리 바꿈을 가장 적게 하고, 꼭 바꿔야 하면 짧게 미끄러지고, 그것도 안 되면 그 구간만 흐리게 한다(docs/design/playback.md 이동 글).
-import { CHIP_GAP, chipCandidateAt, chipCandidates, descOf, sizeChip } from './place.js';
-import { resolveBudget, indexBudgetError } from '../compile/budget.js';
-import { gridOf, indexEntries } from './grid.js';
-import { issuesOf, settle, simplify } from './fade.js';
-import { cutPath, dotAt, NODE_MS, visibleShare } from './motion.js';
-import { addSlides, SWITCH_COST } from './slide.js';
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { indexBudgetError, resolveBudget } from '../compile/budget.js';
 import { positionAt } from '../math/easing.js';
 import { flattenRoute } from '../math/route.js';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { issuesOf, settle, simplify } from './fade.js';
+import { gridOf, indexEntries } from './grid.js';
+import { cutPath, dotAt, NODE_MS, visibleShare } from './motion.js';
+import { CHIP_GAP, chipCandidateAt, chipCandidates, descOf, sizeChip } from './place.js';
+import { addSlides, SWITCH_COST } from './slide.js';
 
 // 글 상자와 점 사이가 이보다 멀면 떨어졌다고 본다(가리는 것을 비켜 올린 최대 거리까지는 붙은 것이다)
 const DETACH_GAP = CHIP_GAP * 2 + CHIP_GAP * 4;

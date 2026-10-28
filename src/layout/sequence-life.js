@@ -1,4 +1,6 @@
 // 생명선 구간과 활성 막대를 메시지의 실제 끝 위치에서 만든다.
+import { sequenceLabelX } from './sequence-labels.js';
+import { sizePill } from '../measure/pills.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 const SPACE = values.spacing;
@@ -40,6 +42,10 @@ export function placeSequenceLife(scene, messages, owners, sceneCount) {
     }
     for (const action of beat.activations ?? []) placeActivation(action, { lines, stacks, activations, si }, end.y);
   });
+  const centers = [...lines.values()].map(line => line.x);
+  for (const edge of scene.edges) {
+    if (edge.points.length === 2 && edge.labelAt) edge.labelAt.x = sequenceLabelX(edge.points[0].x, edge.points[1].x, centers, sizePill(edge.label, edge.no).w);
+  }
   scene.lifelines = endLifelines(scene.lifelines, ends, sceneCount > 1 ? Array.from({ length: sceneCount }, (_, si) => si) : undefined);
   scene.activations = activations;
   scene.destructions = destructions;

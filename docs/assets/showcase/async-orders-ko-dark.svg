@@ -20,6 +20,7 @@
   --color-line: var(--color-gray-282);
   --color-state-active: var(--color-category-blue-light-border);
   --color-state-active-text: var(--color-category-blue-light-ink);
+  --color-state-on-active: var(--color-gray-0);
   --color-flow-gray: var(--color-gray-545);
   --color-ui-focus: var(--color-action-link);
   --color-data-grid: var(--color-gray-212);
@@ -44,15 +45,20 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
+  --color-figure-label-ink: var(--color-ink);
+  --color-figure-label-active-ink: var(--color-state-on-active);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
   --color-soft: var(--primitive-soft);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   --color-action-link: var(--primitive-link);
   --color-category-blue-anchor: #1e6bd6;
   --color-category-blue-fill: var(--color-category-blue-anchor);
+  --color-category-blue-on: var(--color-gray-0);
   --color-category-blue-light-border: #1e6bd6;
   --color-category-blue-light-ink: #1161cb;
   --color-category-blue-light-tint-3: #d5e4fa;
@@ -91,6 +97,7 @@
   --primitive-soft: #e9edf2;
   --primitive-small-text: 15px;
   --primitive-tiny-text: 13px;
+  --primitive-help-border: #ebecef;
   --primitive-search-hover: #d9e6ff;
   --primitive-help-hover: #ebf1ff;
   --primitive-help-title-color: #3d4856;
@@ -123,6 +130,7 @@
   --color-line: var(--primitive-figure-dark-line);
   --color-state-active: var(--color-category-blue-dark-border);
   --color-state-active-text: var(--color-category-blue-dark-ink);
+  --color-state-on-active: var(--color-category-blue-on);
   --color-flow-gray: var(--color-gray-220);
   --color-data-grid: var(--primitive-figure-dark-edge);
   --color-data-category-outline-1: var(--color-category-blue-dark-border);
@@ -138,10 +146,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   --color-flow-ink-gray: var(--color-gray-933);
   color-scheme: dark;
@@ -152,6 +162,7 @@
   --color-line: var(--primitive-figure-dark-line);
   --color-state-active: var(--color-category-blue-dark-border);
   --color-state-active-text: var(--color-category-blue-dark-ink);
+  --color-state-on-active: var(--color-category-blue-on);
   --color-flow-gray: var(--color-gray-220);
   --color-data-grid: var(--primitive-figure-dark-edge);
   --color-data-category-outline-1: var(--color-category-blue-dark-border);
@@ -167,10 +178,12 @@
   --color-figure-canvas: var(--primitive-figure-dark-bg);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
+  --color-figure-label-fill: var(--color-help-border);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
+  --color-help-border: var(--primitive-figure-dark-edge);
   --color-help-title-color: var(--color-ink);
   --color-flow-ink-gray: var(--color-gray-933);
   color-scheme: dark;
@@ -180,6 +193,7 @@
   --color-line: var(--color-gray-282);
   --color-state-active: var(--color-category-blue-light-border);
   --color-state-active-text: var(--color-category-blue-light-ink);
+  --color-state-on-active: var(--color-gray-0);
   --color-flow-gray: var(--color-gray-545);
   --color-data-grid: var(--color-gray-212);
   --color-data-category-outline-1: var(--color-category-blue-solid);
@@ -195,10 +209,12 @@
   --color-figure-canvas: var(--color-soft);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
+  --color-figure-label-fill: var(--color-gray-212);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
+  --color-help-border: var(--primitive-help-border);
   --color-help-title-color: var(--primitive-help-title-color);
   --color-flow-ink-gray: var(--color-gray-0);
   color-scheme: light;
@@ -373,11 +389,20 @@
   stroke-dasharray: var(--dash-card) var(--dash-card);
 }
 
-/* 알약은 모두 같은 중립 흰 면과 평소 경계다: 선 라벨, 배지와 개수. */
-.fl .pill,
+/* 관계 라벨은 번호 유무와 관계없이 같은 채움과 대비 글자를 사용한다. */
+.fl .fl-pill {
+  --fx-ink-rest: var(--color-figure-label-ink);
+  --fx-ink: var(--color-figure-label-active-ink);
+}
+
+.fl .pill {
+  fill: var(--color-figure-label-fill);
+  stroke: none;
+}
+
 .fl .badge-pill {
-  fill: var(--color-ui-card);
-  stroke: var(--fx-edge-rest);
+  fill: var(--color-figure-label-fill);
+  stroke: none;
 }
 
 .fl .fl-mini-pill {
@@ -680,7 +705,7 @@
 .fl .sa1 { opacity: 1; visibility: visible; }
 .fl .sa2 { opacity: 1; }
 </style>
-<defs></defs>
+
 <rect x="0.5" y="0.5" width="701.6" height="465" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 

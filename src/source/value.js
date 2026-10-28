@@ -1,7 +1,7 @@
 // 값 선언(`value id "이름" on=도형 [from=값 | ref=값]`)과 값 바꾸기 식(`set="id+1@도형, id=낱말"`)을 읽는다. 이름이 선언됐는지는 value-check.js가 확인한다.
 import { readIndicator } from './indicators.js';
-import { MAX_VALUE, RANGE_MESSAGE } from './chart-limits.js';
 import { checkId } from './names.js';
+import { MAX_VALUE, RANGE_MESSAGE } from './number-limits.js';
 import { readOptions } from './options.js';
 import { ID_PATTERN, NUMBER_PATTERN } from './words.js';
 

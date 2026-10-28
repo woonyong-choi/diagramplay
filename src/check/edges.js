@@ -1,6 +1,6 @@
 // 3번, 4번, 5번: 선이 도형을 지나지 않고, 끝이 연결점에 있고, 다른 선과 붙지 않는다.
-import { CROWD, SAME_POINT } from '../layout/model.js';
 import { columnAnchorY } from '../format/columns.js';
+import { CROWD, SAME_POINT } from '../layout/model.js';
 import { THROUGH_INSET, capitalize, drawnBox, isCoVisible, near, onBorder, segmentHits } from './geometry.js';
 
 // cost: time O(e·(s + g)·p·d), heap O(1), stack O(1)
@@ -19,20 +19,6 @@ export function checkThrough({ edges, boxes, scene, family }, problems) {
       const isCrossed = ends.some((end) => end === g.id || family.contains(g.id, end));
       if (!isCrossed && hits(g)) problems.error(e.line, `[check 3] edge ${e.from} -> ${e.to} passes through group "${g.id}" (line ${g.line}). ${capitalize(family.hint)}`);
     }
-    checkCells(e, boxes.filter((box) => ends.includes(box.id) && box.it.shape === 'grid'), problems);
-  }
-}
-
-// cost: time O(g·c·p), heap O(1), stack O(1)
-// vars: g = 선 끝 격자 수(2 이하), c = 칸 수, p = 경로 점 수
-// basis: estimate
-// 3번의 칸 판정: 선 끝 격자 안에서 선이 어느 칸(글이 든 칸이든 빈 자리든)의 안쪽도 지나지 않는다. 안쪽 칸으로 가는 선은 행 사이 통로로 돌아야 이웃 칸 글을 가리지 않는다.
-function checkCells(e, grids, problems) {
-  for (const { it } of grids) {
-    for (const cell of it.cells) {
-      const rect = { x: it.x + cell.x + THROUGH_INSET, y: it.y + cell.y + THROUGH_INSET, w: cell.w - THROUGH_INSET * 2, h: cell.h - THROUGH_INSET * 2 };
-      if (segments(e).some(([p, q]) => segmentHits(p, q, rect))) problems.error(e.line, `[check 3] edge ${e.from} -> ${e.to} passes through cell "${it.id}.${cell.id}" (line ${cell.line}). Move the cell or the edge ends so the edge turns through the gaps between rows`);
-    }
   }
 }
 
@@ -44,7 +30,7 @@ export function checkEnds({ edges, scene }, problems) {
   // 같은 카드가 여러 보기에 그려질 수 있어 선 끝은 그 선이 속한 보기의 카드와 견준다.
   for (const e of edges.filter((edge) => edge.strategy !== 'sequence')) {
     const rects = new Map([...scene.items, ...scene.groups].filter((it) => it.view === e.view).map((it) => [it.id, it]));
-    for (const [end, point, way, part] of [[e.from, e.points[0], 'out', { columns: e.fromColumns, cell: e.fromCell }], [e.to, e.points.at(-1), 'in', { columns: e.toColumns, cell: e.toCell }]]) {
+    for (const [end, point, way, part] of [[e.from, e.points[0], 'out', { columns: e.fromColumns }], [e.to, e.points.at(-1), 'in', { columns: e.toColumns }]]) {
       const id = end.split('.')[0];
       const it = rects.get(id);
       const isSelf = e.from.split('.')[0] === e.to.split('.')[0];
@@ -54,21 +40,11 @@ export function checkEnds({ edges, scene }, problems) {
 }
 
 // cost: time O(c), heap O(1), stack O(1)
-// vars: c = 칸 수
-// basis: estimate
-// 격자 칸의 그림 좌표 사각형
-function cellRect(it, id) {
-  const cell = it.cells.find((c) => c.id === id);
-  return { x: it.x + cell.x, y: it.y + cell.y, w: cell.w, h: cell.h };
-}
-
-// cost: time O(c), heap O(1), stack O(1)
 // vars: c = 테이블 열 수와 칸 수
 // basis: estimate
 // 도형별 연결점. 나가는 선은 오른쪽(세로 그룹 안 원통은 아래나 오른쪽), 들어오는 선은 왼쪽(세로 그룹 안 원통은 위나 왼쪽)이다. 갈림길은 마름모 꼭짓점 넷 가운데 하나다(갈래마다 다른 꼭짓점, layout/ports.js). 격자 칸의 선은 그 칸의 테두리다. 묶음 배치한 테이블 열은 들어오는 선도 오른쪽이다. 그 밖의 도형과 그룹은 경계 어디나다.
-function isPortPlace(p, it, { way, isSelf, columns, cell }) {
+function isPortPlace(p, it, { way, isSelf, columns }) {
   const side = way === 'out' ? it.x + it.w : it.x;
-  if (it.shape === 'grid' && cell) return onBorder(p, cellRect(it, cell));
   // 묶음 배치와 자기 참조 외래 키는 들어오는 선도 오른쪽 면이다(layout/ports.js columnPort). 같은 줄 같은 면의 연결점은 줄 높이 안에서 벌어진다(fanColumnPorts).
   if ((it.shape === 'table' || it.shape === 'api') && columns) return near(p.x, it.isBracket || isSelf ? it.x + it.w : side) && Math.abs(p.y - (it.y + columnAnchorY(it.tableRows, columns))) <= it.tableRows[0].h / 2;
   if (it.shape === 'decision') return isVertex(p, it);

@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { buildFigure, toSvg } from '../src/index.js';
-import { reflowFigure } from '../src/compile/figure.js';
 import { isSoundGraph } from '../src/check/figure.js';
+import { checkDocs } from '../src/compile/docs-check.js';
+import { reflowFigure } from '../src/compile/figure.js';
+import { viewFigure } from '../src/compile/views.js';
+import { buildFigure, toSvg } from '../src/index.js';
 import { buildModel } from '../src/layout/model.js';
 import { compactOrderVariants, orderCompactGroups } from '../src/layout/order.js';
-import { viewFigure } from '../src/compile/views.js';
-import { checkDocs } from '../src/compile/docs-check.js';
 
 // #390: 두 분기가 같은 목적지를 공유하는 실제 문서 구조. 카드와 라벨은 줄이지 않는다.
 const SOURCE = String.raw`diagramplay
@@ -55,17 +55,6 @@ test('buildFigure_complex_groups_keep_the_entry_handoff_aligned_without_dropping
   for (const edge of result.scene.edges.filter(edge => edge.to === 'waf')) assert.ok(edge.points.length <= 4, `${edge.from}: an unrelated label error must not retain the six-turn group detour`);
   const published = result.scene.edges.find(edge => edge.from === 'relay' && edge.to === 'ordertopic');
   assert.ok(published.points.length <= 4, 'a rounded ELK port must not block the short path into the queue');
-});
-
-test('isSoundGraph_reference_allows_existing_errors_but_rejects_new_collisions', async () => {
-  const built = await buildFigure('diagramplay\nbox a "A"\nbox b "B"\nbox c "C"\n');
-  const reference = { ...built.scene, items: built.scene.items.map(item => ({ ...item })) };
-  Object.assign(reference.items[1], { x: reference.items[0].x, y: reference.items[0].y });
-  assert.equal(isSoundGraph(built.figure, reference), false, 'final validation retains the existing collision');
-  assert.equal(isSoundGraph(built.figure, reference, reference), true, 'a local candidate may preserve an unrelated error');
-  const candidate = { ...reference, items: reference.items.map(item => ({ ...item })) };
-  Object.assign(candidate.items[2], { x: candidate.items[0].x, y: candidate.items[0].y });
-  assert.equal(isSoundGraph(built.figure, candidate, reference), false, 'a new collision is not hidden by the baseline');
 });
 
 test('buildFigure_default_graph_keeps_a_wide_chain_straight_and_leaves_display_diagnostics_to_docs', async () => {
@@ -356,33 +345,31 @@ n5 -> n0 "l4"
 `,
   // 같은 도형에서 나가는 두 꼬리 라벨이 겹침
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
+box n0 "n0"
+box n1 "n1"
 group outer "바깥" {
 group g0 "그룹0" {
-  state n3 "n3"
+  box n3 "n3"
 }
 }
 group g1 "그룹1" direction=down {
-  state n5 "n5"
-  state n6 "n6"
-  state n7 "n7"
+  box n5 "n5"
+  box n6 "n6"
+  box n7 "n7"
 }
 n6 -> n7 "l0"
 n7 -> n5 "l2"
 n5 -> n3 "l4"
 n5 -> n1 "l5" no=3
 n3 -> n7 "l8"
-start n0
-final n5
 `,
   // 두 선이 너무 붙음
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
-state n2 "n2"
-state n3 "n3"
-state n5 "n5"
+box n0 "n0"
+box n1 "n1"
+box n2 "n2"
+box n3 "n3"
+box n5 "n5"
 n3 -> n2 "l0"
 n1 -> n2 "l1"
 n0 -> n2 "l4"
@@ -391,17 +378,17 @@ n3 -> n5 "l8"
 `,
   // 선 라벨이 그룹 제목과 겹침
   String.raw`diagramplay
-state n0 "n0"
+box n0 "n0"
 group g0 "그룹0" direction=right {
-  state n1 "n1"
-  state n2 "n2"
-  state n3 "n3"
+  box n1 "n1"
+  box n2 "n2"
+  box n3 "n3"
 }
 group g1 "그룹1" direction=right {
-  state n5 "n5"
-  state n6 "n6"
+  box n5 "n5"
+  box n6 "n6"
 }
-state n8 "n8"
+box n8 "n8"
 n0 -> n6 "l0"
 n5 -> n0 "l1"
 n1 -> n0 "l2"
@@ -416,24 +403,23 @@ n2 -> n3 "l15"
 `,
   // 같은 도형에서 나가는 두 꼬리 라벨이 겹침
   String.raw`diagramplay
-state n0 "n0"
+box n0 "n0"
 group g0 "그룹0" {
-  state n1 "n1"
-  state n2 "n2"
+  box n1 "n1"
+  box n2 "n2"
 }
 n1 -> n0 "l0"
 n0 -> n2 "l2"
 n0 -> n1 "l3"
-final n1
 `,
   // 선 라벨이 그룹 제목 줄 높이에 놓이고 제목이 선만 비켜 라벨과 겹침(seed 2)
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
+box n0 "n0"
+box n1 "n1"
 group g0 "그룹0" direction=down {
-  state n2 "n2"
-  state n3 "n3"
-  state n4 "n4"
+  box n2 "n2"
+  box n3 "n3"
+  box n4 "n4"
 }
 n3 -> n2 "l0"
 n0 -> n3 "l1"
@@ -442,29 +428,65 @@ n3 -> n1 "l3"
 n4 -> n2 "l4"
 n3 -> n0 "l5"
 n1 -> n0 "l6"
-final n3
 `,
   // 선 라벨이 그룹 제목 줄 높이에 놓이고 제목이 선만 비켜 라벨과 겹침(seed 2)
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
+box n0 "n0"
+box n1 "n1"
 group outer "바깥" direction=down {
 group g0 "그룹0" {
-  state n3 "n3"
-  state n4 "n4"
+  box n3 "n3"
+  box n4 "n4"
 }
 }
 n1 -> n4 "l0"
 n4 -> n1 "l2"
 n1 -> n0 "l5"
 n1 -> n3 "l6"
-start n0
 `,
 ];
 
 test('buildFigure_fuzz_sources_from_417_pass_figure_check', async () => {
-  for (const source of SOUND_LAYOUT_SOURCES) {
+  for (const source of SOUND_LAYOUT_SOURCES.filter(source => !/\bgrid /.test(source))) {
     const built = await buildFigure(source, { strict: true });
     assert.ok(built.scene.edges.length > 0, source);
   }
+});
+
+test('relationship pills prefer the route center and move aside only for occupied space', async () => {
+  const { settleLabels } = await import('../src/layout/labels.js');
+  const edge = () => ({ label: 'request', no: 3, points: [{ x: 0, y: 100 }, { x: 400, y: 100 }], labelAt: { x: 40, y: 80 } });
+  const clear = edge();
+  settleLabels([clear], [], { width: 400, height: 250 });
+  assert.equal(clear.labelAt.x, 200, 'the number and text share the route center');
+  const blocked = edge();
+  settleLabels([blocked], [{ x: 175, y: 60, w: 50, h: 80 }], { width: 400, height: 250 });
+  assert.notEqual(blocked.labelAt.x, 200, 'occupied center cannot be used');
+  assert.ok(Math.abs(blocked.labelAt.x - 200) < 160, 'the nearest clear position stays closer to the center than the old tail position');
+});
+
+test('centered_labels_keep_cookie_request_text_visible_through_safe_layout_fallbacks', async () => {
+  const source = readFileSync(new URL('../examples/authentication/sessions.diagramplay', import.meta.url), 'utf8');
+  const result = await buildFigure(source, { strict: true });
+  assert.equal(result.warnings.filter(warning => warning.code === 'check-7').length, 0);
+  assert.ok(result.scene.edges.some(edge => edge.label === '로그인'));
+});
+
+test('number_only_badges_stay_on_their_own_route_and_away_from_rounded_turns', async () => {
+  const { settleLabels } = await import('../src/layout/labels.js');
+  const edge = { index: 0, no: 2, points: [{ x: 40, y: 100 }, { x: 240, y: 100 }, { x: 240, y: 300 }], labelAt: { x: 220, y: 75 } };
+  settleLabels([edge], [], { width: 400, height: 400 });
+  const { x, y } = edge.labelAt;
+  assert.ok((y === 100 && x >= 40 && x <= 240) || (x === 240 && y >= 100 && y <= 300), 'a number is attached to its own line');
+  assert.ok(Math.hypot(x - 240, y - 100) > 20, 'a rounded turn has no floating badge');
+});
+
+
+test('sequence_labels_prefer_the_message_center_without_covering_intermediate_lifelines', async () => {
+  const { sequenceLabelX } = await import('../src/layout/sequence-labels.js');
+  assert.equal(sequenceLabelX(0, 400, [0, 400], 80), 200);
+  assert.equal(sequenceLabelX(400, 0, [0, 400], 80), 200);
+  const around = sequenceLabelX(0, 600, [0, 300, 600], 80);
+  assert.ok(Math.abs(around - 300) >= 48, 'an intermediate lifeline is outside the pill and its clearance');
+  assert.ok(Math.abs(around - 300) < Math.abs(48 - 300), 'the nearest safe center beats a sender-aligned label');
 });

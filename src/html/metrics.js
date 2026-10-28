@@ -1,11 +1,10 @@
 // 재생기에 데이터로 넘기는 값. 브라우저 코드는 tokens.js를 불러올 수 없어 토큰에서 읽은 값을 재생 데이터(data.metrics)에 실어 보낸다.
-import { STYLE } from '../measure/texts.js';
-import { CHIP_GAP } from '../chip/place.js';
-import { GEOMETRY_ATTRS } from '../chart/pulse-overlay.js';
-import { curveOf } from '../math/easing.js';
-import { PULSE, PULSE_MS } from '../timeline/pulse.js';
-import { TONE_FILLS, TONE_INKS, TONE_OUTLINES } from '../color/tone.js';
 import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
+import { CHIP_GAP } from '../chip/place.js';
+import { TONE_FILLS, TONE_INKS, TONE_OUTLINES } from '../color/tone.js';
+import { curveOf } from '../math/easing.js';
+import { STYLE } from '../measure/texts.js';
+import { PULSE, PULSE_MS } from '../timeline/pulse.js';
 
 // 효과 시간(표시 ms, 장면 speed와 상관없음)은 src/pulse.js의 PULSE가 주인이다(올라가고, 유지하고, 내려오는 세 토큰의 읽기). 비는 선의 고정 알약은 세 시간의 합(PULSE_MS) 동안 줄어든다. 재생기는 합을 다시 계산하지 않고 이 값을 읽는다.
 const PULSE_TIMING = Object.freeze({ riseMs: PULSE.rise, holdMs: PULSE.hold, decayMs: PULSE.fall, fadeMs: PULSE_MS });
@@ -22,7 +21,6 @@ export const PLAYER_METRICS = Object.freeze({
   cutFadeMs: values.duration['cut-fade'],
   chipRadius: values.radius.lg,
   pulse: PULSE_TIMING,
-  markGeometry: GEOMETRY_ATTRS,
   chipLine: STYLE.chip.line,
   chipGap: CHIP_GAP,
   zoomMax: values.scale['zoom-max'],

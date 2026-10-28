@@ -1,7 +1,7 @@
 // 이름 있는 색(`tone=`, `fill=`, `stroke=`)과 이름 없는 점과 태그가 받는 색의 순서. 이름은 범주 색 도우미(color/palette.js)의 계열과 무채색 `gray` 하나다.
-// 이름 없는 색의 순서도 같은 도우미(categoryPaint)가 정하고, 상태 색이라고 건너뛰는 자리는 없다.
-import { PALETTE, categoryPaint } from './palette.js';
+// 이름 없는 색도 같은 순서이며 상태 색이라는 이유로 건너뛰지 않는다.
 import { tokens } from '@woonyong-choi/design-tokens/tokens.js';
+import { PALETTE } from './palette.js';
 
 /** 무채색 이름. 범주 계열이 아니라 명시했을 때만 쓴다. */
 export const NEUTRAL = 'gray';
@@ -13,7 +13,7 @@ export const TONES = Object.freeze([...FAMILIES, NEUTRAL]);
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 /** 이름 없이 n번째(0부터)로 받는 색 이름. 범주 번호와 같은 순서이고, 계열 수를 넘으면 계열이 한 바퀴 돈다(점과 태그에는 무늬가 없고 글이나 이름이 구분을 맡는다). */
-export const autoTone = (n) => categoryPaint(n).family;
+export const autoTone = (n) => PALETTE[n % PALETTE.length].family;
 
 // cost: time O(f), heap O(1), stack O(1)
 // vars: f = 계열 수

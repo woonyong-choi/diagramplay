@@ -62,7 +62,7 @@ function drawMonoIcon(name, { x, y, size, prefix, cls }) {
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 /**
- * 상태 알약 하나(면, 기호, 글자). 색은 감싼 묶음의 `fl-status-종류`가 정한다. 도형 모서리 알약과 타이밍 보기의 카드 줄 알약이 같은 몸통을 쓴다.
+ * 상태 알약 하나(면, 기호, 글자). 색은 감싼 묶음의 `fl-status-종류`가 정한다. 도형 모서리에 같은 몸통을 쓴다.
  * @param box 알약 사각형 { x, y, w, h }(measure/pills.js sizeStatus의 크기)
  * @param options { glyphs, prefix }. prefix는 기호 SVG 안 id 앞 글이다
  */

@@ -1,8 +1,8 @@
 // 여러 그림을 한 쪽에서 보는 목록과 문서 안 모습 미리보기.
 import { bindDiagramHost } from '@woonyong-choi/design-tokens/ui/runtime/diagram-host.js';
 import { STYLES } from '../draw/styles.js';
-import { escapeXml, plainText, renderRichHtml } from '../format/text.js';
 import { hrefAttr } from '../format/href.js';
+import { escapeXml, plainText, renderRichHtml } from '../format/text.js';
 import { THEME_BUTTONS, THEME_SCRIPT } from './theme.js';
 
 const GALLERY_SCRIPT = `<script>${bindDiagramHost.toString()}; bindDiagramHost();</script>`;
@@ -11,8 +11,8 @@ const GALLERY_SCRIPT = `<script>${bindDiagramHost.toString()}; bindDiagramHost()
 // vars: n = 이름과 제목 글자 수
 // basis: estimate
 // 카드 머리와 문서 미리보기 절 제목. 원본 파일 이름(코드 글꼴)과 종류 꼬리표가 기본이다. 그림이 제목을 직접 그리는 차트는 그림 제목을 되풀이하지 않고, 그리지 않는 그림(흐름, 순서, 상태, 데이터)만 제목을 앞에 붙인다. 세 요소는 따로 놓인 flex 칸이라 간격과 기준선을 CSS가 정한다.
-function cardHead({ name, ext = '.diagramplay', title, kind, isChart }) {
-  const heading = title && !isChart ? `<span class="title">${renderRichHtml(title)}</span>` : '';
+function cardHead({ name, ext = '.diagramplay', title, kind }) {
+  const heading = title ? `<span class="title">${renderRichHtml(title)}</span>` : '';
   return `<h2>${heading}<code class="name">${escapeXml(name)}${escapeXml(ext)}</code><span class="kind">${escapeXml(kind)}</span></h2>`;
 }
 
@@ -113,10 +113,17 @@ ${supportList(entry.support ?? [])}
   return galleryDocument(heading, `<h1>${escapeXml(heading)}</h1><p class="catalog-lead">예제 ${entries.length}개. 첫 장면은 정지 상태이고, 움직이는 장면은 재생 화면의 탭에서 고릅니다.</p><p>수치는 모두 기능을 설명하려고 만든 예시 데이터이며 실제 측정값이 아닙니다.</p><nav aria-label="예제 목록"><ul class="catalog-index">${index}</ul></nav>${sections}`);
 }
 
-function galleryDocument(heading, content, { count } = {}) {
+// 같은 도메인의 다섯 표현을 하나의 테마와 크기 규칙으로 비교한다.
+export function toComparison(entries) {
+  const cards = entries.map(entry => `<section class="comparison-card"><h2>${escapeXml(entry.label)}</h2><p>${escapeXml(entry.note)}</p><a class="comparison-preview" href="#detail-${entry.id}" aria-label="${escapeXml(entry.label)} 전체 구성 보기"><img src="${hrefAttr(`${entry.id}.svg`)}" alt="${escapeXml(entry.alt)}"></a><nav><a href="#detail-${entry.id}" aria-label="${escapeXml(entry.label)} 상세 보기">상세</a><a href="${hrefAttr(`${entry.id}.html`)}" aria-label="${escapeXml(entry.label)} 재생·확대">재생·확대</a><a href="${hrefAttr(`${entry.id}.diagramplay`)}" aria-label="${escapeXml(entry.label)} 원본">원본</a></nav></section>`).join('');
+  const details = entries.map(entry => `<section class="comparison-detail" id="detail-${entry.id}"><header><h2>${escapeXml(entry.label)}</h2><p>${escapeXml(entry.note)}</p><nav><a href="${hrefAttr(`${entry.id}.html`)}" aria-label="${escapeXml(entry.label)} 재생·확대">재생·확대</a> · <a href="#top">비교 목록으로</a></nav></header><img src="${hrefAttr(`${entry.id}.svg`)}" alt="${escapeXml(entry.alt)}"></section>`).join('');
+  return galleryDocument('다섯 표현 비교', `<div class="comparison-overview">${cards}</div>${details}`, { comparison: true });
+}
+
+function galleryDocument(heading, content, { count, comparison = false } = {}) {
   const examples = count === undefined;
-  const top = examples
+  const top = comparison ? `<div><h1>${escapeXml(heading)}</h1><p>복잡한 설명용 모형 · 전체 구조 미리보기 · 세부 내용은 재생·확대 · <a href="../examples/index.html">전체 예제</a> · <a href="../authentication/commerce-nhn.html">복잡한 아키텍처</a></p></div>` : examples
     ? `<a href="index.html">DiagramPlay · 예제 갤러리</a>`
     : `<h1>${escapeXml(heading)}</h1><p>그림 ${count}개 · <a href="document.html">문서 안 모습 보기</a></p>`;
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeXml(heading)}</title><style>${STYLES.tokens}${STYLES.control}${STYLES.gallery}</style><script>${THEME_SCRIPT}</script></head><body${examples ? ' class="is-examples"' : ''}><div class="top${examples ? ' catalog-header' : ''}">${top}<div class="theme app-tablist is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div><main${examples ? ' class="catalog-main"' : ''}>${content}</main>${GALLERY_SCRIPT}</body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeXml(heading)}</title><style>${STYLES.tokens}${STYLES.control}${STYLES.gallery}</style><script>${THEME_SCRIPT}</script></head><body${examples ? ` class="is-examples${comparison ? ' is-comparison' : ''}"` : ''}><div id="top" class="top${examples ? ' catalog-header' : ''}">${top}<div class="theme app-tablist is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div><main${examples ? ' class="catalog-main"' : ''}>${content}</main>${GALLERY_SCRIPT}</body></html>`;
 }

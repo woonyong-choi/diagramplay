@@ -42,7 +42,7 @@ scene "두 채널의 주문"
   api -> stocked time=500ms
   stocked -> lock time=500ms
   lock -> db "차감"
-  show db graph "재고 -> 차감" lit="차감"
+  show db "재고 차감 완료"
   api -> pay "결제" tone=orange time=800ms
   clear api
 

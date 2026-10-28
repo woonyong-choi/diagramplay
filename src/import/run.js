@@ -1,18 +1,18 @@
-// `diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.diagramplay] [--json]` 실행. 옮기기는 import/index.js, 명령 계약은 docs/design/import.md 명령이다.
+// `diagramplay import [mermaid|dbml] <파일|-> [--out 파일.diagramplay] [--json]` 실행. 옮기기는 import/index.js, 명령 계약은 docs/design/import.md 명령이다.
 // 옮긴 원본은 표준 출력에 쓰고, --out이 있으면 그 파일에 쓴다. 형식을 적지 않으면 원본 확장자로 정한다.
 import { readFileSync } from 'node:fs';
 import { dirname, extname } from 'node:path';
 import { buildFigure } from '../compile/figure.js';
 import { commitReported, problem, readReported, report } from '../compile/reported.js';
-import { IMPORT_FORMATS, importDiagram } from './index.js';
 import { FigureError } from '../source/problems.js';
+import { IMPORT_FORMATS, importDiagram } from './index.js';
 
 /** 표준 입력을 가리키는 파일 이름 */
 const STDIN = '-';
 /** 표준 출력에 쓴 원본의 진단에 붙이는 이름 */
 const STDOUT = 'stdout';
 /** 형식을 적지 않았을 때 원본 확장자 → 형식 */
-const EXTENSIONS = { '.mmd': 'mermaid', '.mermaid': 'mermaid', '.dbml': 'dbml', '.d2': 'd2', '.drawio': 'drawio', '.excalidraw': 'excalidraw' };
+const EXTENSIONS = { '.mmd': 'mermaid', '.mermaid': 'mermaid', '.dbml': 'dbml' };
 
 // cost: time O(n + build), heap O(n), stack O(1), io 3
 // vars: n = 원본 글자 수, build = 옮긴 원본을 한 번 만들어 보는 비용

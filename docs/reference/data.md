@@ -83,7 +83,7 @@ scene "주문자 찾기"
 
 ## 장면과 움직임
 
-이동은 외래 키 선을 적은 방향으로 따라가고, 그 방향에 없으면 반대 방향을 거꾸로 따라간다. 같은 방향 외래 키가 둘 이상이면 `payments.order_id -> orders.id`처럼 열까지 적는다. `light 테이블.열 테이블.열`은 열을 밝히고, `show 테이블 "글"`은 테이블 아래 카드에 예시 행을 보인다. `nullable`과 `required`는 NULL 허용 여부를, `ondelete=cascade`와 `set-null`은 삭제 정책을 열 아래 줄에 보인다. 같은 테이블의 서로 다른 두 열을 잇는 자기 참조 외래 키(`referrer_id bigint fk=users.id nullable`)는 카드 오른쪽 면을 도는 고리로 그린다. 같은 열이나 카드 전체를 자기 자신에 잇는 선은 오류이다(`an edge cannot go from "users.id" to itself`). [schema 예제](../../examples/schema.diagramplay)가 키, 제약, 삭제 정책, 자기 참조 외래 키를 모두 쓴다.
+이동은 외래 키 선을 적은 방향으로 따라가고, 그 방향에 없으면 반대 방향을 거꾸로 따라간다. 같은 방향 외래 키가 둘 이상이면 `payments.order_id -> orders.id`처럼 열까지 적는다. `light 테이블.열 테이블.열`은 열을 밝히고, `show 테이블 "글"`은 테이블 아래 카드에 예시 행을 보인다. `nullable`과 `required`는 NULL 허용 여부를, `ondelete=cascade`와 `set-null`은 삭제 정책을 관계 중앙의 알약에 보인다. 같은 테이블의 서로 다른 두 열을 잇는 자기 참조 외래 키(`referrer_id bigint fk=users.id nullable`)는 카드 오른쪽 면을 도는 고리로 그린다. 같은 열이나 카드 전체를 자기 자신에 잇는 선은 오류이다(`an edge cannot go from "users.id" to itself`). [schema 예제](../../examples/schema.diagramplay)가 키, 제약, 삭제 정책, 자기 참조 외래 키를 모두 쓴다.
 
 ## 흔한 오류
 

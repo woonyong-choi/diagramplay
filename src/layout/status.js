@@ -8,14 +8,12 @@ const SPACE = values.spacing;
 // 알약이 모서리 바깥으로 나가는 거리(오른쪽, 위쪽 반대로 모서리 아래로 들어오는 거리)
 const OVERHANG = SPACE["1-5"];
 const INSET = SPACE["1"];
-const SQRT_HALF = Math.SQRT1_2;
+
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
-// 알약이 걸치는 모서리. 상자류는 몸통의 오른쪽 위 모서리이고, 갈림길(마름모)과 원은 모서리가 도형 밖이라 윤곽 위 점이다.
+// 알약이 걸치는 모서리. 카드 몸통의 오른쪽 위 모서리다.
 function cornerOf(it) {
-  if (it.shape === 'decision') return { x: it.x + it.w * 0.75, y: it.y + it.h * 0.25 };
-  if (it.shape === 'circle') return { x: it.x + (it.w / 2) * (1 + SQRT_HALF), y: it.y + (it.h / 2) * (1 - SQRT_HALF) };
   const body = bodyOf(it);
   return { x: body.x + body.w, y: body.y };
 }

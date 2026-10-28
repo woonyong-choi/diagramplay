@@ -13,7 +13,7 @@ import { NEUTRAL } from '../color/tone.js';
  * `키=값` 낱말과 값 없는 낱말(flag)들을 { 키: 값 }으로 읽는다. flag는 true로 담는다. 표에 없는 키와 선택 사항이 아닌 낱말, 같은 키 두 번, 값 형식 위반은 오류다(오류 낱말의 값은 담지 않는다).
  * 오류는 그 낱말의 자리(column)에 내고, 가까운 키나 값이 있으면 제안한다.
  * @param tokens 낱말 목록
- * @param context { scopes, what, line, ctx }. scopes는 키를 찾을 OPTIONS 범위 목록, what은 오류 메시지의 대상 이름(`a grid`)이다
+ * @param context { scopes, what, line, ctx }. scopes는 키를 찾을 OPTIONS 범위 목록, what은 오류 메시지의 대상 이름(`a group`)이다
  */
 export function readOptions(tokens, { scopes, what, line, ctx }) {
   const found = {};

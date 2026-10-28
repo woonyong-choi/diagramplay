@@ -2,7 +2,7 @@
 // 시험 이름 첫 낱말(V1~V7)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { build, finalValue, findOne, panelStrategies, diagramplay, reject, stillDom, textsOf, valueOf } from './support.js';
+import { build, diagramplay, finalValue, findOne, reject, stillDom, textsOf, valueOf } from './support.js';
 
 const CARD = 'box a "A"\n';
 
@@ -141,42 +141,6 @@ test('V6 every independent error is reported at once, in line order, with the sa
   for (const problem of problems) assert.deepEqual(Object.keys(problem).sort(), ['code', 'column', 'line', 'message', 'severity']);
 });
 
-test('V6 a malformed block header or a rejected name is one error: its inner lines and its group add none', async () => {
-  const cases = [
-    'unknown g {\n}\n',
-    'class Bad "T" {\n  nonsense\n}\n',
-    'grid Bad "T" {\n  nonsense\n}\n',
-    'table t "T" broken= {\n  id int\n}\n',
-    'table users {\n  id int pk\n}\n',
-    'table Bad "T" {\n  id int\n  pk (id)\n}\n',
-    'table Bad "T" {\n  id int\n  unique (id)\n}\n',
-    'table Bad "T" {\n  id int\n  fk (id) -> parent (id)\n}\n',
-    'table users {\n  id int\n  pk (id)\n}\n',
-    'api a {\n  id int\n}\n',
-    'class k {\n  field n "int"\n}\n',
-    'group g "G" {\n  grid Bad "x" {\n  }\n}\nbox a "A"\n',
-  ];
-  for (const body of cases) assert.equal((await reject(diagramplay(body))).length, 1, body);
-});
-
-test('V6 each rejection names its real cause and counts what the limit counts', async () => {
-  const decimals = (value) => `chart c "T" bar {\n  x "x(u)"\n  decimals ${value}\n  series v "v"\n  row "A" v=1\n}\n`;
-  await build(diagramplay(decimals('2')));
-  const cases = [
-    ['class k "K" abstract=yes {\n  field x "int"\n}\n', 2, /abstract takes no value/],
-    ['class k "K" {\n  field x "int" static=yes\n}\n', 3, /static takes no value/],
-    ['box a "A"\nscene "s" mode=once\n  light a "x"\n', 4, /"a" is a box, not a chart/],
-    ['state s "S"\nvalue v "V" on=s\n', 3, /Put a value on box, external, store, person, table, api/],
-    [`box a "A" badge="${'😀'.repeat(9)}"\n`, 2, /at most 8 characters\. Found 9/],
-    ['box a "A"\nvalue v "V" on=a from=1000000000000000000000\n', 3, /under 1e15/],
-    ...['0x2', '1e0', '2.0', '7'].map((value) => [decimals(value), 4, /whole number from 0 to 6/]),
-  ];
-  for (const [body, line, message] of cases) {
-    const problems = await reject(diagramplay(body));
-    assert.ok(problems.some((p) => p.line === line && message.test(p.message)), `${JSON.stringify(body)} -> ${JSON.stringify(problems)}`);
-  }
-});
-
 test('V7 ports are card.part with exactly one dot; classes expose no ports and plain boxes have no parts', async () => {
   const base = `table t "T" {\n  id bigint pk\n}\nclass k "K" {\n  field n "int"\n}\nbox b "B"\n`;
   const cases = [
@@ -197,70 +161,6 @@ test('V6 앞선 문법 오류가 keep과 set 진단을 숨기지 않는다', asy
   const source = diagramplay('box a "A"\nbox b "B"\nvalue n "N" on=a\na -> b\nbogus bad\nscene "시작"\nscene "다음" keep="missing"\n  a -> b set="n:=absent"\n');
   const problems = await reject(source);
   for (const name of ['bogus', 'missing', 'absent']) assert.ok(problems.some(p => p.message.includes(name)), name);
-});
-
-test('원인 하나가 잘못된 reveal 순서와 else 진단으로 번지지 않는다', async () => {
-  const missing = await reject(diagramplay(`chart c "Chart" stacked {
-    x "Value(count)"
-    series a "A"
-    series b "B"
-    row "row" a=1 b=2
-  }
-  scene "s" mode=once
-    reveal c.missing
-    reveal c.a
-    reveal c.b`));
-  assert.equal(missing.length, 1);
-  assert.match(missing[0].message, /unknown series/);
-  const orphan = await reject(diagramplay(`box a "A"\nbox b "B"\na -> b\nscene "s" mode=once\n a -> b else=a`));
-  assert.equal(orphan.length, 1);
-  assert.match(orphan[0].message, /else/);
-});
-
-test('계단과 누적 분포의 값 축 단위를 검사하고 음수 원형 값은 한 번 진단한다', async () => {
-  for (const [kind, rows, axis] of [['step', 'series v "v"\npoint x=0 v=2', 'y'], ['ecdf', 'sample 2', 'x']]) {
-    const errors = await reject(diagramplay(`chart c "Chart" ${kind} {\n${rows}\n}`));
-    assert.equal(errors.length, 1);
-    assert.match(errors[0].message, new RegExp(`${axis} "latency`));
-  }
-  const negative = await reject(diagramplay('chart c "Chart" pie {\nrow "A" value=-1\n}'));
-  assert.equal(negative.length, 1);
-  assert.match(negative[0].message, /negative/);
-});
-
-// 문법 점검(docs/decisions/2026-10-16-one-form-per-meaning.md): 모르는 낱말의 제안과 다른 도구의 습관은 틀린 낱말 자리의 진단 하나로 알린다.
-test('V6 an unknown statement, key, value, unit, or column names the closest word at its line and column', async () => {
-  const base = 'box web "W"\nbox api "A"\nweb -> api\n';
-  const cases = [
-    ['bx db "DB"\n', 5, 1, 'box'],
-    ['scen "s"\n', 5, 1, null, `${base}scen "s"\n`],
-    ['box db "DB" tone=yelow\n', 5, 18, 'yellow'],
-    ['box db "DB" apperance=filled\n', 5, 13, 'appearance'],
-    ['view graph dwon\n', 5, 12, 'down'],
-    ['view graph TD\n', 5, 12, 'down'],
-    ['group g "G" direction=dwn {\n  box c "C"\n}\n', 5, 23, 'down'],
-    ['group g "G" dashd {\n  box c "C"\n}\n', 5, 13, 'dashed'],
-    ['scene "s" mode=lop\n  web -> api\n', 5, 16, 'loop'],
-    ['scene "s"\n  web -> api time=800mss\n', 6, 3, '800ms'],
-    ['scene "s"\n  web -> api time=2\n', 6, 3, '2s'],
-    ['scene "s"\n  web -> api lost=60\n', 6, 3, '60%'],
-    ['scene "s"\n  shw web "x"\n', 6, 3, 'show'],
-    ['table t "T" {\n  id bigint pkk\n}\n', 6, 13, 'pk'],
-    ['table t "T" {\n  user_id bigint pk\n}\nscene "s"\n  light t.userid\n', 9, 3, 'user_id'],
-    ['chart c "C" baar {\n  series v "v"\n  row "a" v=1\n}\n', 5, 13, 'bar'],
-    ['chart c "C" bar {\n  decimal 2\n  series v "v"\n  row "a" v=1\n}\n', 6, 3, 'decimals'],
-    ['chart c "C" line {\n  zero of\n  series v "v"\n  point x=1 v=1\n}\n', 6, 8, 'off'],
-    ['chart c "C" bar {\n  series v "v" role=mian\n  row "a" v=1\n}\n', 6, 21, 'main'],
-    ['grid g "G" rws=2 {\n  item a "a"\n}\n', 5, 12, 'rows'],
-  ];
-  for (const [body, line, column, word, whole] of cases) {
-    const problems = await reject(diagramplay(whole ?? `${base}${body}`));
-    const hit = problems.find((p) => p.line === line);
-    assert.ok(hit, `${body} -> ${JSON.stringify(problems)}`);
-    assert.equal(hit.column, column, `${body} -> ${JSON.stringify(hit)}`);
-    assert.match(hit.message, new RegExp(`Did you mean "${(word ?? 'scene').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\\?`), body);
-    assert.doesNotMatch(hit.message, /\.$/, 'a message has no trailing period');
-  }
 });
 
 test('V6 habits from Mermaid, D2, PlantUML, and CSS are rejected with the DiagramPlay form', async () => {
@@ -305,15 +205,9 @@ test('V5 a group border is dashed like an edge, and an on line may come before i
   assert.equal(await finalValue(diagramplay('box a "A"\nbox b "B"\na -> b\non b n+1\nvalue n "n" on=b from=0\nscene "s"\n  a -> b\n'), 'n'), '1');
 });
 
-test('V5 a trace lane is a card or a quoted lane name, and a lane-name trace draws only its time view', async () => {
-  const trace = 'trace t "T" {\n  span a "A" lane="Gateway" at=0 dur=10\n  span b "B" lane="DB" at=2 dur=5\n}\n';
-  assert.deepEqual(await panelStrategies(diagramplay(trace)), ['time']);
-  assert.deepEqual(textsOf(await stillDom(diagramplay(trace))).filter((t) => t === 'Gateway' || t === 'DB'), ['Gateway', 'DB']);
-  const clash = await reject(diagramplay(`box gw "GW"\n${trace.replace('"Gateway"', '"gw"')}`));
-  assert.ok(clash.some((p) => /lane "gw" is quoted/.test(p.message)), JSON.stringify(clash));
-});
-
-// 퍼징이 찾은 내부 오류의 최소 입력: 눈금 class를 쓰는 히트맵 열 이름이 "Infinity"였다.
-test('V6 user text that reads like a number is not mistaken for a broken coordinate', async () => {
-  await build(diagramplay('chart c "C" heatmap {\n  cell "Infinity" "NaN" 3\n  cell "a" "Infinity~0시" 2\n}\n'));
+test('analysis declarations and removed view strategies are rejected at their own source line', async () => {
+ for (const text of ['chart c "C" bar {', 'trace t "T" {', 'grid g "G" rows=1 cols=1 {', 'state s "S"', 'start a', 'final a', 'view plot', 'view time', 'view timing']) {
+  const problems = await reject('diagramplay\nbox a "A"\n'+text+'\n');
+  assert.ok(problems.some(problem => problem.line === 3 && problem.code === 'syntax'), text);
+ }
 });

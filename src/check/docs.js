@@ -1,14 +1,14 @@
 // 문서 품질 검사의 구조 판정(docs-1~14). 원본 모형과 배치가 끝난 장면을 읽는다(docs/design/figure-quality.md).
 // 항목 목록과 기준 수치는 docs-items.js다. 요구 항목과 본문 단 읽힘(docs-15, docs-16)은 docs-text.js다.
+import { ROOT } from '../layout/model.js';
 import { INNER_MAX } from '../measure/card.js';
 import { measure, wrap } from '../measure/fonts.js';
 import { STYLE } from '../measure/texts.js';
-import { ROOT } from '../layout/model.js';
 import { LIMITS } from './docs-items.js';
 
 const TAGGED = new Set(['box', 'external', 'store']);
 const PLAIN = new Set(['person', 'box', 'external', 'store']);
-const NAMED = new Set(['person', 'box', 'external', 'store', 'state', 'queue']);
+const NAMED = new Set(['person', 'box', 'external', 'store', 'queue']);
 const DOTS = new Set(['start', 'final']);
 // 같은 줄과 같은 칸으로 묶는 가운데 좌표 차이(px)
 const ROW_SLACK = 12;
@@ -186,7 +186,7 @@ function checkLoose(context, problems) {
   for (const { items, edges } of context.views) {
     if (!edges.length) continue;
     const linked = new Set(edges.flatMap((e) => [e.from, e.to]));
-    const loose = items.filter((it) => !linked.has(it.id) && it.shape !== 'chart');
+    const loose = items.filter((it) => !linked.has(it.id));
     if (loose.length >= LIMITS.loose) say(problems, 11)(loose[0].line, `cards ${loose.map((it) => it.id).join(', ')} have no lines and stack apart from the declared order. Merge them into one card with text lines, or connect them`);
   }
 }
@@ -208,16 +208,5 @@ function checkSequences({ figure }, problems) {
   }
 }
 
-// cost: time O(c), heap O(1), stack O(1)
-// vars: c = 차트 수
-// basis: estimate
-// docs-14: 차트 계열이 많다.
-function checkSeries({ figure }, problems) {
-  for (const node of figure.nodes.filter((n) => n.shape === 'chart')) {
-    const count = node.plot.chart.series?.length ?? 0;
-    if (count > LIMITS.series) say(problems, 14)(node.line, `chart "${node.id}" has ${count} series, so colors repeat. Keep ${LIMITS.series} or fewer, or split the chart`);
-  }
-}
-
 /** 장면을 읽는 구조 판정. 순서대로 돈다. docs-7은 다시 배치가 필요해 compile/docs-check.js가 따로 부른다. */
-export const STRUCTURE_JUDGES = [checkBadges, checkLook, checkNames, checkLabels, checkSize, checkStaircase, checkLoose, checkSequences, checkSeries];
+export const STRUCTURE_JUDGES = [checkBadges, checkLook, checkNames, checkLabels, checkSize, checkStaircase, checkLoose, checkSequences];

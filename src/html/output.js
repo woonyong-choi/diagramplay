@@ -1,20 +1,18 @@
-// 재생 화면 HTML 한 장과 목록 쪽. 스크립트, 스타일, 글꼴, 그림을 모두 안에 넣어 파일 하나로 열린다.
-import { chartMotionCss } from '@woonyong-choi/design-tokens/ui/diagram.mjs';
+
+import { paintCss } from '../draw/paint.js';
+import { STYLES, tokensFor } from '../draw/styles.js';
+import { roundedNumbers } from '../format/numbers.js';
+import { escapeXml, figureDesc, plainText, roundCoord as r } from '../format/text.js';
+import { hasStatus } from '../layout/status.js';
 import { CANVAS, canvasOf } from '../measure/canvas.js';
 import { createGlyphSet, embedFonts } from '../measure/fonts.js';
-import { paintCss } from '../draw/paint.js';
-import { hasStatus } from '../layout/status.js';
-import { STYLES, tokensFor, figureDefs, patternDefs } from '../draw/styles.js';
-import { escapeXml, figureDesc, plainText, roundCoord as r } from '../format/text.js';
 import { figureContent } from './content.js';
-import { responsiveContent } from './responsive.js';
-import { THEME_KEY } from './theme.js';
 import { CANONICAL_NAME, PLAYER_SCRIPT, figureFrame } from './player-script.js';
-import { roundedNumbers } from '../format/numbers.js';
+import { THEME_BUTTONS, THEME_KEY, THEME_SCRIPT } from './theme.js';
 
 // iframe 안에서 열리면 틀을 빼고, 목록 쪽이 iframe 높이를 맞추도록 본문 높이를 알린다. 문서(html) 높이는 iframe 창보다 작아지지 않아 쓰지 않는다.
 // 목록 쪽의 라이트·다크 선택은 iframe의 prefers-color-scheme에 안정적으로 전해지지 않아, 목록 쪽이 보내는 테마 메시지로 이 문서의 data-theme을 바꾼다. 처음에는 목록 쪽에 현재 테마를 물어본다.
-// 목록 밖에서 따로 열린 재생 화면(목록의 `열기`)은 목록이 기억한 같은 선택(localStorage)을 처음 그리기 전에 읽어 따른다. 그림마다 테마 단추를 두지 않는다(도구 막대와 겹치지 않는다). 고르지 않았거나(시스템) 읽을 수 없으면 시스템 설정을 따른다.
+// 목록 밖에서 따로 열린 재생 화면(목록의 `열기`)은 목록이 기억한 같은 선택(localStorage)을 처음 그리기 전에 읽어 따른다. 단독 재생 화면은 그림 위 테마 선택을 쓰고, 삽입 화면은 목록 쪽 선택을 따른다. 고르지 않았거나(시스템) 읽을 수 없으면 시스템 설정을 따른다.
 // 이 스크립트는 정본 템플릿의 고정 글이라 내려받은 파일은 바이트까지 같다. 읽는 값은 실행 때만 정해진다.
 const EMBED_SCRIPT = `<script>
 (() => {
@@ -65,16 +63,13 @@ export async function toHtml(result, name, options = {}) {
 async function canonicalHtml(result, name, source) {
   const { figure, timeline } = result;
   const glyphs = createGlyphSet();
-  const { content, responsive } = await htmlContent(result, glyphs);
+  const content = figureContent(result, glyphs);
   addTimelineGlyphs(timeline, glyphs);
   const fonts = await embedFonts(glyphs.used);
   const title = plainText(figure.title ?? name);
-  const charts = content.hasCharts;
-  const defs = documentDefs(figure, [content, responsive?.content]);
   // 점이 나타나는 시각은 배치마다 다르므로(좁은 배치는 선 위치가 다르다) 넓은 배치와 좁은 배치의 시각을 모두 규칙으로 둔다.
-  const dotAts = [...new Set([...content.dotAts, ...(responsive?.content.dotAts ?? [])])].sort((a, b) => a - b);
-  const styles = [STYLES.control, STYLES.player, STYLES.figure, paintCss(result.scene), STYLES.chart, charts ? chartMotionCss(timeline.growMs, dotAts) : '', hasStatus(timeline) ? STYLES.status : ''].join('');
-  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }, defs), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', narrow: responsive ? `<template class="fl-narrow">${panelsMarkup(responsive.content, { title, desc: figureDesc(figure) })}</template>` : '', source });
+  const styles = [STYLES.control, STYLES.player, STYLES.figure, paintCss(result.scene), hasStatus(timeline) ? STYLES.status : ''].join('');
+  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', source });
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -83,10 +78,12 @@ async function canonicalHtml(result, name, source) {
 <title>${escapeXml(title)}</title>
 <meta name="${CANONICAL_NAME}" content="">
 ${EMBED_SCRIPT}
+<script>${THEME_SCRIPT}</script>
 <style>${fonts}
-${tokensFor(styles + PLAYER_SCRIPT + frame + JSON.stringify(content.data))}${styles}</style>
+${tokensFor(styles + PLAYER_SCRIPT + frame + THEME_BUTTONS + JSON.stringify(content.data))}${styles}</style>
 </head>
 <body>
+<div class="dp-theme"><div class="theme app-tablist is-segmented" role="group" aria-label="테마">${THEME_BUTTONS}</div></div>
 ${frame}
 <script>
 ${PLAYER_SCRIPT}
@@ -95,25 +92,6 @@ figurePlay(document.querySelector('.fl-figure'), ${JSON.stringify(content.data, 
 </body>
 </html>
 `;
-}
-
-// cost: time O(c·p), heap O(p), stack O(1)
-// vars: c = 차트 수, p = 무늬 정의 수
-// basis: estimate
-/**
- * 문서에 한 번 두는 정의: 차트 화살표 표식과 모든 판(넓은 배치와 좁은 배치)의 차트가 쓰는 무늬. 무늬 id는 내용에서 만든 값이라(chart/pattern.js) 같은 id는 같은 내용이고, 이 한 벌을 모든 판 SVG가 `url(#id)`로 쓴다.
- * @param contents 그림 내용 목록(figureContent 결과, 없는 것은 건너뛴다)
- */
-function documentDefs(figure, contents) {
-  return figureDefs(figure) + patternDefs(contents.flatMap((content) => content?.charts ?? []));
-}
-
-// 그림 내용과, 좁은 배치가 있으면 그 내용.
-async function htmlContent(result, glyphs) {
-  const content = figureContent(result, glyphs);
-  const responsive = await responsiveContent(result, glyphs);
-  if (responsive) content.data.responsive = { breakpoint: responsive.breakpoint, data: responsive.content.data };
-  return { content, responsive };
 }
 
 // cost: time O(b·h), heap O(1), stack O(1)
@@ -148,7 +126,7 @@ function withCanonical(template) {
  * 판이 하나뿐인 그림은 둘레 여백을 걷은 보기 영역(data.tight)을 viewBox로 쓸 수 있도록 재생기가 맞춘다(player/play.js).
  * 보기 폭(--view-w)은 판 가운데 가장 넓은 것(content.width)이다. 판 폭 비율의 분모와 묶음의 하한 폭에 쓴다.
  * 첫 판 SVG는 그림 제목(`<title>`)과 부제 설명(`<desc>`)을 갖고, 나머지 판은 보기 이름이 접근성 이름이다.
- * 마커와 차트 무늬 정의(defs, documentDefs)는 문서에 한 번만 둔다(보이지 않는 SVG). 판 SVG들이 같은 문서 id로 쓰므로 판마다 정의를 복사하지 않아 문서 안 id가 겹치지 않는다.
+ * 마커 정의(defs, documentDefs)는 문서에 한 번만 둔다(보이지 않는 SVG). 판 SVG들이 같은 문서 id로 쓰므로 판마다 정의를 복사하지 않아 문서 안 id가 겹치지 않는다.
  */
 function panelsMarkup(content, { title, desc }, defs) {
   const view = content.width;

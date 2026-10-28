@@ -1,14 +1,14 @@
 // Mermaid 순서도(flowchart, graph) 읽기: 노드 모양, 선과 라벨, subgraph 중첩, 방향(docs/design/import.md 순서도).
-import { change, ensureNode, groupOf, skip, textOf } from './model.js';
 import { DIRECTIONS } from './mermaid-lines.js';
+import { change, ensureNode, groupOf, skip, textOf } from './model.js';
 import { unquote } from './names.js';
 
 const REVERSED = new Set(['RL', 'BT']);
 
 // 노드 모양: [여는 글, 닫는 글, 카드 종류, 상자로 바꿨는지]. 긴 여는 글을 먼저 본다.
 const SHAPES = [
-  ['(((', ')))', 'circle', true],
-  ['((', '))', 'circle', false],
+  ['(((', ')))', 'box', true],
+  ['((', '))', 'box', false],
   ['([', '])', 'box', true],
   ['[(', ')]', 'store', false],
   ['[[', ']]', 'box', true],
@@ -315,7 +315,7 @@ function placeNode(found, line, { model, stack, shaped }) {
     node.kind = found.kind;
     node.label = textOf(model, unquote(found.label), line) || found.key;
     shaped.add(found.key);
-    if (found.isBoxed) change(model, line, `the node shape of "${found.key}" is drawn as ${found.kind === 'circle' ? 'a circle' : 'a box'}`);
+    if (found.isBoxed) change(model, line, `the node shape of "${found.key}" is drawn as ${'a box'}`);
   }
   if (found.extended) change(model, line, `the shape data "@{ ... }" of "${found.key}" is not imported. The node is a box`);
   if (found.styled) skip(model, line, `the style class on "${found.key}" is not imported. Colors come from the design tokens`);

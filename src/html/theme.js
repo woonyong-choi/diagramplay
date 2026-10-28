@@ -1,4 +1,4 @@
-// 목록 쪽과 문서 미리보기의 테마 전환 단추와 스크립트.
+// 예제 목록·문서 미리보기·단독 재생 화면의 공통 테마 전환.
 // 목록 쪽 테마 전환. 시스템은 OS 설정을 따르고, 라이트와 다크는 목록 쪽 루트에 color-scheme을 걸어 iframe 안 그림의 prefers-color-scheme도 같은 값이 되게 한다.
 // 목록 쪽 자체 색은 토큰 CSS의 data-theme 값으로 바꾼다. 고른 값은 localStorage에 기억하고, 첫 그림이 그려지기 전에 적용해 깜빡임을 막는다.
 const THEME_MODES = [
@@ -33,6 +33,7 @@ function savedTheme() {
   }
 }
 applyTheme(savedTheme());
+addEventListener('storage', (e) => e.key === THEME_KEY && applyTheme(savedTheme()));
 addEventListener('DOMContentLoaded', () => {
   applyTheme(savedTheme());
   document.querySelector('.theme').addEventListener('click', (e) => {

@@ -1,13 +1,13 @@
 // 값 바꾸기(`on` 줄과 `set=`)를 시각 순서로 적용해 값 줄마다 값이 바뀌는 시각과 새 값을 구한다. 박자 단계와 흐름 단계가 같은 규칙을 쓴다(docs/design/playback.md 값 변화).
-import { indicatorTypeProblem } from '../source/indicators.js';
 import { arrivalOffsetMs } from '../math/easing.js';
-import { isPassed } from './lost.js';
-import { MAX_VALUE, RANGE_MESSAGE } from '../source/chart-limits.js';
+import { indicatorTypeProblem } from '../source/indicators.js';
+import { MAX_VALUE, RANGE_MESSAGE } from '../source/number-limits.js';
 import { FigureError, makeDiagnostic } from '../source/problems.js';
-import { NUMBER_PATTERN } from '../source/words.js';
-import { roundNumber } from '../source/value.js';
-import { valueTable } from './value-texts.js';
 import { rootOf } from '../source/value-refs.js';
+import { roundNumber } from '../source/value.js';
+import { NUMBER_PATTERN } from '../source/words.js';
+import { isPassed } from './lost.js';
+import { valueTable } from './value-texts.js';
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate

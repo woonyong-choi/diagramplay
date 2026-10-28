@@ -1,18 +1,17 @@
 // 파일을 다 읽은 뒤 이름, 선, 칸, 보기, 이동, 카드, 밝히기 대상을 확인한다. 이동마다 보기별 투영(선, 메시지)을 정한다.
 import { walkUp } from './ancestry.js';
-import { checkChartCards } from './chart-check.js';
 import { checkClassRelations } from './class-check.js';
-import { checkMultiplicities } from './multiplicity.js';
-import { checkTables } from './table-check.js';
 import { checkFlowStep } from './flow-check.js';
 import { CARD_SHAPES, PART_SHAPES, STATUS_SHAPES } from './grammar.js';
 import { checkIcons } from './icons.js';
-import { checkSequenceViews, checkTraces } from './view-rules.js';
-import { assignViewEdges, projectMove, numberProjections, viewHas } from './project.js';
-import { emptyBeat } from './steps.js';
-import { resolveViews } from './views-check.js';
+import { checkMultiplicities } from './multiplicity.js';
 import { didYouMean, unknownName } from './problems.js';
+import { assignViewEdges, numberProjections, projectMove, viewHas } from './project.js';
+import { emptyBeat } from './steps.js';
+import { checkTables } from './table-check.js';
 import { checkValues, checkValuesShown, isCardDrawn } from './value-check.js';
+import { checkSequenceViews } from './view-rules.js';
+import { resolveViews } from './views-check.js';
 
 // cost: time O(s·k + e² + h·e), heap O(k + e), stack O(1)
 // vars: s = 문장 수, k = 이름 수, e = 선 수, h = 이동 수
@@ -26,9 +25,7 @@ export function validateFigure(figure, problems) {
   checkTables(figure, problems);
   checkEdges(figure, names, problems);
   checkClassRelations(figure, problems);
-  checkStateMarks(figure, names, problems);
   checkIcons(figure, problems);
-  checkTraces(figure, names, problems);
   checkValues(figure, names, problems);
   checkNotEmpty(figure, problems);
   const viewsBefore = problems.errors.length;
@@ -40,7 +37,6 @@ export function validateFigure(figure, problems) {
   for (const card of figure.nodes) for (const row of card.content ?? []) {
     if (!row.valueId) checkCardTarget({ type: 'content', node: card.id, line: row.line }, { figure, names }, problems);
   }
-  checkChartCards(figure, problems);
   checkTimeline(figure, names, problems);
   if (problems.errors.length > before) return;
   numberProjections(figure);
@@ -77,13 +73,10 @@ function checkEdges(figure, names, problems) {
     splitPartEnds(edge, names, problems);
     for (const end of [edge.from, edge.to]) if (!names.has(end) && !figure.rejectedNames.has(end)) problems.error(edge.line, unknownName('card', end, [...figure.nodes, ...figure.groups].map(node => node.id)));
     const [from, to] = [names.get(edge.from), names.get(edge.to)];
-    for (const end of [from, to]) if (end?.owner) problems.error(edge.line, `chart "${end.id}" belongs inside "${end.owner}". Connect its owner`);
-    // 상태의 자기 전이와 클래스의 자기 관계를 허용한다. 나머지는 한 격자의 서로 다른 두 칸을 잇는 선만 허용한다.
-    if (edge.from === edge.to && !['state', 'classifier'].includes(from?.shape)) checkSelfEdge(edge, from, problems);
+    if (edge.from === edge.to && from?.shape !== 'classifier') checkSelfEdge(edge, from, problems);
     if (isInside(edge.from, edge.to) || isInside(edge.to, edge.from)) problems.error(edge.line, 'an edge cannot join a group and a node inside it');
-    if ([from, to].some((end) => end?.shape === 'state') && [from, to].some((end) => end?.shape === 'group')) problems.error(edge.line, 'a transition joins two states');
     resolveRelation(edge, { from, to }, problems);
-    const key = `${edge.from}.${edge.fromCell ?? edge.fromColumns?.join(',') ?? ''}\u0000${edge.to}.${edge.toCell ?? edge.toColumns?.join(',') ?? ''}`;
+    const key = `${edge.from}.${edge.fromColumns?.join(',') ?? ''}\u0000${edge.to}.${edge.toColumns?.join(',') ?? ''}`;
     if (seen.has(key)) problems.error(edge.line, `there is already an edge ${endName(edge, 'from')} -> ${endName(edge, 'to')} (line ${seen.get(key)}). Merge the labels into one`);
     else seen.set(key, edge.line);
   });
@@ -92,7 +85,7 @@ function checkEdges(figure, names, problems) {
 // cost: time O(c), heap O(1), stack O(1)
 // vars: c = 카드의 칸 수
 // basis: estimate
-// 선 끝의 `카드.칸`을 카드 이름(from, to)과 칸 이름으로 가른다. 테이블과 API는 열(fromColumns, toColumns), 칸 격자는 칸(fromCell, toCell)이다.
+// 선 끝의 `카드.칸`을 카드 이름(from, to)과 컬럼 이름(fromColumns, toColumns)으로 가른다.
 // 클래스 멤버와 칸이 없는 카드는 연결점이 아니다. gap은 생략된 항목들이라 선 끝이 될 수 없다.
 function splitPartEnds(edge, names, problems) {
   for (const way of ['from', 'to']) {
@@ -111,31 +104,14 @@ function splitPartEnds(edge, names, problems) {
 }
 
 function readPart(edge, way, { card, part, written }, problems) {
-  if (card.shape === 'grid') {
-    const found = card.cells.find((c) => c.id === part);
-    if (!found) problems.error(edge.line, unknownName('cell', part, card.cells.map((c) => c.id)));
-    else if (found.kind === 'gap') problems.error(edge.line, `"${written}" is a gap, which stands for omitted entries. Connect an item instead`);
-    else edge[`${way}Cell`] = part;
-  } else if (!card.columns.some((c) => c.name === part)) problems.error(edge.line, `${card.shape} "${card.id}" has no ${card.shape === 'api' ? 'field' : 'column'} "${part}".${didYouMean(part, card.columns.map((c) => c.name))}`);
+  if (!card.columns.some((c) => c.name === part)) problems.error(edge.line, `${card.shape} "${card.id}" has no ${card.shape === 'api' ? 'field' : 'column'} "${part}".${didYouMean(part, card.columns.map((c) => c.name))}`);
   else edge[`${way}Columns`] = [part];
 }
 
 // 선 끝의 알림 이름: `카드.칸` 또는 이름
 function endName(edge, way) {
-  const part = edge[`${way}Cell`] ?? edge[`${way}Columns`]?.join(',');
+  const part = edge[`${way}Columns`]?.join(',');
   return part ? `${edge[way]}.${part}` : edge[way];
-}
-
-// 같은 도형 안의 선. 한 격자의 서로 다른 두 칸을 잇는 선과, 테이블이나 API의 서로 다른 두 열을 잇는 선(자기 참조 외래 키)만 허용한다.
-// 격자의 칸 선은 라벨을 받지 않는다(둘 자리가 없다). 열 선은 라벨을 받는다. 같은 칸끼리, 카드 전체를 잇는 선, 한쪽만 열인 선은 뜻이 정해지지 않아 거절한다.
-function checkSelfEdge(edge, card, problems) {
-  if (card?.columns) {
-    const isPair = edge.fromColumns && edge.toColumns && (edge.fromColumns.length !== edge.toColumns.length || edge.fromColumns.some((name, index) => name !== edge.toColumns[index]));
-    if (!isPair) problems.error(edge.line, `an edge cannot go from "${endName(edge, 'from')}" to itself. A ${card.shape} can join two different columns of its own, such as ${card.id}.parent_id -> ${card.id}.id`);
-    return;
-  }
-  if (!edge.fromCell || !edge.toCell || edge.fromCell === edge.toCell) problems.error(edge.line, `an edge cannot go from "${endName(edge, 'from')}" to itself. Only states and classes have self edges, and a grid can join two different cells`);
-  else if (edge.label !== undefined) problems.error(edge.line, 'an edge between two cells of one grid takes no label');
 }
 
 // cost: time O(n), heap O(n), stack O(1)
@@ -155,7 +131,6 @@ function resolveRelation(edge, { from, to }, problems) {
     if (edge.relation !== undefined && edge.relation !== 'association') problems.error(edge.line, 'a table relation can only use association');
   } else if (hasRelationOptions && from && to) problems.error(edge.line, 'relation=, from=, and to= join two classes, interfaces, or tables');
   if (isClassPair || isTablePair) checkMultiplicities(edge, problems);
-  if (from?.shape === 'state' && to?.shape === 'state' && edge.label === undefined) problems.error(edge.line, 'a transition needs an event label: a -> b "event"');
 }
 
 // cost: time O(e·v), heap O(1), stack O(1)
@@ -183,16 +158,6 @@ function checkNotEmpty(figure, problems) {
   for (const card of figure.nodes.filter((n) => ['table', 'api'].includes(n.shape) && !n.isRejected)) if (!card.columns.length) problems.error(card.line, `${card.shape} "${card.id}" has no ${card.shape === 'api' ? 'fields' : 'columns'}`);
 }
 
-// cost: time O(f·k), heap O(k), stack O(1)
-// vars: f = 처음·끝 상태 표시 수, k = 이름 수
-// basis: estimate
-// start와 final은 선언된 상태를 가리킨다. start는 없어도 된다(둘 이상은 읽을 때 오류).
-function checkStateMarks(figure, names, problems) {
-  for (const mark of [figure.start, ...figure.finals].filter(Boolean)) {
-    if (names.get(mark.id)?.shape !== 'state') problems.error(mark.line, unknownName('state', mark.id, figure.nodes.filter((n) => n.shape === 'state').map((n) => n.id)));
-  }
-}
-
 // cost: time O(b·(h·e + o + l)), heap O(e), stack O(1)
 // vars: b = 박자 수, h = 박자의 이동 수, e = 선 수, o = 카드 줄 수, l = 밝히기 대상 수
 // basis: estimate
@@ -207,7 +172,7 @@ function checkTimeline(figure, names, problems) {
     step.mode ??= isEmpty ? 'static' : 'once';
     if (isEmpty && !step.hasError) {
       if (step.mode === 'static') step.beats.push(emptyBeat(step.line));
-      else problems.error(step.line, `scene "${step.label}" has no lines. Add a move, show, light, reveal, or wait, or write mode=static for a still composition`);
+      else problems.error(step.line, `scene "${step.label}" has no lines. Add a move, show, light, or wait, or write mode=static for a still composition`);
     }
     checkFlowStep(step, { figure, names, problems, resolveHop, usedEdges });
     for (const { node } of step.status ?? []) checkStatusTarget(node, { line: step.line, figure, names }, problems);
@@ -232,7 +197,6 @@ function checkBeat(beat, { figure, names, problems, usedEdges }) {
   }
   for (const op of beat.ops) checkCardTarget(op, deps, problems);
   for (const target of beat.light) checkLightTarget(target, { line: beat.line, ...deps }, problems);
-  for (const { chart, line } of [...beat.chartLight, ...beat.reveal]) checkChartTarget(chart, { line, ...deps }, problems);
   for (const note of beat.notes) checkSequenceMember(note.node, `note ${note.node}`, { line: note.line, ...deps }, problems);
   for (const action of beat.activations ?? []) checkSequenceMember(action.node, `${action.kind} ${action.node}`, { line: action.line, ...deps }, problems);
 }
@@ -259,17 +223,6 @@ function checkSequenceMember(id, what, { line, figure, names }, problems) {
   return undefined;
 }
 
-// cost: time O(k), heap O(k), stack O(1)
-// vars: k = 이름 수(없는 이름 메시지)
-// basis: estimate
-// 차트 카드를 가리키는 light, reveal 대상. 이름이 있는데 차트가 아니면 그 도형을 알린다.
-function checkChartTarget(id, { line, figure, names }, problems) {
-  const target = names.get(id);
-  if (target?.shape === 'chart' || figure.rejectedNames.has(id)) return;
-  if (target) problems.error(line, `"${id}" is a ${target.shape}, not a chart. light "item" and reveal belong to a chart card`);
-  else problems.error(line, unknownName('chart', id, figure.nodes.filter((n) => n.shape === 'chart').map((n) => n.id)));
-}
-
 // cost: time O(e), heap O(1), stack O(1)
 // vars: e = 선 수
 // basis: estimate
@@ -281,9 +234,9 @@ function checkChartTarget(id, { line, figure, names }, problems) {
 function resolveHop(hop, { figure, names, problems }, usedEdges, scope) {
   const [fromId] = hop.from.split('.');
   const [toId] = hop.to.split('.');
-  if (!checkPartRefs([hop.from, hop.to], { names, line: hop.line }, problems)) return;
   for (const id of [fromId, toId]) if (!names.has(id) && !figure.rejectedNames.has(id)) problems.error(hop.line, unknownName('card', id, [...figure.nodes, ...figure.groups].map(node => node.id)));
   if (!names.has(fromId) || !names.has(toId)) return;
+  if (!checkPartRefs([hop.from, hop.to], { names, line: hop.line }, problems)) return;
   const result = projectMove(figure, hop, scope);
   if (result.ambiguous) {
     problems.error(hop.line, `there are ${result.ambiguous} edges between "${fromId}" and "${toId}". Write the columns or cells: ${fromId}.part -> ${toId}.part`);
@@ -332,31 +285,16 @@ function checkStatusTarget(id, { line, figure, names }, problems) {
 function checkLightTarget(target, { line, figure, names }, problems) {
   const [id, part] = target.split('.');
   const item = names.get(id);
-  if (!checkPartRefs([target], { names, line }, problems)) return;
   if (!item && !figure.rejectedNames.has(id)) problems.error(line, unknownName('card', id, [...figure.nodes, ...figure.groups].map(node => node.id)));
   else if (item && part !== undefined) checkPart({ item, part, target, line }, problems);
 }
 
-// cost: time O(c), heap O(c), stack O(1)
-// vars: c = 칸 수
-// basis: estimate
-// 카드 안 부분: 테이블과 API의 칸, 격자의 item, 추적의 구간. gap은 생략된 항목들이라 밝히지 못한다.
 function checkPart({ item, part, target, line }, problems) {
-  if (item.shape === 'grid') {
-    const cell = item.cells.find((c) => c.id === part);
-    if (!cell) problems.error(line, unknownName('cell', part, item.cells.map((c) => c.id)));
-    else if (cell.kind === 'gap') problems.error(line, `"${target}" is a gap, which stands for omitted entries. Light an item instead`);
-  } else if (item.shape === 'trace') {
-    if (!item.spans.some((s) => s.id === part)) problems.error(line, unknownName('span', part, item.spans.map((s) => s.id)));
-  } else if (['table', 'api'].includes(item.shape)) {
+  if (['table', 'api'].includes(item.shape)) {
     if (!item.columns.some((c) => c.name === part)) problems.error(line, `${item.shape} "${item.id}" has no ${item.shape === 'api' ? 'field' : 'column'} "${part}".${didYouMean(part, item.columns.map((c) => c.name))}`);
   } else problems.error(line, `a ${item.shape} has no parts. Light "${item.id}"`);
 }
 
-// cost: time O(r), heap O(1), stack O(1)
-// vars: r = 이름 수
-// basis: estimate
-// `카드.칸` 꼴 이름은 점 하나로만 쓴다. 칸이 없는 카드에 칸을 쓰면 오류다. 맞으면 true다.
 function checkPartRefs(refs, { names, line }, problems) {
   const bad = refs.find((ref) => ref.split('.').length > 2);
   if (bad) {
@@ -366,10 +304,19 @@ function checkPartRefs(refs, { names, line }, problems) {
   for (const ref of refs.filter((r) => r.includes('.'))) {
     const [id, part] = ref.split('.');
     const card = names.get(id);
-    if (card && !['table', 'api', 'grid', 'trace'].includes(card.shape)) {
+    if (card && !['table', 'api'].includes(card.shape)) {
       problems.error(line, card.shape === 'classifier' ? `class members are not ports. Connect "${id}"` : `a ${card.shape} has no parts. "${id}.${part}" is not a part`);
       return false;
     }
   }
   return true;
+}
+
+function checkSelfEdge(edge, card, problems) {
+  if (card?.columns) {
+    const isPair = edge.fromColumns && edge.toColumns && (edge.fromColumns.length !== edge.toColumns.length || edge.fromColumns.some((name, index) => name !== edge.toColumns[index]));
+    if (!isPair) problems.error(edge.line, `an edge cannot go from "${endName(edge, 'from')}" to itself. A ${card.shape} can join two different columns of its own, such as ${card.id}.parent_id -> ${card.id}.id`);
+    return;
+  }
+  problems.error(edge.line, `an edge cannot go from "${edge.from}" to itself. Only classes have self edges`);
 }

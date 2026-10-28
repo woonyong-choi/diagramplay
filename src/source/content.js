@@ -1,8 +1,7 @@
-// 카드 내용 한 줄을 읽는다. 배치와 그리기는 같은 줄 모형을 쓴다.
-import { parseMiniGraph } from './minigraph.js';
+
+import { NEUTRAL } from '../color/tone.js';
 import { VALUES } from './grammar.js';
 import { readOptions } from './options.js';
-import { NEUTRAL } from '../color/tone.js';
 
 // cost: time O(t + g), heap O(g), stack O(1)
 // vars: t = 문장 낱말 수, g = 관계 그래프 글자 수
@@ -10,18 +9,6 @@ import { NEUTRAL } from '../color/tone.js';
 // 정지 본문과 장면이 공유하는 글·관계 그래프 한 줄.
 export function readContent({ tokens, line }, ctx) {
   const [first, ...rest] = tokens;
-  if (first?.type === 'word' && first.value === 'graph') {
-    const [text, ...more] = rest;
-    if (text?.type !== 'text') {
-      ctx.problems.error(line, 'a graph row needs graph "a -> b; a -> c" [lit="a"]');
-      return;
-    }
-    const { lit } = readOptions(more, { scopes: ['graph'], what: 'a graph row', line, ctx });
-    const graph = parseMiniGraph(text.value, lit ?? '');
-    if (graph.error) ctx.problems.error(line, graph.error);
-    else return { graph };
-    return;
-  }
   if (first?.type !== 'text') {
     ctx.problems.error(line, 'a text row needs quoted text: "text"');
     return;

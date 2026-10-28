@@ -54,7 +54,7 @@ function invalidCalls(figure: BuiltFigure) {
   void toHtml(figure, { name: 'request' });
   // @ts-expect-error 복사할 원문은 문자열이다.
   void toHtml(figure, 'request', { source: 123 });
-  // @ts-expect-error 가져오는 형식은 mermaid, dbml, d2뿐이다.
+  // @ts-expect-error 가져오는 형식은 mermaid, dbml뿐이다.
   void importDiagram('plantuml', '');
   // @ts-expect-error 내부 그림 모형은 공개 계약이 아니다.
   void figure.figure;

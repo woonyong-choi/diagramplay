@@ -1,4 +1,4 @@
-// 원본이 읽는 파일(`data "경로"`, `icons 이름 "폴더"`)의 경로 경계. 경로는 기준 폴더(CLI는 원본 파일의 폴더, API는 `baseDir`) 안이어야 한다(docs/design/charts.md 값 출처, docs/design/layout.md 아이콘).
+// 원본이 읽는 파일(`icons 이름 "폴더"`)의 경로 경계. 경로는 기준 폴더(CLI는 원본 파일의 폴더, API는 `baseDir`) 안이어야 한다(docs/design/layout.md 아이콘).
 import { realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
 

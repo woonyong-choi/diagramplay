@@ -1,6 +1,6 @@
 # DiagramPlay
 
-`.diagramplay` 원본 하나를 움직이는 문서 그림 하나(구조, 순서, 상태, 데이터 관계 그림과 차트)로 바꾸는 명령. 마크다운 문서 안의 ` ```diagramplay ` 블록도 그림으로 반영한다(`diagramplay md`).
+`.diagramplay` 원본 하나를 움직이는 문서 그림 하나(아키텍처, 카드 흐름, 시퀀스, ERD와 클래스 다이어그램)로 바꾸는 명령. 마크다운 문서 안의 ` ```diagramplay ` 블록도 그림으로 반영한다(`diagramplay md`).
 
 설계 문서는 [docs/README.md](docs/README.md)에 있다.
 
@@ -12,26 +12,25 @@
 |---|---|
 | `src/compile/` | 원본 하나를 장면과 시간표로 만드는 순서(`figure.js`의 `buildFigure`, 내부 재배치 `reflowFigure`), 보기마다 크기·배치·글 상자를 정하고 장면을 잇는 곳(`scene.js`), 보기 모형으로 줄이기(`views.js`), 생성 예산(`budget.js`), 원본이 읽는 파일의 경로 경계(`base-path.js`), 명령이 쓰는 원본 읽기·만들기·진단 알림·결과 파일 쓰기(`reported.js`, `diagnostics.js`), `--docs` 문서 품질 검사 실행(`docs-check.js`). 모형은 받은 원본 글을 `figure.source`로 간직한다 |
 | `src/source/` | 원본 읽기: 낱말 나누기, 문장 해석, 이름과 규칙 확인, 보기 정하기(이름 없는 보기와 기본 보기, `views-check.js`). 문법 표의 정본은 `grammar.js` |
-| `src/measure/` | 글꼴 파일로 글 폭 재기(`fonts.js`), 그림 폭 규칙(`canvas.js`), 카드의 안쪽 여백과 머리(`card.js`), 글 역할과 카드 안 글 한 줄의 자리와 폭(`texts.js`), 카드 내용 줄(`content.js`), 장식 자리(`decor.js`), 도형·표·API·클래스·큐·격자 크기(`sizes.js`, `table.js`, `class.js`, `queue.js`), 값 글자 자리(`value-slots.js`) |
-| `src/layout/` | elkjs 배치(구조, 상태, 데이터 관계)와 순서·시간·타이밍 그림 배치, 판 합치기(`panels.js`) |
-| `src/timeline/` | 시간 흐름을 시간표로 펴기(`compose.js`), 흐름 단계(`flow.js`), 값 바꾸기(`values.js`)와 값 모형 도우미(`value-texts.js`), 차트·카드 줄의 움직임 상태(`charts.js`, `rows.js`), 재생기가 읽는 표시 정보(`marks.js`, `pulse.js`), 시퀀스 구획 펴기, 이동 시간, 사라짐, 시간 눈금, 기존 사건 시각을 보존하는 재배치(`reflow.js`) |
+| `src/measure/` | 글꼴 파일로 글 폭 재기(`fonts.js`), 그림 폭 규칙(`canvas.js`), 카드의 안쪽 여백과 머리(`card.js`), 글 역할과 카드 안 글 한 줄의 자리와 폭(`texts.js`), 카드 내용 줄(`content.js`), 장식 자리(`decor.js`), 도형·테이블·API·클래스·큐 크기(`sizes.js`, `table.js`, `class.js`, `queue.js`), 값 글자 자리(`value-slots.js`) |
+| `src/layout/` | elkjs 배치(아키텍처, 카드 흐름, ERD와 클래스)와 시퀀스 배치, 판 합치기(`panels.js`) |
+| `src/timeline/` | 시간 흐름을 시간표로 펴기(`compose.js`), 흐름 단계(`flow.js`), 값 바꾸기(`values.js`)와 값 모형 도우미(`value-texts.js`), 카드 줄의 상태(`rows.js`), 재생기가 읽는 표시 정보(`marks.js`, `pulse.js`), 시퀀스 구획 펴기, 이동 시간, 사라짐, 시간 눈금, 기존 사건 시각을 보존하는 재배치(`reflow.js`) |
 | `src/flow/` | 조건과 대기의 이벤트 처리(`events.js`, `reserve.js`, `event-support.js`, `event-budget.js`)와 흐름 경로 기하(`track-geometry.js`, `track-pace.js`) |
 | `src/chip/` | 점 위에 뜨는 글 상자의 크기와 자리(`place.js`), 박자 이동 계획(`plan.js`), 겹침과 흐려짐(`clash.js`, `fade.js`), 격자 색인, 도형 이름 가림을 피하는 여유(`room.js`) |
 | `src/math/` | 빌드와 재생기가 함께 쓰는 순수 수학: 움직임 곡선(`easing.js`, `motion.js`), 이동 구간(`hop.js`), 경로(`route.js`), 최댓값·최솟값(`extremes.js`). `motion.js`와 `hop.js`는 함수 원문을 HTML에 넣는다 |
-| `src/color/` | 정식 색 이름(팔레트 계열 일곱과 회색, `tone.js`), 범주 색 순서(`palette.js`), 명도 대비(`contrast.js`) |
-| `src/format/` | 출력 숫자 서식(`numbers.js`), SVG 글자와 좌표 다듬기(`text.js`), 파일 이름을 링크 주소로 바꾸기(`href.js`), 표 열의 키 표시(`columns.js`) |
-| `src/chart/` | 차트 눈금, 숫자 표기, 차트 종류별 그리기(종류 목록은 `src/source/grammar.js`의 문법 표가 정본이다), 차트 카드와 값에 묶인 프레임(`card-frames.js`, `frames.js`, `extent.js`), 바뀐 표식의 겹침 효과(`pulse-overlay.js`), 히스토그램 구간(`bins.js`) |
+| `src/color/` | 정식 색 이름(팔레트 계열 일곱과 회색, `tone.js`), 범주 색 순서(`palette.js`) |
+| `src/format/` | 출력 숫자 서식(`numbers.js`), SVG 글자와 좌표 다듬기(`text.js`), 파일 이름을 링크 주소로 바꾸기(`href.js`), 테이블 컬럼의 키 표시(`columns.js`) |
 | `src/draw/` | 장면 조립(`figure.js`), 카드(`card.js`)와 카드 면(`surface.js`), 카드 안 글(`texts.js`), 장식과 아이콘(`decor.js`), 카드 내용(`content.js`), 연결선과 선 라벨(`connector.js`), 화살촉(`arrow.js`), 색 이름과 표현을 읽는 곳(`look.js`), 공통 CSS 가져오기(`styles.js`, `@woonyong-choi/design-tokens/styles/diagram/`에서 읽음) |
 | `src/check/` | 그림 검사(`figure.js`). 항목 목록(`items.js`)과 항목별 판정 파일. `--docs` 문서 품질 검사의 목록은 `docs-items.js`, 판정은 `docs.js`와 `docs-text.js`이고 실행은 `compile/docs-check.js` |
 | `src/animate/` | 시간표 기반 SVG 효과(keyframes와 SMIL) |
 | `src/svg/` | 스크립트 없이 움직이는 SVG와 멈춘 SVG(`output.js`의 `toSvg`) |
-| `src/html/` | HTML 재생기 문서와 목록(`output.js`의 `toHtml`, `listing.js`), 그림 틀(도구 막대 하나와 탭 줄 하나, `player-script.js`), 좁은 배치 후보(`responsive.js`) |
-| `src/player/` | 브라우저에서 도는 재생기: 시각의 순수 표본 추출(`sample.js`), 시계와 장면 들어가기와 탭 연결(`play.js`), 모습 쓰기(`stage.js`, `effects.js`, `values.js`), 글의 백틱 나누기(`rich-text.js`), 전체화면과 전체화면 안의 확대·축소·끌어 옮기기(`view.js`), 폭에 따른 배치 바꾸기(`responsive.js`), 문법 복사와 HTML 다운로드(`export.js`), 이동 곡선(`curve.js`) |
+| `src/html/` | HTML 재생기 문서와 목록(`output.js`의 `toHtml`, `listing.js`), 그림 틀(도구 막대 하나와 탭 줄 하나, `player-script.js`) |
+| `src/player/` | 브라우저에서 도는 재생기: 시각의 순수 표본 추출(`sample.js`), 시계와 장면 들어가기와 탭 연결(`play.js`), 모습 쓰기(`stage.js`, `effects.js`, `values.js`), 글의 백틱 나누기(`rich-text.js`), 전체화면과 전체화면 안의 확대·축소·끌어 옮기기(`view.js`), 문법 복사와 HTML 다운로드(`export.js`), 이동 곡선(`curve.js`) |
 | `src/markdown/` | `md` 명령: 마크다운 블록 찾기와 이미지 줄 넣기(`find.js`, 파일을 다루지 않음), 실행(`run.js`), 원본 접기(`fold.js`), 둘째 장면부터를 `<details>`로 두는 장면 구간(`scenes.js`), CommonMark 블록 구조를 한 번 따라가는 걸음(`tags.js`)과 블록 판별(`blocks.js`), 만든 SVG의 소유 표시(`diagramplay md v2`, `owner.js`), 출력 폴더 잠금(`lock.js`), 파일 쓰기(임시 파일과 rename, 실패 때 되돌리기, `write.js`) |
-| `src/import/` | 다른 도구 원본(Mermaid, DBML, D2, draw.io, Excalidraw) 읽기와 `.diagramplay` 글 쓰기, `import` 명령 실행(`run.js`) |
+| `src/import/` | 다른 도구 원본(Mermaid 흐름·시퀀스·ERD·클래스와 DBML) 읽기와 `.diagramplay` 글 쓰기, `import` 명령 실행(`run.js`) |
 | `src/icons/` | 공통 카탈로그 읽기와 사용자 SVG 검증. 내장 도형과 조작 아이콘은 design-tokens 정본 |
 | `action.yml`, `.github/workflows/` | GitHub Action(composite), CI, `v*` 태그 배포 |
-| `examples/` | 표현마다 하나인 예제 원본(`icons/`, `data/`는 예제가 읽는 자료). 결과는 `npm run catalog`가 `.local/examples/`에 생성 |
+| `examples/` | 표현마다 하나인 예제 원본(`icons/`는 예제가 읽는 자료). 결과는 `npm run catalog`가 `.local/examples/`에 생성 |
 | `scripts/` | 문법·검사 문서, 예제·그림 생성, 설치 검사, 크기·비용 참고 검사 |
 | `test/` | 공개 진입점과 공통 부품의 계약 시험, 브라우저 시험(`browser/`, 시험 원본 `browser/fixtures/`) |
 | `docs/` | 설계 문서, 그림 종류별 레퍼런스(`reference/`), README 그림(`assets/showcase/`) |
@@ -66,7 +65,7 @@ npm run check:package -- /absolute/new-consumer-path
 
 ## 규칙
 
-- 목적은 기술 블로그와 문서의 아키텍처·순서·흐름·상태·자료구조·표·다양한 그래프와 데이터를 같은 시각 언어로 설명하는 것이다. 이 표현들은 핵심 범위다. 기능은 구체적인 문서 표현 용도와 공통 모형·부품의 재사용 여부로 판단하고, 기능 수만을 이유로 핵심 범위를 축소하지 않는다.
+- 목적은 흐름이 실행되는 아키텍처·카드 흐름·시퀀스와 ERD·클래스 다이어그램이다. 테이블·컬럼·PK/FK·복합 키·관계·클래스·인터페이스·API 필드는 유지한다. 통계 차트·시계열 플롯·측정 추적·타이밍 축·비트 격자를 범위에 다시 추가하지 않는다. 카드의 설명·값·큐·조건·상태 변화와 트래픽은 핵심이다.
 - 표현은 풍부하게 유지하면서 작성은 단순해야 한다. 기본값으로 가능한 그림에 불필요한 옵션·보기·장면 선언을 요구하지 않고, 같은 의미는 같은 문법을 사용한다. D2 같은 문서 그림 도구와 비교할 때 기능 개수보다 실제 글에 넣는 최소 예제의 작성량·읽기 쉬움·수정 범위를 대조한다.
 - 애니메이션과 트래픽 효과는 필수 기능이다. 장면별 재생·반복, 동시 이동, 값 변화와 강조를 기능 축소 후보로 취급하지 않는다. 공통 시간표·문법·부품으로 자연스럽게 표현되는지 검수한다.
 - DiagramPlay와 homepage는 design-tokens의 같은 토큰·CSS·아이콘·공통 구성 요소·동작을 상속한다. 화면 표현값의 하드코딩과 요소별 마크업·CSS·상태 처리의 재구현은 금지다. 같은 토큰을 읽는 복사 구현도 허용하지 않는다.

@@ -2,12 +2,11 @@
 // 부품 모양(색, 두께)은 components.test.js 한 곳에서 보고, 여기서는 글이 어떻게 읽히고 어디에 놓이는지만 본다. 모두 공개 진입점(buildFigure, toSvg)과 코드가 실제로 쓰는 부품 함수로 본다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PAD, WIDTH } from '../src/chart/metrics.js';
 import { checkFits } from '../src/check/fit.js';
+import { centerBaseline } from '../src/format/text.js';
 import { CONTENT } from '../src/measure/content.js';
 import { measure, wrap } from '../src/measure/fonts.js';
 import { STYLE, textSpan } from '../src/measure/texts.js';
-import { centerBaseline } from '../src/format/text.js';
 import { build, diagramplay, findAll, findOne, num, parseMarkup, reject, textContent, toSvg } from './support.js';
 
 const TICK = '`';
@@ -178,26 +177,6 @@ const GRAPH_CHAINS = {
   'columns of different widths': ['db', 'a-service-with-a-very-long-name', 'cache', 'an-even-longer-service-name-than-the-one-before-it'],
 };
 
-test('T13 a relation graph row widens every card kind to fit its columns: no name is cut, columns do not overlap and the build fit check passes', async () => {
-  // 엄격한 빌드는 그림 검사(글이 카드 밖에 나가면 internal 오류)를 거치므로 빌드가 끝나는 것이 검사 통과다.
-  for (const [kind, card] of Object.entries(GRAPH_CARDS)) {
-    for (const [chain, names] of Object.entries(GRAPH_CHAINS)) {
-      const label = `${kind}, ${chain}`;
-      const graph = names.slice(1).map((name, i) => `${names[i]} -> ${name}`).join('; ');
-      const { result, dom } = await rendered(diagramplay(`${card}\nview graph down\nscene "s" mode=static\n  show a graph "${graph}"`));
-      const item = result.scene.items.find((it) => it.id === 'a');
-      const [{ graph: laid }] = item.content.layouts.at(-1).rows;
-      assert.deepEqual(laid.nodes.map((n) => n.name), names, `${label}: every name is placed`);
-      laid.nodes.forEach((n, i) => {
-        assert.ok(n.w >= measure(n.name, STYLE.mini.size, STYLE.mini.face), `${label}: "${n.name}" is not cut`);
-        assert.ok(laid.at.x + n.x >= 0 && laid.at.x + n.x + n.w <= item.content.w + EPS, `${label}: "${n.name}" is inside the content face`);
-        if (i) assert.ok(n.x >= laid.nodes[i - 1].x + laid.nodes[i - 1].w, `${label}: "${n.name}" does not overlap the column before it`);
-      });
-      assert.deepEqual(textsWith(dom, 'mini').map((n) => textContent(n)), names, `${label}: every name is drawn`);
-    }
-  }
-});
-
 // ---- 머리 ----
 
 const HEADS = {
@@ -272,72 +251,4 @@ test('T9 a word without spaces breaks after path and identifier separators befor
   assert.ok(lines.length > 1 && lines.every((line) => measure(line, style.size, style.face) <= 120 + 0.5));
   assert.ok(lines.slice(0, -1).every((line) => line.endsWith('_')), JSON.stringify(lines));
   assert.deepEqual(wrap('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 100, style).join(''), 'a'.repeat(52));
-});
-
-// ---- 제목 줄 ----
-
-test('T10 a chart title and subtitle are the card title and subtitle: same roles and line heights, aligned left with the plot', async () => {
-  const { dom } = await rendered(diagramplay(`
-    box a "Card title" "Card subtitle"
-    chart c "Chart title" bar "Chart subtitle" {
-      x "x(u)"
-      series v "v"
-      row "A" v=40
-      row "B" v=20
-    }
-  `));
-  const title = textsWith(dom, 'label');
-  const sub = textsWith(dom, 'sub');
-  const [cardTitle, chartTitle] = ['Card title', 'Chart title'].map((name) => title.find((n) => textContent(n) === name));
-  const [cardSub, chartSub] = ['Card subtitle', 'Chart subtitle'].map((name) => sub.find((n) => textContent(n) === name));
-  assert.ok(cardTitle && chartTitle && cardSub && chartSub, 'the card and the chart use the same two roles');
-  assert.equal(chartTitle.attrs['text-anchor'], undefined, 'left aligned');
-  // 제목 줄 가운데에서 부제 줄 가운데까지는 두 줄 높이의 절반씩이다. 카드가 같은 두 줄을 쌓는 간격과 같다.
-  const centers = (titleNode, subNode) => [centerBaseline(0, STYLE.label.size), centerBaseline(0, STYLE.sub.size)].map((base, k) => num([titleNode, subNode][k], 'y') - base);
-  const [chartTitleCenter, chartSubCenter] = centers(chartTitle, chartSub);
-  const [cardTitleCenter, cardSubCenter] = centers(cardTitle, cardSub);
-  assert.ok(Math.abs(chartSubCenter - chartTitleCenter - (STYLE.label.line + STYLE.sub.line) / 2) < EPS, 'the chart stacks the title and the subtitle by their line heights');
-  assert.ok(Math.abs(cardSubCenter - cardTitleCenter - (STYLE.label.line + STYLE.sub.line) / 2) < EPS, 'the card stacks them the same way');
-  assert.equal(findAll(dom, (n) => /chart-(title|sub)\b/.test(n.attrs.class ?? '')).length, 0, 'no chart-only header roles');
-});
-
-test('T11 a long chart or trace title wraps at the default width: it keeps every character and no header line passes the figure width', async () => {
-  const titles = [
-    'Quarterly revenue by region and channel with a deliberately long title that needs more than one line at the default width',
-    'GET /v1/orders/{id}/payments/authorizations/capture-and-settle-with-an-unusually-long-trace-name that also has several words',
-  ];
-  const { dom } = await rendered(diagramplay(`
-    box a "A"
-    chart c "${titles[0]}" bar "Short subtitle" {
-      x "x(u)"
-      series v "v"
-      row "A" v=40
-    }
-    trace t "${titles[1]}" unit=ms {
-      span s "S" lane=a at=0 dur=10
-    }
-    view graph down "graph"
-    view time "time" {
-      t
-    }
-  `));
-  // 제목은 왼쪽 여백(PAD)에서 시작하는 label 글이다. 카드 이름 "A"는 가운데 맞춤이라 빠진다. 차트 머리가 앞, 시간 머리가 뒤다.
-  const headers = textsWith(dom, 'label').filter((n) => num(n, 'x') === PAD && n.attrs['text-anchor'] === undefined);
-  const squash = (text) => text.replace(/\s/g, '');
-  let from = 0;
-  for (const title of titles) {
-    let joined = '';
-    const own = [];
-    while (joined.length < squash(title).length && from < headers.length) {
-      own.push(headers[from]);
-      joined += squash(textContent(headers[from++]));
-    }
-    assert.equal(joined, squash(title), 'every character is kept, in order');
-    assert.ok(own.length > 1, `"${title.slice(0, 20)}" is split into lines`);
-  }
-  assert.equal(from, headers.length, 'no other title line');
-  for (const node of headers) {
-    const right = PAD + measure(textContent(node), STYLE.label.size, STYLE.label.face);
-    assert.ok(right <= WIDTH - PAD + EPS, `"${textContent(node).slice(0, 20)}" ends at ${right}, inside the figure width ${WIDTH}`);
-  }
 });

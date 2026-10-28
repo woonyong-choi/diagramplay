@@ -1,19 +1,11 @@
 diagramplay
-title "Saturn"
-
-person user "Developer"
-group system "Saturn" direction=down {
-  box tui "Screen"
-  box engine "Engine"
-}
-external codex "Codex CLI"
-
-user -> tui "input"
-tui -> engine "JSON-RPC"
-engine -> codex "app-server request"
-
-scene "Chat"
-  user -> tui "question"
-  show tui "why does this test fail?" tag="you"
-  tui -> engine
-  engine -> codex "turn" time=3s
+title "원본에서 실행되는 그림까지"
+box source "텍스트 원본"
+box build "배치와 시간표"
+queue output "SVG · HTML" slots=3
+value count "생성" on=build from=0
+source -> build "컴파일"
+build -> output "그리기"
+scene "흐름" mode=loop
+  source -> build set="count+1"
+  build -> output

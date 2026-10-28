@@ -1,14 +1,12 @@
 // 도형 하나의 윤곽을 그린다. 원통, 갈림길(둥근 마름모), 원, 상태 점은 모양 자체가 뜻이라 여기서 따로 그리고, 나머지는 모두 카드(draw/card.js)다.
 // 이름과 내용은 draw/figure.js가 그린다.
 import { roundCoord as r } from '../format/text.js';
-import { tokens } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawCard } from './card.js';
 import { CORNER, surfaceOutline } from './surface.js';
 
 // 윤곽 모양. 채우기와 선은 부르는 쪽이 정한다. 카드 종류는 모두 카드 면(surfaceOutline)이다.
 const geometry = {
   store: (it) => `<path d="M${r(it.x)} ${r(it.y)} a ${r(it.w / 2)} ${it.marginTop} 0 0 1 ${r(it.w)} 0 v ${r(it.h)} a ${r(it.w / 2)} ${it.marginTop} 0 0 1 ${r(-it.w)} 0 z"`,
-  circle: (it) => `<circle cx="${r(it.x + it.w / 2)}" cy="${r(it.y + it.h / 2)}" r="${r(it.w / 2)}"`,
   decision: (it) => `<path d="${roundedDiamond(it, CORNER.outer)}"`,
 };
 
@@ -68,12 +66,6 @@ export function drawShape(it, stroke, paint) {
       return `${geometry.store(it)} ${stroke}/><path d="M${r(x)} ${r(y)} a ${r(w / 2)} ${it.marginTop} 0 0 0 ${r(w)} 0" fill="none" ${stroke}/>`;
     case 'decision':
       return `${geometry.decision(it)} ${stroke}/>`;
-    case 'circle':
-      return `${geometry.circle(it)} ${stroke}/>`;
-    case 'start':
-      return `<circle cx="${r(cx)}" cy="${r(y + h / 2)}" r="${r(w / 2)}" fill="${tokens.color.ink}" ${stroke}/>`;
-    case 'final':
-      return `<circle cx="${r(cx)}" cy="${r(y + h / 2)}" r="${r(w / 2)}" fill="none" ${stroke}/><circle cx="${r(cx)}" cy="${r(y + h / 2)}" r="${r(w / 4)}" fill="${tokens.color.ink}"/>`;
     default:
       return drawCard(it, stroke, paint);
   }

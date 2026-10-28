@@ -4,9 +4,9 @@ import { readGroup } from './group.js';
 import { checkId, parentFor, rejectName, skipBlock } from './names.js';
 import { readNode } from './node.js';
 import { readOptions } from './options.js';
+import { didYouMean } from './problems.js';
 import { readForeignKeyOptions, readTableKey } from './table-keys.js';
 import { COLUMN_PATTERN, FK_PATTERN, ID_PATTERN, TABLE_PATTERN } from './words.js';
-import { didYouMean } from './problems.js';
 
 // 테이블 열 줄이 받는 낱말과 키
 const COLUMN_WORDS = [...Object.keys(optionsOf('column')), 'ondelete', 'from', 'to'];
@@ -23,29 +23,8 @@ const OPEN_FORM = (word, id) => `write ${word} as: ${word} ${id} "name" {`;
 export function readDeclaration(statement, ctx) {
   const word = statement.tokens[0].value;
   if (word === 'group') readGroup(statement, ctx);
-  else if (word === 'start' || word === 'final') readStateMark(statement, ctx);
   else if (STATEMENTS[word]?.node) readNode(statement, ctx);
   else ctx.problems.error(statement.line, `unknown statement "${word}"`);
-}
-
-// cost: time O(f), heap O(1), stack O(1)
-// vars: f = 끝 상태 수
-// basis: estimate
-// `start id`, `final id`
-function readStateMark({ tokens, line }, ctx) {
-  const [head, id, extra] = tokens;
-  if (id?.type !== 'word' || extra) {
-    ctx.problems.error(line, `write ${head.value} as: ${head.value} state-id`);
-    return;
-  }
-  if (head.value === 'start') {
-    if (ctx.figure.start) ctx.problems.error(line, `there is already a start state "${ctx.figure.start.id}" (line ${ctx.figure.start.line})`);
-    else ctx.figure.start = { id: id.value, line };
-  } else {
-    const known = ctx.figure.finals.find((f) => f.id === id.value);
-    if (known) ctx.problems.error(line, `"${id.value}" is already a final state (line ${known.line})`);
-    else ctx.figure.finals.push({ id: id.value, line });
-  }
 }
 
 // cost: time O(1), heap O(1), stack O(1)

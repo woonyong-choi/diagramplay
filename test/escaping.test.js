@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { build, diagramplay, descendants, findAll, lineOf, parseMarkup, reject, textContent, textsOf, toHtml, toSvg, workspace } from './support.js';
+import { build, descendants, diagramplay, findAll, lineOf, parseMarkup, reject, textContent, textsOf, toHtml, toSvg, workspace } from './support.js';
 
 const HOSTILE = '<b>&"\'--]]>';
 const WORD = "<b>'--"; // 따옴표 밖에 쓰는 낱말 자리용(공백, 큰따옴표, 문장 사이 &가 없다)
@@ -34,22 +34,8 @@ const everywhere = (text, word = text) => {
       field f ${q('ty')}
       method m ${quote(`(): ${text}`)}
     }
-    grid gr ${q('Gr')} cols=2 {
-      item i ${q('It')}
-    }
     queue q ${q('Q')} slots=2
     value n ${q('V')} on=a from=${word}
-    chart c ${q('C')} bar ${q('sub')} {
-      x ${quote(`X ${text}(u)`)}
-      series s ${q('Se')}
-      row ${q('R')} s=1
-      row ${q('M')} s=-
-      rule 2 ${q('Ru')}
-      missing ${q('Mi')}
-    }
-    trace tr ${q('Tr')} {
-      span sp ${q('Sp')} lane=a at=0 dur=1
-    }
     u -> a ${q('E')}
     a -> b ${q('F')}
     a -> q
@@ -83,7 +69,7 @@ test('I1 hostile text in any slot keeps the SVG well-formed XML and shows the te
   }
   const shownIn = async (scene) => textsOf(parseMarkup(await toSvg(result, { scene, isStatic: true }))).join(' ').replace(/\s+/g, ' ');
   const [first, second] = [await shownIn(0), await shownIn(1)];
-  for (const [shown, slots] of [[first, ['U', 'A', 'B', 'G', 'K', 'Gr', 'It', 'Q', 'C', 'R', 'Se', 'E', 'F', 'Sh', 'No', 'Mv']], [second, ['Fr', 'Br', 'In']]]) {
+  for (const [shown, slots] of [[first, ['U', 'A', 'B', 'G', 'K', 'Ta', 'Q', 'E', 'F', 'Sh', 'No', 'Mv']], [second, ['Fr', 'Br', 'In']]]) {
     for (const slot of slots) assert.ok(shown.includes(`${slot} ${HOSTILE}`), `${slot} ${HOSTILE} not found; text near it: ${shown.match(new RegExp(`${slot}[^]{0,50}`))?.[0]}`);
   }
   const title = findAll(parseMarkup(await toSvg(result, { isStatic: true })), (n) => n.tag === 'title').map(textContent);

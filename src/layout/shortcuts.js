@@ -1,8 +1,8 @@
 // 배치 좌표와 연결점은 그대로 두고 장애물을 비킬 필요가 없는 우회만 없앤다.
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { headBox, placeTitles } from './titles.js';
 import { settleLabels } from './labels.js';
 import { CROWD, SAME_POINT } from './model.js';
+import { headBox, placeTitles } from './titles.js';
 
 // cost: time O(e·p²·(s + g + e·p) + e·check), heap O(s + g + e·p), stack O(1)
 // vars: e = 선 수, p = 경로 점 수, s = 도형 수, g = 그룹 수, check = 기하 검사 시간
@@ -12,7 +12,7 @@ export function shortcutScene(scene, model, isSound, figure) {
   let best = scene;
   for (let index = 0; index < best.edges.length; index++) {
     const edge = best.edges[index];
-    if (edge.from === edge.to || edge.endpointLabels?.length || edge.fromCell || edge.toCell || edge.fromColumns || edge.toColumns || edge.points.length < 4) continue;
+    if (edge.from === edge.to || edge.endpointLabels?.length || edge.fromColumns || edge.toColumns || edge.points.length < 4) continue;
     const allowed = new Set();
     for (const end of [edge.from, edge.to]) {
       let parent = model.nodes.get(end)?.parent;

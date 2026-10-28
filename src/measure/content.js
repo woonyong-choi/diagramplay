@@ -1,15 +1,14 @@
 // 카드 안에 보이는 내용(`show`와 값 줄)의 크기와 글 자리. 줄마다 태그, 본문, 표시, 값 자리를 한 번 놓고 모든 글을 카드 머리와 같은 text(measure/texts.js)로 담는다.
 // 그리는 쪽(draw/content.js, draw/values.js)과 그림 검사(check/fit.js)는 이 글 자리를 그대로 읽고 줄 나누기, 들여쓰기, 흐림 자리, 값 자리를 다시 계산하지 않는다.
 // 좌표는 내용 면 왼쪽 위가 원점이다. 내용 면의 도형 안 자리는 contentBox가 정한다.
-import { plainText } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { plainText } from '../format/text.js';
 import { indicatorText } from '../source/indicators.js';
-import { queueSlots, slotLayout } from './queue.js';
-import { widestText } from './value-slots.js';
-import { measure, wrap } from './fonts.js';
-import { layoutMiniGraph, miniGraphWidth } from './minigraph.js';
-import { STYLE, textAt } from './texts.js';
 import { bodyOf } from './decor.js';
+import { measure, wrap } from './fonts.js';
+import { queueSlots, slotLayout } from './queue.js';
+import { STYLE, textAt } from './texts.js';
+import { widestText } from './value-slots.js';
 
 const SPACE = values.spacing;
 
@@ -38,9 +37,7 @@ const rowBody = (row) => row.text + (row.meta !== undefined ? ` · ${row.meta}` 
  */
 export function contentMinWidth(contents) {
   if (!contents.length) return 0;
-  const graphs = contents.flatMap((rows) => rows.filter((row) => row.graph).map((row) => miniGraphWidth(row.graph) + (CONTENT.side + CONTENT.margin) * 2));
-  const charts = contents.flatMap((rows) => rows.filter((row) => row.chart).map((row) => row.chart.width + CONTENT.margin * 2));
-  return Math.max(values.spacing.figure.node["card-width"], ...graphs, ...charts);
+  return Math.max(values.spacing.figure.node["card-width"]);
 }
 
 // cost: time O(k·r·n²), heap O(k·r), stack O(1)
@@ -65,19 +62,11 @@ function layoutContent(rows, width) {
   if (!rows.length) return { rows: [], height: STYLE.row.line + CONTENT.pad * 2 };
   let top = CONTENT.pad;
   const laid = rows.map((row) => {
-    const placed = row.chart ? { row, id: row.chartId, chart: row.chart, top, height: row.chart.height, texts: [] } : row.graph ? placeGraph(row, { width, top }) : placeRow(row, { width, top });
+    const placed = placeRow(row, { width, top });
     top += placed.height + CONTENT.gap;
     return placed;
   });
   return { rows: laid, height: top - CONTENT.gap + CONTENT.pad };
-}
-
-// 관계 그래프 줄. 이름 글은 text이고, 선과 이름 알약의 사각형은 그래프 왼쪽 위(at)가 원점이다.
-function placeGraph(row, { width, top }) {
-  const graph = layoutMiniGraph(row.graph, width - CONTENT.side * 2);
-  const at = { x: CONTENT.side, y: top };
-  const texts = graph.nodes.map((n) => textAt(n.isLit ? 'mini on' : 'mini', n.name, STYLE.mini, { x: at.x + n.x + n.w / 2, center: at.y + n.y + n.h / 2, anchor: 'middle' }));
-  return { row, top, height: graph.height, texts, graph: { ...graph, at } };
 }
 
 // cost: time O(n²), heap O(n), stack O(1)

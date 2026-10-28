@@ -1,23 +1,22 @@
 // 그림 검사 항목 목록. 번호, 진단 code, 등급, 설명은 여기 한 곳에 선언하고, 판정 함수는 항목 파일에 따로 둔다.
 // docs/design/figure-check.md의 "검사 항목" 표가 이 목록과 같아야 하고, 어긋나면 테스트가 실패한다. 표는 `npm run checkdoc`으로 다시 쓴다.
-import { checkEnds, checkCrowding, checkThrough } from './edges.js';
-import { checkChartFits, checkFits } from './fit.js';
+import { checkCrowding, checkEnds, checkThrough } from './edges.js';
+import { checkFits } from './fit.js';
 import { checkFlow } from './flow.js';
 import { checkChips } from './moving.js';
 import { checkNotes } from './notes.js';
-import { checkChartLabels, checkLabels, checkNodes, checkTitleLines } from './overlap.js';
+import { checkLabels, checkNodes, checkTitleLines } from './overlap.js';
 import { checkAspect, checkReadable } from './proportion.js';
 
 /**
- * 항목마다 { number, code, severity, title, criterion, judge?, judgeChart?, stage }.
+ * 항목마다 { number, code, severity, title, criterion, judge?, stage }.
  * severity는 이 항목이 내는 등급 목록('error', 'warning')이다.
  * stage는 판정하는 때다. 'scene'은 배치가 끝난 장면, 'source'는 원본을 읽는 때, 'docs'는 문서 폭을 가정하는 --docs 검사다.
- * judgeChart는 차트에 쓰는 판정이다. 문서의 보기 구성에 맞지 않는 판정은 judge 안에서 건너뛴다.
  * judge는 (context, problems)를 받는다. context는 { figure, scene, timeline, boxes, edges, pills, titles, family }다.
  */
 export const CHECKS = [
-  { number: 1, code: 'check-1', severity: ['error'], stage: 'scene', judge: checkFits, judgeChart: checkChartFits, title: '글이 도형, 카드, 알약, 글 상자, 차트 이름 칸 안에 들어간다', criterion: '잰 글 폭과 줄 수가 칸의 안쪽 크기 이하' },
-  { number: 2, code: 'check-2', severity: ['error'], stage: 'scene', judge: checkLabels, judgeChart: checkChartLabels, title: '글끼리 겹치지 않는다', criterion: '선 라벨, 그룹 제목, 도형 사각형(이름과 카드를 품음)끼리 겹친 넓이 0(서로 다른 장면에서만 보이는 선 라벨끼리는 함께 보이지 않아 견주지 않는다). 단계별 도형 상태 알약은 자기 도형을 뺀 도형 사각형(이름과 카드를 품음), 선 라벨, 그룹 제목과 겹친 넓이 0. 산점도 점 이름은 [차트](charts.md)가 위아래와 좌우로 비켜 놓은 뒤에도 서로 겹친 넓이 0' },
+  { number: 1, code: 'check-1', severity: ['error'], stage: 'scene', judge: checkFits, title: '글이 도형, 카드, 알약, 글 상자, 차트 이름 칸 안에 들어간다', criterion: '잰 글 폭과 줄 수가 칸의 안쪽 크기 이하' },
+  { number: 2, code: 'check-2', severity: ['error'], stage: 'scene', judge: checkLabels, title: '글끼리 겹치지 않는다', criterion: '선 라벨, 그룹 제목, 도형 사각형(이름과 카드를 품음)끼리 겹친 넓이 0(서로 다른 장면에서만 보이는 선 라벨끼리는 함께 보이지 않아 견주지 않는다). 단계별 도형 상태 알약은 자기 도형을 뺀 도형 사각형(이름과 카드를 품음), 선 라벨, 그룹 제목과 겹친 넓이 0' },
   { number: 3, code: 'check-3', severity: ['error'], stage: 'scene', judge: checkThrough, title: '선이 끝 도형이 아닌 도형과 격자 칸을 지나지 않는다', criterion: '경로 선분이 다른 도형과 그룹 사각형 안쪽을 지나지 않는다. 선 끝이거나 선 끝을 품은 그룹(그 선이 드나드는 그룹)은 제외. 끝 격자 안에서도 어느 칸(빈 자리 제외)의 안쪽도 지나지 않는다' },
   { number: 4, code: 'check-4', severity: ['error'], stage: 'scene', judge: checkEnds, title: '선 끝이 연결점 규칙 자리에 있다', criterion: '[배치](layout.md)의 도형별 연결점 규칙과 0.5 이내로 일치. 격자 칸 끝은 그 칸의 테두리' },
   { number: 5, code: 'check-5', severity: ['error'], stage: 'scene', judge: checkCrowding, title: '나란한 두 선이 붙지 않는다', criterion: '다른 두 선의 나란한 선분 사이가 토큰 `spacing.1-25` 이상. 같은 도형에서 함께 나가거나 함께 들어오는 두 선은 그 도형 쪽 끝 선분(경계에서 첫 꺾임까지)을 보지 않는다. 서로 다른 장면에서만 보이는 두 선(순서 그림 메시지)은 함께 보이지 않아 견주지 않는다' },

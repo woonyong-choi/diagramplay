@@ -17,7 +17,7 @@ const USAGE = [
   '  diagramplay check <file.diagramplay ...> [--strict] [--docs] [--budget name=value ...] [--json]',
   '  diagramplay gallery <dir> [--out dir] [--title "text"] [--strict] [--budget name=value ...]',
   '  diagramplay md <file.md ...> [--check] [--out-dir dir] [--fold [--fold-title "text"] | --unfold] [--static] [--scene n|label] [--strict] [--docs] [--budget name=value ...] [--json]',
-  '  diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <file|-> [--out file.diagramplay] [--json]',
+  '  diagramplay import [mermaid|dbml] <file|-> [--out file.diagramplay] [--json]',
   `budget names: ${BUDGET_NAMES.join(', ')}`,
 ].join('\n');
 // gallery가 받는 옵션. --html은 gallery가 늘 HTML을 쓰므로 받기만 한다.
@@ -242,7 +242,7 @@ async function writeGallery(args) {
 function describe(figure, source) {
   const title = figure.title ?? /^[\t ]*#\s*(.+)$/m.exec(source)?.[1] ?? '';
   const strategies = [...new Set(figure.views.map((v) => v.strategy))];
-  return { title, kind: strategies.join('+'), isChart: strategies.length === 1 && strategies[0] === 'plot' };
+  return { title, kind: strategies.join('+') };
 }
 
 // cost: time O(d), heap O(n), stack O(1), io 1

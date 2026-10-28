@@ -37,8 +37,6 @@ function graphFigure(figure, view) {
     groups: figure.groups.filter((g) => groups.has(g.id)),
     edges: view.edgeIds.map((i) => ({ ...figure.edges[i], docEdge: i })),
     edgeMap: view.edgeIds,
-    start: figure.start && cards.has(figure.start.id) ? figure.start : undefined,
-    finals: figure.finals.filter((f) => cards.has(f.id)),
     iconSets: figure.iconSets,
     values: figure.values,
     rejectedNames: figure.rejectedNames,

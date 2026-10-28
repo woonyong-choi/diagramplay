@@ -1,22 +1,18 @@
 // Mermaid 원본 읽기. 머리말(frontmatter), 주석, 첫 줄의 그림 종류를 읽고 종류별 읽기에 넘긴다(docs/design/import.md Mermaid).
-import { FAIL, skip, textOf } from './model.js';
 import { readClass } from './mermaid-class.js';
-import { readFlowchart } from './mermaid-flow.js';
 import { readEr } from './mermaid-er.js';
+import { readFlowchart } from './mermaid-flow.js';
 import { readSequence } from './mermaid-sequence.js';
-import { readState } from './mermaid-state.js';
-import { decimal, unquote } from './names.js';
+import { FAIL, skip, textOf } from './model.js';
+import { unquote } from './names.js';
 
 // 그림 종류 낱말 → 읽기. flowchart와 graph는 같은 순서도다.
 const READERS = {
   flowchart: readFlowchart,
   graph: readFlowchart,
   sequenceDiagram: readSequence,
-  stateDiagram: readState,
-  'stateDiagram-v2': readState,
   erDiagram: readEr,
   classDiagram: readClass,
-  pie: readPie,
 };
 
 // cost: time O(n), heap O(n), stack O(1)
@@ -33,7 +29,7 @@ export function readMermaid(text, model) {
   const word = head.text.split(/\s+/)[0];
   const reader = Object.hasOwn(READERS, word) ? READERS[word] : undefined;
   if (!reader) {
-    model.problems.error(head.line, `the Mermaid diagram "${word}" is not imported. Supported: flowchart, graph, sequenceDiagram, stateDiagram-v2, erDiagram, classDiagram, pie`, { code: FAIL });
+    model.problems.error(head.line, `the Mermaid diagram "${word}" is not imported. Supported: flowchart, graph, sequenceDiagram, erDiagram, classDiagram`, { code: FAIL });
     return;
   }
   reader({ head, lines }, model);
@@ -75,29 +71,4 @@ function readFrontmatter(lines, model) {
     if (pair?.[1] === 'title' && pair[2]) model.title = textOf(model, unquote(pair[2]), i + 2);
     else skip(model, i + 2, `the front matter "${pair?.[1] ?? line.trim()}" is not imported. DiagramPlay reads only title`);
   }
-}
-
-// cost: time O(r), heap O(r), stack O(1)
-// vars: r = 조각 수
-// basis: estimate
-// 원 차트: `pie [showData] [title 글]`, `title 글`, `"이름" : 값`. 값 표시(showData)는 DiagramPlay 원 차트가 늘 하므로 그대로다.
-function readPie({ head, lines }, model) {
-  const titled = /^pie\b(?:\s+showData)?(?:\s+title\s+(.+))?$/.exec(head.text);
-  const chart = { kind: 'pie', title: titled?.[1] ? textOf(model, titled[1], head.line) : undefined, rows: [], line: head.line };
-  for (const { text, line } of lines) {
-    const title = /^title\s+(.+)$/.exec(text);
-    const row = /^("(?:[^"]*)"|'(?:[^']*)')\s*:\s*(\S+)$/.exec(text);
-    if (title) chart.title = textOf(model, title[1], line);
-    else if (text === 'showData') continue;
-    else if (row && decimal(row[2]) !== undefined && Number(row[2]) > 0) chart.rows.push({ label: textOf(model, unquote(row[1]), line) || `row ${chart.rows.length + 1}`, value: decimal(row[2]), line });
-    else if (row) skip(model, line, `the slice value "${row[2]}" is not imported. A pie slice is a number above 0`);
-    else if (/^acc(Title|Descr)\b/.test(text)) skip(model, line, 'the accessibility title or description is not imported');
-    else skip(model, line, `"${text}" is not imported. A pie line is "name" : value`);
-  }
-  if (!chart.rows.length) {
-    model.problems.error(head.line, 'the pie has no slices to import', { code: FAIL });
-    return;
-  }
-  chart.title ??= model.title ?? 'pie';
-  model.chart = chart;
 }

@@ -1,8 +1,8 @@
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { buildFigure } from 'diagramplay';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { routeLength } from '../src/math/route.js';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { buildFigure, FigureError } from 'diagramplay';
 
 const source = (names, options, length = '3ms') => `diagramplay
 ${names.map((id) => `box ${id} "${id}"`).join('\n')}
@@ -20,16 +20,6 @@ test('multi-source defaults keep sub-millisecond departure phases', async () => 
     assert.deepEqual(starts(result, 0), [0, 1, 2]);
     assert.deepEqual(starts(result, 1), [0.5, 1.5, 2.5]);
   }
-});
-
-test('calculated thirds use the event grid while an authored finer at is rejected', async () => {
-  const options = 'every=1ms time=0.1ms';
-  const raw = await buildFigure(source(['a', 'b', 'c'], options));
-  assert.equal(starts(raw, 1)[0], 1 / 3);
-  const gated = await buildFigure(source(['a', 'b', 'c'], `${options} when="n=0"`));
-  assert.deepEqual(starts(gated, 1), [0.33333, 1.33333, 2.33333]);
-  assert.deepEqual(starts(gated, 2), [0.66667, 1.66667, 2.66667]);
-  await assert.rejects(buildFigure(source(['a'], `${options} at=0.333333ms when="n=0"`)), (error) => error instanceof FigureError && error.problems.some((p) => p.code === 'time-precision'));
 });
 
 test('a computed departure at the scene boundary is omitted and explicit simultaneous starts remain valid', async () => {

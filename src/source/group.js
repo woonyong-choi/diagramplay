@@ -19,8 +19,8 @@ export function readGroup({ tokens, line }, ctx) {
   if (openAt === -1) ctx.problems.error(line, 'end the group line with "{"');
   else if (openAt < rest.length - 1) ctx.problems.error(line, 'end the group line with "{" and put the group contents on the next lines');
   const found = readOptions(openAt === -1 ? rest : rest.slice(0, openAt), { scopes: ['group'], what: 'a group', line, ctx });
-  const { direction, dashed, badge, icon } = found;
-  const group = { id: id.value, label: label?.value ?? '', direction, dashed: dashed ?? false, badge, icon, ...readLook(found), parent: parentFor(id, ctx), line, hasError: openAt !== rest.length - 1 };
+  const { direction, dashed, badge, icon, boundary } = found;
+  const group = { id: id.value, label: label?.value ?? '', direction, boundary, dashed: dashed ?? false, badge, icon, ...readLook(found), parent: parentFor(id, ctx), line, hasError: openAt !== rest.length - 1 };
   ctx.figure.groups.push(group);
   ctx.groups.push(group);
 }

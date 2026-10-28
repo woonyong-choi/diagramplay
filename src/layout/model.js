@@ -1,11 +1,8 @@
 // 그림 원본을 배치 모형으로 바꾼다. 그룹 나무, 도형, 선 조각을 만든다. 선 하나는 넘는 경계마다 조각 하나가 더해진다(docs/design/layout.md).
-import { walkUp } from '../source/ancestry.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { walkUp } from '../source/ancestry.js';
 import { orderByFlow } from './order.js';
-import { isInnerEdge } from './cell-ports.js';
 import { addPort, endpoint, fanColumnPorts, orientFlowPorts } from './ports.js';
-
-const SIZE = values.spacing.figure;
 /** 가장 바깥 그룹의 내부 이름. 원본 이름은 소문자, 숫자, `-`뿐이라 `_`가 든 이 이름과 부딪히지 않는다. */
 export const ROOT = '__root';
 /** 두 좌표가 같다고 보는 거리. 배치 읽기와 그림 검사가 같은 값을 쓴다. */
@@ -25,16 +22,13 @@ export function buildModel(figure, sizes) {
     nodes.set(n.id, { ...n, size: sizes.get(n.id), ports: [], parent, direction: containers.get(parent).direction, isBracket: figure.isBracket === true });
     containers.get(parent).children.push(n.id);
   }
-  addStateMarks(figure, nodes, containers);
-  // 처음 점과 그 선은 모델 순서의 맨 앞에 둔다. 선언 순서를 따르는 배치에서 처음 점이 맨 앞(왼쪽, 위)에 오게 하기 위해서다.
-  const marks = figure.markEdges ?? [];
-  const edges = [...marks.filter((e) => e.isStart), ...figure.edges.map((e, i) => ({ ...e, index: i })), ...marks.filter((e) => !e.isStart)];
+  const edges = figure.edges.map((edge, index) => ({ ...edge, index }));
   numberBranches(edges, nodes);
   const pieces = new Map();
   for (const edge of edges) pieces.set(edge.index, splitEdge(edge, nodes, containers));
   fanColumnPorts(nodes);
   // sweep은 박자 이동 글 상자가 선 옆을 쓸고 지나는 폭 Map<선 번호, { x, y }>이다(chip/room.js). 배치 뒤 선 옆에 놓는 그룹 제목과 끝 라벨이 비킨다.
-  const model = { containers, nodes, edges, pieces, isSafe: figure.safeLayout === true, sweep: figure.chipSweep ?? new Map() };
+  const model = { containers, nodes, edges, pieces, isSafe: figure.safeLayout === true, sweep: figure.chipSweep ?? new Map(), preserveLabelPlacement: figure.preserveLabelPlacement === true };
   orderByFlow(model);
   orientFlowPorts(model);
   return model;
@@ -81,31 +75,11 @@ function directionOf(parent, containers, figure) {
   return owner ? containers.get(owner).own : figure.direction;
 }
 
-// cost: time O(f), heap O(f), stack O(1)
-// vars: f = 끝 상태 수
-// basis: estimate
-// 상태 그림의 처음 점과 끝 겹원을 도형과 선으로 더한다. 이 선은 이동 대상이 아니다.
-function addStateMarks(figure, nodes, containers) {
-  if (!figure.start && !figure.finals.length) return;
-  figure.markEdges = [];
-  // start가 없으면 처음 점과 그 선을 그리지 않는다.
-  const marks = [...(figure.start ? [{ id: '__start', shape: 'start', from: '__start', to: figure.start.id }] : []), ...figure.finals.map((f, i) => ({ id: `__final${i}`, shape: 'final', from: f.id, to: `__final${i}` }))];
-  marks.forEach((m, i) => {
-    const size = { w: SIZE.node['state-dot'], h: SIZE.node['state-dot'], marginTop: 0, marginBottom: 0 };
-    nodes.set(m.id, { id: m.id, shape: m.shape, label: '', size, ports: [], parent: ROOT, direction: figure.direction });
-    if (m.shape === 'start') containers.get(ROOT).children.unshift(m.id);
-    else containers.get(ROOT).children.push(m.id);
-    figure.markEdges.push({ from: m.from, to: m.to, label: undefined, quiet: false, dashed: false, index: `mark${i}`, isMark: true, isStart: m.shape === 'start' });
-  });
-}
-
 // cost: time O(d), heap O(d), stack O(1)
 // vars: d = 그룹 깊이
 // basis: estimate
 // 선을 두 끝의 가장 가까운 공통 그룹 안 조각과, 경계마다 연결점을 잇는 조각으로 나눈다.
 function splitEdge(edge, nodes, containers) {
-  // 같은 격자의 두 칸을 잇는 선은 격자 안 경로뿐이라 elkjs에 넘기지 않는다.
-  if (isInnerEdge(edge)) return [];
   const up = chain(edge.from, nodes, containers);
   const down = chain(edge.to, nodes, containers);
   const common = up.find((c) => down.includes(c)) ?? ROOT;

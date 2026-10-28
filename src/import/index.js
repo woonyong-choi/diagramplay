@@ -1,13 +1,11 @@
-import { readD2 } from './d2.js';
+
 import { readDbml } from './dbml.js';
-import { readDrawio } from './drawio.js';
 import { emit } from './emit.js';
-import { readExcalidraw } from './excalidraw.js';
 import { readMermaid } from './mermaid.js';
 import { FAIL, createModel } from './model.js';
 
 /** 가져오는 형식과 읽기. 형식 이름이 명령의 첫 인자다. */
-const READERS = { mermaid: readMermaid, dbml: readDbml, d2: readD2, drawio: readDrawio, excalidraw: readExcalidraw };
+const READERS = { mermaid: readMermaid, dbml: readDbml, };
 
 /** 가져올 수 있는 형식 이름 */
 export const IMPORT_FORMATS = Object.keys(READERS);
@@ -19,7 +17,7 @@ export const IMPORT_FORMATS = Object.keys(READERS);
  * 다른 도구의 원본 글을 DiagramPlay 원본 글로 옮긴다.
  * 받지 않는 문장은 건너뛰고 줄 번호가 있는 경고로 알린다(code `import-skip`). 모양이나 글을 바꿔 옮긴 문장도 경고한다(code `import-change`).
  * 형식이나 그림 종류를 모르거나 옮길 카드가 하나도 없으면 FigureError(code `import`)다.
- * @param format 'mermaid' | 'dbml' | 'd2' | 'drawio' | 'excalidraw'
+ * @param format 'mermaid' | 'dbml'
  * @param text 원본 글
  * @returns { source, warnings }. warnings는 진단 { severity, code, line, column, message }[]이고 줄은 받은 원본의 줄이다
  */
@@ -28,7 +26,7 @@ export function importDiagram(format, text) {
   const model = createModel(text);
   READERS[format](String(text), model);
   model.problems.throwIfAny();
-  if (!model.nodes.length && !model.chart) {
+  if (!model.nodes.length) {
     model.problems.error(0, `there is nothing to import. The ${format} source has no nodes`, { code: FAIL });
     model.problems.throwIfAny();
   }

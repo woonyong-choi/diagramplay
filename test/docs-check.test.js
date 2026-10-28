@@ -1,7 +1,7 @@
 // 문서 품질 검사(`--docs`)의 공개 계약 시험. docs/design/figure-quality.md 요구사항 표의 D1~D8이다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { cli, diagramplay, lineOf, snapshot, workspace } from './support.js';
+import { cli, diagramplay, snapshot, workspace } from './support.js';
 
 // cost: time O(d), heap O(d), stack O(1), io 2
 // vars: d = 진단 수
@@ -31,28 +31,6 @@ test('D1 without --docs there is no document check, and a require line is only r
   }
   const twice = run(t, diagramplay('require "가" or "나"\nrequire "나" or "가"\nbox a "가"\n'), []);
   assert.deepEqual(twice.diagnostics.map((d) => [d.code, d.severity, d.line]), [['syntax', 'warning', 3]]);
-});
-
-test('D2 require finds table columns and chart rows, passes on one alternative, and fails on the line of a missing item', (t) => {
-  const source = diagramplay(`
-    require "pull_requests"
-    require "merged_at"
-    require "401" or "주간 머지"
-    require "토큰 갱신"
-    table pull_requests "pull_requests" {
-      id bigint pk
-      merged_at timestamp
-    }
-    chart c "추이" bar {
-      x "건수(개)"
-      series v "개수"
-      row "주간 머지" v=3
-    }
-  `);
-  const result = run(t, source);
-  assert.equal(result.status, 1);
-  const found = result.diagnostics.filter((d) => d.code === 'docs-15');
-  assert.deepEqual(found.map((d) => [d.severity, d.line]), [['error', lineOf(source, 'require "토큰 갱신"')]]);
 });
 
 test('D3 a require line in a Markdown block is checked by md --docs and reported on the Markdown line', (t) => {
@@ -112,20 +90,6 @@ test('D6 width wide, groups chained like stairs, and cards with no lines', (t) =
   const loose = diagramplay('box a "가" badge="S"\nbox b "나" badge="S"\nbox c "다" badge="S"\nbox d "라" badge="S"\na -> b\n');
   assert.ok(has(t, loose, 'docs-11'));
   assert.ok(!has(t, loose.replace('a -> b\n', 'a -> b\nc -> d\n'), 'docs-11'));
-});
-
-test('D7 sequence messages and scenes, chart series, and text size in a 680px column', (t) => {
-  const sequence = (scenes) => diagramplay(`person a "가"\nbox b "나"\nbox c "다"\nview sequence {\n  a\n  b\n  c\n}\n${scenes}`);
-  const five = Array.from({ length: 5 }, (_, i) => `  a -> b "요청${i}"`).join('\n');
-  assert.ok(has(t, sequence(`scene "하나"\n${five}\n`), 'docs-12'));
-  assert.ok(!has(t, sequence('scene "하나"\n  a -> b "요청"\n  b -> c "전달"\n'), 'docs-12'));
-  assert.ok(has(t, sequence('scene "하나"\n  a -> b "요청"\nscene "둘"\n  b -> c "전달"\n'), 'docs-13'));
-  const series = (n) => diagramplay(`chart c "차트" bar {\n  x "값(개)"\n${Array.from({ length: n }, (_, i) => `  series s${i} "계열${i}"`).join('\n')}\n  row "가" ${Array.from({ length: n }, (_, i) => `s${i}=1`).join(' ')}\n}\n`);
-  assert.ok(has(t, series(8), 'docs-14'));
-  assert.ok(!has(t, series(7), 'docs-14'));
-  const people = (n) => diagramplay(`${Array.from({ length: n }, (_, i) => `box p${i} "참여자 이름${i}"`).join('\n')}\nview sequence {\n${Array.from({ length: n }, (_, i) => `  p${i}`).join('\n')}\n}\nscene "하나"\n  p0 -> p1 "요청"\n`);
-  assert.ok(has(t, people(8), 'docs-16'));
-  assert.ok(!has(t, people(3), 'docs-16'));
 });
 
 test('D8 gallery and import refuse --docs; with --strict a document warning fails and nothing is written', (t) => {

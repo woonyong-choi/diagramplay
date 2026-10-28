@@ -2,10 +2,10 @@
 // 시험은 공개 진입점(buildFigure -> toHtml)이 HTML에 싣는 재생 데이터를 읽고, HTML이 쓰는 PLAYER_SCRIPT를 격리 컨텍스트(node:vm)에 불러 실제 buildScenes와 sampleScene에 먹인다.
 // 기대값은 최소 원본의 사건(이동 시각, 값 변화, 장면 길이)에서 따로 셈한다. 비공개 기록의 모양을 굳히지 않고 보이는 의미(선이 켜졌는가, 후광이 있는가, 보일 글)만 비교한다.
 import assert from 'node:assert/strict';
-import { PLAYER_SCRIPT } from '../src/html/player-script.js';
-import { MOVE, progressAt, timeAt, paceLength, paceProgress } from '../src/math/easing.js';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { PLAYER_SCRIPT } from '../src/html/player-script.js';
+import { MOVE, paceLength, paceProgress, progressAt, timeAt } from '../src/math/easing.js';
 import { build, diagramplay, findAll, parseMarkup, textContent, toHtml } from './support.js';
 
 const CARRIED = /figurePlay\(document\.querySelector\('\.fl-figure'\), (\{.*\})\);\s*$/s;
@@ -88,7 +88,7 @@ test('Q2 static is always the last frame, once holds it from the scene length on
   const total = 1400;
   assert.deepEqual(modes.map((_, si) => doc.total(si)), [total, total, total]);
   const rest = (frame) => ({ edges: frame.edges, pulses: frame.pulses, held: frame.held, values: frame.values.filter((value) => value !== null) });
-  const last = { edges: {}, pulses: {}, held: { edges: [], lit: [], parts: [], lights: {} }, values: ['1'] };
+  const last = { edges: {}, pulses: {}, held: { edges: [], lit: [], parts: [] }, values: ['1'] };
   const first = doc.sample(2, 0);
   assert.deepEqual([first.phase, first.d, activeEdges(first), rest(first).values], ['play', 0, ['0'], ['0']]);
   for (const elapsed of [0, 700, total - 1, total, total + 1, 3 * total]) {
@@ -280,25 +280,6 @@ test('Q8 the last frame is at rest: no halo and no line pill is left over, at an
     }
   }
   assert.deepEqual(left, []);
-});
-
-
-test('grid cell values change at arrival and restore when seeking backwards', async () => {
-  const source = diagramplay(`
-    box a "A"
-    grid g "Grid" {
-      item cell "unused"
-    }
-    value cell "Current" on=g.cell from=empty
-    a -> g.cell
-    scene "change" mode=once
-      a -> g.cell time=1s set="cell=loaded"
-  `);
-  const view = await player(source);
-  assert.ok(view.sample(0, 0).values.includes('empty'));
-  assert.ok(view.sample(0, 999).values.includes('empty'));
-  assert.ok(view.sample(0, 1000).values.includes('loaded'));
-  assert.deepEqual(view.sample(0, 0), view.fresh(0, 0));
 });
 
 test('shared motion math preserves forward and inverse browser results', () => {

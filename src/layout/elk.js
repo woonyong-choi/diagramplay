@@ -1,10 +1,9 @@
 // 배치 모형을 elkjs 그래프로 바꾼다. 선택 사항 값은 모두 토큰이다(docs/design/layout.md 간격과 결정성).
-import { FIGURE_PAD } from '../measure/canvas.js';
-import { endMarks } from './end-marks.js';
-import { groupTitleWidth } from '../measure/sizes.js';
-import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { isInnerEdge } from './cell-ports.js';
+import { FIGURE_PAD } from '../measure/canvas.js';
+import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
+import { groupTitleWidth } from '../measure/sizes.js';
+import { endMarks } from './end-marks.js';
 import { ROOT } from './model.js';
 import { isBodyShape, outerBox, spreadBodyPorts } from './ports.js';
 
@@ -24,7 +23,7 @@ const TAIL_LABEL = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement
 const CENTER_LABEL = { 'elk.edgeLabels.inline': 'true', 'elk.edgeLabels.placement': 'CENTER' };
 const FLOW_SIDE = { right: 'EAST', down: 'SOUTH' };
 // 칸·열에 선 끝이 닿는 도형. 칸마다 연결점이 따로라 꼬리 라벨이 칸 옆에 쌓여 칸 열의 정렬을 흐트러뜨린다.
-const CELL_SHAPES = new Set(['table', 'api', 'grid']);
+const CELL_SHAPES = new Set(['table', 'api']);
 
 // 글 상자 간격 요구(chipRoom)를 elkjs에 알리는 보이지 않는 라벨. 선 끝 쪽에 선 옆으로 두는 라벨은 층 사이 간격을 (기본 간격 + 라벨 크기 + 라벨 간격)으로 만든다.
 const ROOM_OPTIONS = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement': 'HEAD' };
@@ -35,7 +34,7 @@ const ROOM_OPTIONS = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placeme
 /** 모형을 elkjs 그래프로 바꾼다. 그룹이 안쪽 그래프이고 선 조각은 그룹마다 모인다. */
 export function toElk(model, figure) {
   const byContainer = edgesByContainer(model, figure);
-  const selfLoops = new Set(model.edges.filter((e) => e.from === e.to && !isInnerEdge(e)).map((e) => e.from));
+  const selfLoops = new Set(model.edges.filter((e) => e.from === e.to).map((e) => e.from));
   const ctx = { model, figure, byContainer, selfLoops, alignRight: figure.aspect !== undefined && figure.groups.length > 0, isSafe: figure.safeLayout === true };
   return containerToElk(model.containers.get(ROOT), ctx);
 }
@@ -199,12 +198,9 @@ function cycleStrategy(c, ctx) {
 
 function rootOptions(c, { figure, model, isSafe }) {
   const pad = FIGURE_PAD;
-  const gridsOnly = c.children.length > 0 && c.children.every((id) => model.nodes.get(id)?.shape === 'grid');
   return {
     'elk.padding': `[top=${pad},left=${pad},bottom=${pad},right=${pad}]`,
     ...(figure.naturalPlacement ? { 'elk.layered.nodePlacement.strategy': figure.naturalPlacement } : {}),
-    // 격자끼리의 대응 관계는 선 높이보다 열의 중심을 맞춘다. 혼합 도형과 안전 배치는 기존 전략을 유지한다.
-    ...(!isSafe && gridsOnly ? { 'elk.layered.nodePlacement.strategy': 'SIMPLE' } : {}),
     ...(figure.aspect !== undefined ? wrapOptions(figure.aspect) : {}),
     // 한 층에 하나씩 놓는 후보는 이어지지 않은 도형도 같은 줄에 쌓는다. 덩어리를 따로 나란히 놓으면 좁은 목표 폭에 드는 후보가 될 수 없다.
     ...(figure.oneNodePerLayer ? { ...SINGLE_LAYER_OPTIONS, 'elk.separateConnectedComponents': 'false' } : {}),

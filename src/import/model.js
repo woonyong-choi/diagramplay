@@ -9,7 +9,6 @@ import { cleanText } from './names.js';
  * - edges: { from: { key, part? }, to: { key, part? }, label?, dashed?, head?, mult?: { from, to }, line }[]
  * - starts, finals: { key, line }[]
  * - sequence: { participants: key[], steps } | undefined. steps는 emit-sequence.js가 정한다
- * - chart: { kind, title, rows: { label, value, line }[], line } | undefined
  * @param text 가져올 원본 글. 진단의 기본 column을 구하는 데 쓴다
  */
 export function createModel(text) {
@@ -19,10 +18,7 @@ export function createModel(text) {
     groups: [],
     nodes: [],
     edges: [],
-    starts: [],
-    finals: [],
     sequence: undefined,
-    chart: undefined,
     problems: createProblems(text),
   };
 }

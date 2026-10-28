@@ -1,14 +1,15 @@
 // 구조, 상태, 데이터 관계, 순서 그림의 장면을 SVG 조각으로 조립한다. 크기와 자리는 배치와 측정이 정한 그대로 쓰고, 부품은 역할마다 한 곳에서 가져온다.
 //   도형 = 윤곽(draw/shape.js: 카드면 draw/card.js와 고유 윤곽) + 머리와 글(draw/card.js drawHead) + 내용(draw/content.js)
 //   선 = 연결선과 선 라벨(draw/connector.js), 그룹 = 경계와 제목(여기), 메모와 보기 이름(여기)
+import { values } from '@woonyong-choi/design-tokens/tokens.js';
+import { escapeXml, plainText, roundCoord as r } from '../format/text.js';
+import { contentBox } from '../measure/content.js';
 import { placeGroupHead } from '../measure/sizes.js';
 import { STYLE, textAt } from '../measure/texts.js';
-import { escapeXml, plainText, roundCoord as r } from '../format/text.js';
 import { drawHead } from './card.js';
 import { drawEdge, drawEdgeLabel } from './connector.js';
-import { crossingCuts } from './crossings.js';
-import { contentBox } from '../measure/content.js';
 import { createTones, drawContent } from './content.js';
+import { crossingCuts } from './crossings.js';
 import { drawDecor } from './decor.js';
 import { lookClass, lookOf } from './look.js';
 import { sceneTag } from './scene-tag.js';
@@ -17,9 +18,6 @@ import { drawSequenceLife } from './sequence-life.js';
 import { drawShape } from './shape.js';
 import { CORNER } from './surface.js';
 import { drawText, drawTexts } from './texts.js';
-import { drawPlot, drawTime } from './time.js';
-import { drawTiming } from './timing.js';
-import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 // 메모 종이의 접힌 모서리 크기
 const NOTE_FOLD = values.spacing["2-5"];
@@ -43,9 +41,6 @@ export function drawScene(scene, decorate, glyphs) {
   scene.items.forEach((it, i) => parts.push(drawItem(it, i, paint)));
   scene.edges.forEach((e, j) => parts.push(drawEdge(e, j, paint)));
   for (const note of scene.notes ?? []) parts.push(drawNote(note, glyphs, scene.shownSi));
-  for (const plot of scene.plots ?? []) parts.push(drawPlot(plot, glyphs));
-  for (const time of scene.times ?? []) parts.push(drawTime(time, paint));
-  for (const timing of scene.timings ?? []) parts.push(drawTiming(timing, paint));
   for (const panel of scene.panels ?? []) if (panel.label) parts.push(drawPanelLabel(panel, glyphs));
   const pills = scene.edges.flatMap((e, j) => drawEdgeLabel(e, j, paint) ?? []);
   return { body: parts.join('\n'), pills: pills.length ? `<g class="fl-pills">${pills.join('')}</g>` : '' };

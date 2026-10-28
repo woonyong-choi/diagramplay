@@ -18,24 +18,6 @@ function arrowMarker(id, size = values.spacing.figure.arrow.head) {
   return `<marker id="${id}" viewBox="0 0 ${VIEW} ${VIEW}" refX="${TIP_X}" refY="${c}" markerWidth="${size}" markerHeight="${size}" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="${d}" stroke-width="${markStroke(size)}"/></marker>`;
 }
 
-/** 방향선을 가진 차트 종류가 쓰는 색 역할. 종류가 역할을 고르고, 역할의 색은 chart.css의 `.arrow-<역할>`이 한 번 정한다(몸통과 화살촉이 함께 읽는다). */
-export const CHART_ARROW = Object.freeze({ dumbbell: 'main', scatter: 'muted' });
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-/** 역할이 소유한 차트 방향선의 속성: 몸통 class(역할의 색을 읽는다)와 끝 표식. 표식 정의는 `roleArrowDefs`가 문서에 한 번 둔다. */
-export function roleArrow(role) {
-  return { cls: `arrow-${role}`, end: ` marker-end="url(#fl-arrow-${role})"` };
-}
-
-// cost: time O(r log r), heap O(r), stack O(1)
-// vars: r = 역할 수
-// basis: estimate
-/** 쓰인 역할마다 하나인 마커 정의. 역할 class의 묶음 안에 있어 화살촉이 그 역할의 색을 상속한다. 역할 이름순이라 선언 순서와 상관없이 같은 글이다. */
-export function roleArrowDefs(roles) {
-  return [...new Set(roles)].sort().map((role) => `<g class="arrow-${role}">${arrowMarker(`fl-arrow-${role}`)}</g>`).join('');
-}
-
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 /** 관계선 묶음 안의 화살촉. 각 선의 색을 상속하므로 context-stroke 지원 여부에 의존하지 않는다. */

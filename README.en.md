@@ -46,7 +46,7 @@ To write your own source, read [Create your first figure](docs/usage.md#첫-그�
 
 ## Why
 
-To explain request movement and value changes in documentation, you need to show structure and execution order together. DiagramPlay lets you describe elements such as boxes and their connections in text, then add scenes with timed actions to the same figure. One source can combine structure, sequences, states, data relations, and charts.
+To explain request movement and value changes in documentation, you need to show structure and execution order together. DiagramPlay lets you describe elements such as boxes and their connections in text, then add scenes with timed actions to the same figure. One source can combine architecture, card flows, sequences, ERDs, and classes.
 
 A graphic editor is a better fit when you want to edit the layout and shapes of a static diagram directly. DiagramPlay is for text-based documentation that plays flows and value changes.
 
@@ -58,10 +58,10 @@ A graphic editor is a better fit when you want to edit the layout and shapes of 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/how-it-works-dark.svg">
-  <img src="docs/assets/how-it-works-light.svg" alt="Synthetic data: a developer's question moves from Screen through Engine to Codex CLI">
+  <img src="docs/assets/how-it-works-light.svg" alt="Illustrative model: text becomes layout and timeline, then SVG and HTML">
 </picture>
 
-This question delivery example uses synthetic data. Read the [source](docs/assets/how-it-works.diagramplay) alongside the [processing flow](docs/architecture.md#처리-흐름). [Choose a view for your task](docs/usage.md#목적에-맞는-보기-선택하기) explains which diagram type to use.
+This example illustrates figure generation. Read the [source](docs/assets/how-it-works.diagramplay) alongside the [processing flow](docs/architecture.md#처리-흐름). [Choose a view for your task](docs/usage.md#목적에-맞는-보기-선택하기) explains which diagram type to use.
 
 ## Status
 

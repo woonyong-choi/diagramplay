@@ -60,14 +60,6 @@ export function checkTitleLines({ edges, titles }, problems) {
   }
 }
 
-// cost: time O(c), heap O(1), stack O(1)
-// vars: c = 겹친 이름 쌍 수
-// basis: estimate
-// 2번(차트): 산점도 점 이름이 위아래와 좌우로 비켜 놓아도 다른 이름과 겹치면 오류다. 메시지는 나중에 적은 점의 줄에 붙는다.
-export function checkChartLabels(chart, problems) {
-  for (const { a, b, line } of chart.clashes) problems.error(line, `[check 2] point name "${b}" overlaps point name "${a}". Change a coordinate or rename a point so the names can be placed apart`);
-}
-
 // cost: time O(p·(s + l + n)), heap O(s + l), stack O(1)
 // vars: p = 상태 알약 수, s = 도형 수, l = 선 라벨 수, n = 글자 사각형 수
 // basis: estimate
