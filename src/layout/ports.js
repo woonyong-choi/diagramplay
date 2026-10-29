@@ -1,5 +1,4 @@
 // 도형과 그룹의 연결점. 선 끝이 어디에 닿는지, 몸통 도형의 연결점을 어디에 놓는지를 정한다(docs/design/layout.md 도형 크기와 연결점, 연결점 순서).
-import { cellPort, circlePort } from './cell-ports.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { columnAnchorY } from '../format/columns.js';
 
@@ -32,17 +31,23 @@ export function addPort(container, way, edge) {
 export function endpoint(id, end, nodes) {
   const node = nodes.get(id);
   if (!node) return id;
-  const spec = portSpec(node, { ...end, isTrailingField: trailingFieldEdge(end.edge, nodes) });
+  const spec = portSpec(node, end);
   return spec ? addNodePort(node, end, spec) : id;
 }
 
-// 한 줄 필드 띠의 같은 오른쪽 구간을 연결할 때 아래로 돌아 중간 조회 영역을 비운다.
-function trailingFieldEdge(edge, nodes) {
-  const from = nodes.get(edge.from), to = nodes.get(edge.to);
-  if (from?.shape !== 'grid' || to?.shape !== 'grid' || from.rows !== 1 || to.rows !== 1 || from.direction !== 'right' || to.direction !== 'right' || from.id === to.id) return false;
-  const a = from.cells.find(cell => cell.id === edge.fromCell);
-  const b = to.cells.find(cell => cell.id === edge.toCell);
-  return Boolean(a && b && a.col > 0 && b.col > 0 && a.col + a.cols === from.cols && b.col + b.cols === to.cols && a.col * to.cols === b.col * from.cols);
+// 원은 면의 가운데에만 닿는다. 선이 늘어도 면 가운데를 나눠 쓴다(합류 연산 입력).
+const CIRCLE_SIDES = { out: ['EAST', 'SOUTH', 'NORTH'], in: ['WEST', 'NORTH', 'SOUTH'] };
+
+// cost: time O(p), heap O(1), stack O(1)
+// vars: p = 도형의 연결점 수
+// basis: estimate
+// 원 도형의 연결점. 같은 방향 선이 늘면 다음 면의 가운데를 쓴다.
+function circlePort(node, way) {
+  const sides = CIRCLE_SIDES[way];
+  const side = sides[node.ports.filter((p) => p.way === way).length % sides.length];
+  const { w, h } = node.size;
+  const spots = { EAST: { x: w, y: h / 2 }, WEST: { x: 0, y: h / 2 }, SOUTH: { x: w / 2, y: h }, NORTH: { x: w / 2, y: 0 } };
+  return { side, position: spots[side] };
 }
 
 // cost: time O(c), heap O(1), stack O(1)
@@ -53,7 +58,6 @@ function portSpec(node, end) {
   const { way, edge, flow } = end;
   const columns = way === 'out' ? edge.fromColumns : edge.toColumns;
   if ((node.shape === 'table' || node.shape === 'api') && columns) return columnPort(node, way, columns, edge.from === edge.to);
-  if (node.shape === 'grid' && (way === 'out' ? edge.fromCell : edge.toCell)) return cellPort(node, end);
   if (node.shape === 'circle') return circlePort(node, way);
   if (node.shape === 'decision') return decisionPort(node, way, edge.branch ?? 0);
   if (node.shape === 'store') return { side: storeSide(way === 'in' ? flow.direction : node.direction, way) };
@@ -120,9 +124,9 @@ function storeSide(direction, way) {
   return way === 'out' ? 'EAST' : 'WEST';
 }
 
-function addNodePort(node, end, { side, position, lead }) {
+function addNodePort(node, end, { side, position }) {
   const id = `${node.id}::${end.way}::${end.edge.index}`;
-  node.ports.push({ id, way: end.way, side, position, lead });
+  node.ports.push({ id, way: end.way, side, position });
   return id;
 }
 

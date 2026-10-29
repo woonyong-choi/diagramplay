@@ -627,7 +627,6 @@
 .fl .a12 { animation: a12 4.978s 1 forwards linear; }
 .fl .sa0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="431.7" height="305" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 <line x1="64.4" x2="64.4" y1="62" y2="290" class="lifeline"/>

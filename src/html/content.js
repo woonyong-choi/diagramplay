@@ -1,29 +1,25 @@
-// 재생기에 넘길 그림 내용: 판마다의 SVG와 재생 데이터. 모든 그림은 장면(scene)과 시간표(timeline) 하나로 만들어지고, 그래프, 순서, 차트, 시간 보기는 판(scene.panels)이 된다.
+// 재생기에 넘길 그림 내용: 판마다의 SVG와 재생 데이터. 모든 그림은 장면(scene)과 시간표(timeline) 하나로 만들어지고, 그래프와 순서 보기는 판(scene.panels)이 된다.
 // 도형 id는 논리 id로 넘긴다. 같은 카드가 여러 판에 그려지면 도형 번호(#n-번호)는 다르지만 논리 id는 같고, 재생기가 모든 그림 요소를 찾아 같은 모습으로 맞춘다.
-import { tokenize } from '../chart/tokens.js';
+import { tokenize } from '../format/markup.js';
 import { sizeChip } from '../chip/place.js';
-import { chartCards } from '../chart/card-frames.js';
-import { mapSceneCharts, sceneCharts } from '../chart/scene.js';
-import { withPulseOverlays } from '../chart/pulse-overlay.js';
 import { drawScene } from '../draw/figure.js';
 import { drawStatusPills } from '../draw/status.js';
 import { drawTrackPaths } from '../draw/tracks.js';
 import { drawFlashes, drawValues } from '../draw/values.js';
-import { WHOLE_CHART } from '../timeline/charts.js';
 import { figureViewBounds } from './view-bounds.js';
 import { FLOW_METRICS, PLAYER_METRICS } from './metrics.js';
 
 /**
  * 그림 내용. 판마다 SVG 한 장을 만들고(판 상자가 viewBox), 재생 데이터를 모은다.
- * @returns { panels, width, height, data, dotAts, hasCharts, charts }. charts는 그려진 차트 그림 목록(무늬 정의 defs를 문서에 한 번 모을 때 쓴다). panels[i]는 { index, view, label, box, svg }이다. svg는 판 안쪽 내용(SVG 요소의 자식)이다.
+ * @returns { panels, width, height, data }. panels[i]는 { index, view, label, box, svg }이다. svg는 판 안쪽 내용(SVG 요소의 자식)이다.
  */
 export function figureContent(result, glyphs) {
-  const { scene, timeline, figure } = result;
+  const { scene, timeline } = result;
   // 재생기는 장면 0에서 시작하므로 처음 그림은 장면 0의 순서 요소만 보인다(재생기가 장면이 바뀔 때 맞춘다).
   // 장면이 없는 문서는 재생기가 그리지 않으므로(player/play.js) 선언한 처음 모습(카드 값 줄과 큐 찬 칸)을 처음부터 보이게 그린다. 정지 SVG와 같은 시간표 값 줄이다.
   const isStill = !timeline.segs.length;
   const shownCards = isStill ? timeline.initialCards : undefined;
-  const { body, pills } = drawScene({ ...withOverlays(scene), flashes: drawFlashes(scene, timeline, {}), shownSi: 0, shownCards }, () => '', glyphs);
+  const { body, pills } = drawScene({ ...scene, flashes: drawFlashes(scene, timeline, {}), shownSi: 0, shownCards }, () => '', glyphs);
   const parts = {
     body,
     tracks: drawTrackPaths(timeline),
@@ -33,7 +29,6 @@ export function figureContent(result, glyphs) {
     pills,
   };
   const { panels, trackPanels } = splitPanels(scene, parts);
-  const drawn = sceneCharts(scene);
   const data = {
     tight: figureViewBounds(result),
     steps: timeline.steps,
@@ -49,29 +44,14 @@ export function figureContent(result, glyphs) {
     marks: timeline.marks ?? {},
     pulses: timeline.pulses ?? [],
     presentation: timeline.presentation ?? [],
-    charts: timeline.charts ?? {},
-    chartFrames: scene.chartFrames ?? {},
-    chartMeta: chartMeta(figure, drawn),
     ...(timeline.tracks ? { trackCount: timeline.tracks.length } : {}),
     ...(timeline.values ? { values: timeline.values.map(({ si, periods }) => ({ si, periods })) } : {}),
     metrics: timeline.tracks || timeline.values || timeline.segs.some((seg) => seg.hops.some((hop) => hop.tone)) ? { ...PLAYER_METRICS, ...FLOW_METRICS } : PLAYER_METRICS,
   };
-  const dotAts = [...new Set([...drawn.values()].flatMap((chart) => chart.dotAts ?? []))].sort((a, b) => a - b);
-  return { panels, width: scene.width, height: scene.height, data, dotAts, hasCharts: drawn.size > 0, charts: [...drawn.values()] };
+  return { panels, width: scene.width, height: scene.height, data };
 }
 
-// 값에 묶인 차트의 그림에 갱신 효과 겹침(chart/pulse-overlay.js)을 넣은 장면. 겹침은 불투명도 0으로 있다가 재생기가 표식이 바뀐 때만 켠다.
-function withOverlays(scene) {
-  const overlaid = (id, chart) => (scene.chartFrames?.[id] ? { ...chart, body: withPulseOverlays(chart.body) } : chart);
-  return mapSceneCharts(scene, overlaid);
-}
-
-// 차트 카드마다 계열 id 목록(계열 번호 = class `cs-번호`)과 행 이름 목록(행 번호 = class `cr-번호`). 계열이 없는 차트는 차트 전체가 계열 하나다(timeline-charts.js와 같은 규칙).
-function chartMeta(figure, drawn) {
-  return Object.fromEntries(chartCards(figure).map((card) => [card.id, { series: card.plot.chart.series.length ? card.plot.chart.series.map((s) => s.id) : [WHOLE_CHART], rowKeys: drawn.get(card.id)?.rowKeys ?? [] }]));
-}
-
-// 재생기가 읽는 구간 목록. 도형 id는 논리 id 그대로이고, 상태 알약은 `논리 id-종류` 글로 넘긴다. 켜 둔 도형, 부분, 차트 행(`light`)은 구간이 그 장면에서 지금까지 켠 목록(nodesOn, partsOn, charts[id].lights)으로 갖고, 조용한 선이 보이는 구간은 시간표의 marks가 갖는다.
+// 재생기가 읽는 구간 목록. 도형 id는 논리 id 그대로이고, 상태 알약은 `논리 id-종류` 글로 넘긴다. 켜 둔 도형과 부분(`light`)은 구간이 그 장면에서 지금까지 켠 목록(nodesOn, partsOn)으로 갖고, 조용한 선이 보이는 구간은 시간표의 marks가 갖는다.
 function playerSegs(timeline) {
   return timeline.segs.map((seg) => ({
     si: seg.si,
@@ -83,7 +63,6 @@ function playerSegs(timeline) {
     cardsAt: seg.cardsAt,
     nodesOn: seg.nodesOn,
     partsOn: seg.partsOn,
-    charts: seg.charts ?? {},
     ...(seg.status ? { status: seg.status.map(({ node, kind }) => `${node}-${kind}`) } : {}),
     ...(seg.pulses ? { pulses: seg.pulses.map(({ id, at }) => ({ id, at })) } : {}),
   }));

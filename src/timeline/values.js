@@ -2,7 +2,7 @@
 import { indicatorTypeProblem } from '../source/indicators.js';
 import { arrivalOffsetMs } from '../math/easing.js';
 import { isPassed } from './lost.js';
-import { MAX_VALUE, RANGE_MESSAGE } from '../source/chart-limits.js';
+import { MAX_VALUE, RANGE_MESSAGE } from '../source/number-limits.js';
 import { FigureError, makeDiagnostic } from '../source/problems.js';
 import { NUMBER_PATTERN } from '../source/words.js';
 import { roundNumber } from '../source/value.js';

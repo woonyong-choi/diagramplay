@@ -4,12 +4,10 @@ import { cleanText } from './names.js';
 /**
  * 빈 모형과 진단 그릇을 만든다. 카드와 그룹은 원본의 이름(key)으로 가리키고, DiagramPlay 이름은 쓸 때 정한다.
  * - groups: { key, name?, label, parent?, direction?, dashed?, line }[]. name은 이름(id)을 만들 글이고 없으면 key다. dashed는 점선 테두리다
- * - nodes: { key, name?, kind, label, sub?, parent?, columns?, keys?, foreignKeys?, texts?, slots?, classifier?, abstract?, members?, line }[]. name은 이름(id)을 만들 글이고 없으면 key다(그린 그림의 셀 id처럼 뜻 없는 key는 라벨로 이름을 만든다). kind는 box, external, circle, store, person, decision, queue, state, table, class다. 점선 테두리 상자는 external이다.
+ * - nodes: { key, name?, kind, label, sub?, parent?, columns?, keys?, foreignKeys?, texts?, slots?, classifier?, abstract?, members?, line }[]. name은 이름(id)을 만들 글이고 없으면 key다(그린 그림의 셀 id처럼 뜻 없는 key는 라벨로 이름을 만든다). kind는 box, external, circle, store, person, decision, queue, table, class다. 점선 테두리 상자는 external이다.
  *   class의 classifier는 class나 interface, members는 { kind: field|method, name, signature, visibility?, isStatic?, isAbstract?, line }[]다
  * - edges: { from: { key, part? }, to: { key, part? }, label?, dashed?, head?, mult?: { from, to }, line }[]
- * - starts, finals: { key, line }[]
  * - sequence: { participants: key[], steps } | undefined. steps는 emit-sequence.js가 정한다
- * - chart: { kind, title, rows: { label, value, line }[], line } | undefined
  * @param text 가져올 원본 글. 진단의 기본 column을 구하는 데 쓴다
  */
 export function createModel(text) {
@@ -19,10 +17,7 @@ export function createModel(text) {
     groups: [],
     nodes: [],
     edges: [],
-    starts: [],
-    finals: [],
     sequence: undefined,
-    chart: undefined,
     problems: createProblems(text),
   };
 }

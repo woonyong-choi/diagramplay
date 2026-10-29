@@ -1,7 +1,6 @@
 // 재생기에 데이터로 넘기는 값. 브라우저 코드는 tokens.js를 불러올 수 없어 토큰에서 읽은 값을 재생 데이터(data.metrics)에 실어 보낸다.
 import { STYLE } from '../measure/texts.js';
 import { CHIP_GAP } from '../chip/place.js';
-import { GEOMETRY_ATTRS } from '../chart/pulse-overlay.js';
 import { curveOf } from '../math/easing.js';
 import { PULSE, PULSE_MS } from '../timeline/pulse.js';
 import { TONE_FILLS, TONE_INKS, TONE_OUTLINES } from '../color/tone.js';
@@ -22,7 +21,6 @@ export const PLAYER_METRICS = Object.freeze({
   cutFadeMs: values.duration['cut-fade'],
   chipRadius: values.radius.lg,
   pulse: PULSE_TIMING,
-  markGeometry: GEOMETRY_ATTRS,
   chipLine: STYLE.chip.line,
   chipGap: CHIP_GAP,
   zoomMax: values.scale['zoom-max'],

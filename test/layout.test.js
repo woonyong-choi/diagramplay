@@ -269,7 +269,7 @@ test('orderCompactGroups_bounded_topological_candidates_preserve_model_identity_
   }
 });
 
-// #417: 무작위 구조 그림에서 찾은 원본의 최소화본. elkjs 교차 줄이기가 고른 층 안 순서에서 라벨 자리 고르기가 빈 자리를 찾지 못하거나 두 선이 붙고, 그룹 제목이 선만 비켜 먼저 놓인 라벨과 겹친다.
+// #417: 무작위 구조 그림에서 찾은 원본의 최소화본(#423에서 상태와 칸 격자를 상자로 바꿨다). elkjs 교차 줄이기가 고른 층 안 순서에서 라벨 자리 고르기가 빈 자리를 찾지 못하거나 두 선이 붙고, 그룹 제목이 선만 비켜 먼저 놓인 라벨과 겹친다.
 const SOUND_LAYOUT_SOURCES = [
   // 선 라벨이 바깥 그룹 제목과 겹침
   String.raw`diagramplay
@@ -291,47 +291,43 @@ n0 -> n5 "l7"
   String.raw`diagramplay
 store n0 "n0"
 group g0 "그룹0" {
-  grid n1 "n1" {
-    item c8 "A"
-  }
+  box n1 "n1"
   box n2 "n2"
   external n3 "n3"
 }
 person n5 "n5"
 n5 -> n3
-n0 -> n1.c8
+n0 -> n1
 n5 -> n2 "l3"
 n5 -> n0 "l4"
 `,
   // 같은 도형에서 나가는 두 꼬리 라벨이 겹침
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
+box n0 "n0"
+box n1 "n1"
 group outer "바깥" {
 group g0 "그룹0" {
-  state n3 "n3"
+  box n3 "n3"
 }
 }
 group g1 "그룹1" direction=down {
-  state n5 "n5"
-  state n6 "n6"
-  state n7 "n7"
+  box n5 "n5"
+  box n6 "n6"
+  box n7 "n7"
 }
 n6 -> n7 "l0"
 n7 -> n5 "l2"
 n5 -> n3 "l4"
 n5 -> n1 "l5" no=3
 n3 -> n7 "l8"
-start n0
-final n5
 `,
   // 두 선이 너무 붙음
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
-state n2 "n2"
-state n3 "n3"
-state n5 "n5"
+box n0 "n0"
+box n1 "n1"
+box n2 "n2"
+box n3 "n3"
+box n5 "n5"
 n3 -> n2 "l0"
 n1 -> n2 "l1"
 n0 -> n2 "l4"
@@ -340,17 +336,17 @@ n3 -> n5 "l8"
 `,
   // 선 라벨이 그룹 제목과 겹침
   String.raw`diagramplay
-state n0 "n0"
+box n0 "n0"
 group g0 "그룹0" direction=right {
-  state n1 "n1"
-  state n2 "n2"
-  state n3 "n3"
+  box n1 "n1"
+  box n2 "n2"
+  box n3 "n3"
 }
 group g1 "그룹1" direction=right {
-  state n5 "n5"
-  state n6 "n6"
+  box n5 "n5"
+  box n6 "n6"
 }
-state n8 "n8"
+box n8 "n8"
 n0 -> n6 "l0"
 n5 -> n0 "l1"
 n1 -> n0 "l2"
@@ -365,24 +361,23 @@ n2 -> n3 "l15"
 `,
   // 같은 도형에서 나가는 두 꼬리 라벨이 겹침
   String.raw`diagramplay
-state n0 "n0"
+box n0 "n0"
 group g0 "그룹0" {
-  state n1 "n1"
-  state n2 "n2"
+  box n1 "n1"
+  box n2 "n2"
 }
 n1 -> n0 "l0"
 n0 -> n2 "l2"
 n0 -> n1 "l3"
-final n1
 `,
   // 선 라벨이 그룹 제목 줄 높이에 놓이고 제목이 선만 비켜 라벨과 겹침(seed 2)
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
+box n0 "n0"
+box n1 "n1"
 group g0 "그룹0" direction=down {
-  state n2 "n2"
-  state n3 "n3"
-  state n4 "n4"
+  box n2 "n2"
+  box n3 "n3"
+  box n4 "n4"
 }
 n3 -> n2 "l0"
 n0 -> n3 "l1"
@@ -391,23 +386,21 @@ n3 -> n1 "l3"
 n4 -> n2 "l4"
 n3 -> n0 "l5"
 n1 -> n0 "l6"
-final n3
 `,
   // 선 라벨이 그룹 제목 줄 높이에 놓이고 제목이 선만 비켜 라벨과 겹침(seed 2)
   String.raw`diagramplay
-state n0 "n0"
-state n1 "n1"
+box n0 "n0"
+box n1 "n1"
 group outer "바깥" direction=down {
 group g0 "그룹0" {
-  state n3 "n3"
-  state n4 "n4"
+  box n3 "n3"
+  box n4 "n4"
 }
 }
 n1 -> n4 "l0"
 n4 -> n1 "l2"
 n1 -> n0 "l5"
 n1 -> n3 "l6"
-start n0
 `,
 ];
 

@@ -34,7 +34,7 @@ export function checkRequires({ figure }, texts, problems) {
   const fail = say(problems, 15, 'error');
   for (const { alternatives, line } of figure.requires ?? []) {
     if (alternatives.some((want) => texts.some((text) => text.includes(fold(want))))) continue;
-    fail(line, `${alternatives.map((a) => `"${a}"`).join(' or ')} is not in the figure. Add it to a card, a line or a chart, or remove the require line`);
+    fail(line, `${alternatives.map((a) => `"${a}"`).join(' or ')} is not in the figure. Add it to a card or a line, or remove the require line`);
   }
 }
 
@@ -67,7 +67,7 @@ export async function checkWrappedChain(result, rebuild, problems) {
     if (tried && fitsRows(tried)) found = aspect;
   }
   const fix = found === undefined ? 'Split the chain into two figures' : `Use "aspect ${found}" for rows of ${LIMITS.rowCards} or more`;
-  say(problems, 7)(result.figure.aspectLine ?? result.figure.line, `the chain of ${narrow.items.length + narrow.dots.length} cards folds into rows of ${rows} cards. ${fix}`);
+  say(problems, 7)(result.figure.aspectLine ?? result.figure.line, `the chain of ${narrow.items.length} cards folds into rows of ${rows} cards. ${fix}`);
 }
 
 // cost: time O(s log s), heap O(s), stack O(1)

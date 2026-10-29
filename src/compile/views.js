@@ -10,12 +10,10 @@ const baseOf = (id) => id.split('.')[0];
 /**
  * 보기 모형을 만든다.
  * @param view 문서의 보기(source/views-check.js가 cardIds와 groupIds를, source/project.js가 edgeIds, messages를 채웠다)
- * @returns strategy가 graph, sequence면 배치가 받는 모형이고, plot과 time이면 { strategy, viewId, card }다
+ * @returns 배치가 받는 그래프나 순서 보기 모형
  */
 export function viewFigure(figure, view) {
-  if (view.strategy === 'graph') return graphFigure(figure, view);
-  if (view.strategy === 'sequence') return sequenceFigure(figure, view);
-  return { strategy: view.strategy, viewId: view.id, label: view.label, card: figure.nodes.find((n) => n.id === view.cardIds[0]), line: view.line };
+  return view.strategy === 'graph' ? graphFigure(figure, view) : sequenceFigure(figure, view);
 }
 
 // cost: time O(n + g + e), heap O(n + g + e), stack O(1)
@@ -37,8 +35,6 @@ function graphFigure(figure, view) {
     groups: figure.groups.filter((g) => groups.has(g.id)),
     edges: view.edgeIds.map((i) => ({ ...figure.edges[i], docEdge: i })),
     edgeMap: view.edgeIds,
-    start: figure.start && cards.has(figure.start.id) ? figure.start : undefined,
-    finals: figure.finals.filter((f) => cards.has(f.id)),
     iconSets: figure.iconSets,
     values: figure.values,
     rejectedNames: figure.rejectedNames,

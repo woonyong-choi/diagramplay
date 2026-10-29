@@ -615,7 +615,6 @@
 .fl .a6 { animation: a6 14.622s 1 forwards linear; }
 .fl .sa0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="683.9" height="167.7" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 

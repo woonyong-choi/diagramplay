@@ -7,10 +7,10 @@ export interface FigureDiagnostic {
   readonly message: string;
 }
 
-export type BudgetName = 'grid-elements' | 'grid-path-commands' | 'events' | 'chain' | 'chip-index';
+export type BudgetName = 'events' | 'chain' | 'chip-index';
 
 export interface BuildOptions {
-  /** 외부 JSON과 아이콘 경로의 기준. 기본값은 현재 작업 폴더다. */
+  /** 사용자 아이콘 경로의 기준. 기본값은 현재 작업 폴더다. */
   baseDir?: string;
   /** 경고도 FigureError로 전달한다. 기본값은 false다. */
   strict?: boolean;
@@ -18,7 +18,7 @@ export interface BuildOptions {
   budget?: Partial<Record<BudgetName, number>>;
   /** 그래프 보기의 배치 목표 폭(px). 양의 유한수여야 한다. */
   layoutWidth?: number;
-  /** 원본이 지정한 외부 JSON과 아이콘 파일을 읽을 수 있다. 기본값은 true다. */
+  /** 원본이 지정한 사용자 아이콘 파일을 읽을 수 있다. 기본값은 true다. */
   allowFileAccess?: boolean;
 }
 

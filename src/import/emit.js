@@ -20,9 +20,7 @@ export function emit(model) {
   lines.push('');
   const edges = resolveEdges(model, groups);
   writeTree(lines, { model, ids, groups }, undefined, 0);
-  writeStates(lines, model, ids);
   if (edges.length) lines.push('', ...edges.map((edge) => edgeLine(edge, ids)));
-  if (model.chart) lines.push(...chartLines(model.chart, ids));
   const hasGraph = model.nodes.some((n) => !model.sequence?.participants.includes(n.key));
   if (hasGraph && model.direction === 'down') lines.push('', 'view graph down');
   if (model.sequence) lines.push(...emitSequence(model, ids));
@@ -54,7 +52,6 @@ function assignIds(model, groups) {
     ids.node.set(node.key, names.take(node.name || node.key, isTable ? { joiner: '_', fallback: 'table' } : {}));
     if (isTable) ids.column.set(node.key, columnNames(model, node));
   }
-  if (model.chart) ids.chart = names.take(model.chart.title, { fallback: 'chart' });
   return ids;
 }
 
@@ -117,8 +114,6 @@ function nodeLines(node, { model, ids }) {
       return [`decision ${id} ${label}`];
     case 'queue':
       return [`queue ${id} ${label} slots=${node.slots}`];
-    case 'state':
-      return [`state ${id} ${label}`];
     case 'class':
       return classLines(node, { model, id, label });
     default:
@@ -190,26 +185,6 @@ const fkOptions = (fk) => `${fk.ondelete ? ` ondelete=${fk.ondelete}` : ''}${mul
 // basis: estimate
 const multiplicity = (mult) => (mult ? ` from=${quote(mult.from)} to=${quote(mult.to)}` : '');
 
-// cost: time O(s + f), heap O(1), stack O(1)
-// vars: s = 처음 상태 수, f = 끝 상태 수
-// basis: estimate
-function writeStates(lines, model, ids) {
-  const out = [];
-  const isState = ({ key, line }, word) => {
-    const node = nodeOf(model, key);
-    if (node?.kind === 'state') return true;
-    skip(model, line, `"${node?.label ?? key}" as a ${word} state is not imported. Only a state can be one`);
-    return false;
-  };
-  for (const start of model.starts.filter((s) => isState(s, 'start'))) {
-    if (!out.length) out.push(`start ${ids.node.get(start.key)}`);
-    else skip(model, start.line, `a second start state "${nodeOf(model, start.key).label}" is not imported. A figure has one start state`);
-  }
-  const finals = model.finals.filter((f) => isState(f, 'final'));
-  for (const key of new Set(finals.map((f) => f.key))) out.push(`final ${ids.node.get(key)}`);
-  if (out.length) lines.push('', ...out);
-}
-
 // cost: time O(e·(n + g)), heap O(e), stack O(g)
 // vars: e = 선 수, n = 카드 수, g = 그룹 수
 // basis: estimate
@@ -251,8 +226,8 @@ function rejectReason(edge, model, groups) {
   const [from, to] = [resolve(edge.from), resolve(edge.to)];
   if (!from || !to) return `the edge ${describe(edge.from)} -> ${describe(edge.to)} is not imported. ${describe(!from ? edge.from : edge.to)} is not a card here`;
   if (edge.from.key === edge.to.key) {
-    const isSelfAllowed = from.kind === 'state' || (from.kind === 'table' && edge.from.part && edge.to.part && edge.from.part !== edge.to.part);
-    if (!isSelfAllowed) return `the edge from ${describe(edge.from)} to itself is not imported. Only a state or two different columns of one table connect to themselves`;
+    const isSelfAllowed = from.kind === 'table' && edge.from.part && edge.to.part && edge.from.part !== edge.to.part;
+    if (!isSelfAllowed) return `the edge from ${describe(edge.from)} to itself is not imported. Only two different columns of one table connect to themselves`;
   }
   const isInside = (key, groupKey) => {
     for (let at = nodeOf(model, key)?.parent ?? groupOf(model, key)?.parent; at !== undefined; at = groupOf(model, at)?.parent) if (at === groupKey) return true;
@@ -276,10 +251,6 @@ function tidyEdge(edge, model) {
     if (edge.mult) tidy.head = 'none';
     tidy.mult = undefined;
     tidy.relation = undefined;
-  }
-  if (from?.kind === 'state' && to?.kind === 'state' && !edge.label) {
-    change(model, edge.line, `a transition needs an event label, so "${MISSING_TEXT}" is written. Write the event in place of it`);
-    tidy.label = MISSING_TEXT;
   }
   return tidy;
 }
@@ -378,12 +349,4 @@ function fallbackEdge(model, table, fk) {
     mult: fk.mult,
     line: fk.line,
   }];
-}
-
-// cost: time O(r), heap O(r), stack O(1)
-// vars: r = 차트 행 수
-// basis: estimate
-// 차트 카드 블록. 지금 가져오는 차트는 원 차트(pie) 하나다.
-function chartLines(chart, ids) {
-  return ['', `chart ${ids.chart} ${quote(chart.title)} ${chart.kind} {`, ...chart.rows.map((row) => `${INDENT}row ${quote(row.label)} value=${row.value}`), '}'];
 }

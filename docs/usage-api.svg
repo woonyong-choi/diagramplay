@@ -598,7 +598,6 @@
 .fl .a0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 .fl .a1 { fill: var(--fx-face); }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="390.1" height="391" class="fl-canvas-surface"/>
 <g transform="translate(0 0)">
 

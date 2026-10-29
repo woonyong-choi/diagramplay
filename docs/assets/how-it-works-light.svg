@@ -612,7 +612,6 @@
 .fl .sa1 { opacity: 1; visibility: visible; }
 .fl .sa2 { opacity: 1; }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="713.7" height="472" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 <g id="g-0" class="fl-group" data-id="system"><rect x="402.7" y="16" width="240" height="360" rx="8" class="frame-box fl-stroke "/><text x="420.7" y="35.4" class="frame">Saturn</text></g>

@@ -8,7 +8,6 @@ import { mirrorPace } from '../flow/track-pace.js';
 import { makeDiagnostic, FigureError } from '../source/problems.js';
 import { TIME_LIMIT_MS } from '../source/values.js';
 import { checkMoveInputs, gridPlan, inputTicks, msOfTicks, TICKS_PER_MS } from './time-grid.js';
-import { chartSegState } from './charts.js';
 import { createSeg } from './seg.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
@@ -255,7 +254,6 @@ export function flowSeg({ step, si, engine }, run, { scene, cards, chips, dotsLi
     nodesOn: [],
     partsOn: [],
     card: { before: start, after: start, at: {} },
-    charts: chartSegState(run, { charts: new Map() }, { si, bi: 0 }),
     status: step.status,
     // 단계 끝(for=)에 닿는 점도 이 단계의 사건이다. 닿지 못하고 잘리는 점(끝 뒤에 닿는 점)만 후광이 없다.
     extra: { pulses: pulses.filter(({ at }) => at <= length) },

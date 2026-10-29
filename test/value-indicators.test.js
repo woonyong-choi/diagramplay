@@ -61,10 +61,10 @@ test('buildFigure_indicator_options_and_types_reject_invalid_declarations_and_up
   }
 });
 
-test('buildFigure_indicators_reject_hidden_values_grid_cells_and_invalid_reference_chains', async () => {
+test('buildFigure_indicators_reject_hidden_values_parts_and_invalid_reference_chains', async () => {
   const inputs = [
     'box a "A"\nvalue n "N" display=bar max=4',
-    'grid g "G" rows=1 {\nitem cell "Cell" row=0\n}\nvalue n "N" on=g.cell display=slots max=4',
+    'table t "T" {\n  id int pk\n}\nvalue n "N" on=t.id display=slots max=4',
     'box a "A"\nvalue n "N" on=a ref=missing display=slots max=4',
     'box a "A"\nvalue n "N" on=a ref=m display=slots max=4\nvalue m "M" ref=n',
   ];

@@ -30,7 +30,7 @@ export function settleLabels(edges, items, bounds, groups = []) {
   const runs = edges.flatMap((e) => e.points.slice(1).map((q, k) => ({ p: e.points[k], q })));
   const placed = [];
   for (const e of edges) {
-    if (!e.labelAt || e.isMark) continue;
+    if (!e.labelAt) continue;
     const size = sizePill(e.label, e.no);
     const isFree = (at) => {
       const box = boxAt(at, size);

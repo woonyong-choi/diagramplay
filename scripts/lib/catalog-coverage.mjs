@@ -13,8 +13,8 @@ const COLUMN_BLOCKS = new Set(['table', 'api']);
 // basis: estimate
 /**
  * 원본에서 쓴 기능 이름 → 줄 번호 목록.
- * 이름은 문장 첫 낱말(`scene`, `track`, 선 줄은 `edge`와 `hop`, 칸 줄은 `column`), `chart:종류`, `view:방식`, `fragment:종류`,
- * 선택 사항 키(`quiet`, `time`), 낱말 값이 있는 선택 사항(`role=reference`), 이어 붙인 이동(`&`), 읽기 식(`:=`)이다.
+ * 이름은 문장 첫 낱말(`scene`, `track`, 선 줄은 `edge`와 `hop`, 칸 줄은 `column`), `view:방식`, `fragment:종류`,
+ * 선택 사항 키(`quiet`, `time`), 낱말 값이 있는 선택 사항(`mode=loop`), 이어 붙인 이동(`&`), 읽기 식(`:=`)이다.
  */
 export function catalogCoverage(source) {
   const found = new Map();
@@ -36,7 +36,6 @@ export function catalogCoverage(source) {
     const word = isArrow ? (inScenes ? 'hop' : 'edge') : inColumns ? 'column' : first.value;
     if (first.value === 'scene' && !isArrow) inScenes = true;
     add(found, word, at);
-    if (word === 'chart') add(found, `chart:${tokens[3]?.value}`, at);
     if (word === 'view') add(found, `view:${tokens[1]?.value}`, at);
     if (word === 'fragment') add(found, `fragment:${tokens[1]?.value}`, at);
     for (const token of tokens) {

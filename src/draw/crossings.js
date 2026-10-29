@@ -61,7 +61,7 @@ const cuttable = (value, { lo, hi }) => value - GAP_HALF >= lo && value + GAP_HA
  * @returns Map<선 번호, { x, y, w, h }[]>. 끊을 자리가 없는 선은 들어 있지 않다
  */
 export function crossingCuts(edges) {
-  const shown = edges.map((e, j) => ({ j, segments: e.si === undefined && !e.isMark ? segmentsOf(e.points) : [] }));
+  const shown = edges.map((e, j) => ({ j, segments: e.si === undefined ? segmentsOf(e.points) : [] }));
   const cuts = new Map();
   for (const a of shown) for (const b of shown) {
     if (a.j === b.j) continue;

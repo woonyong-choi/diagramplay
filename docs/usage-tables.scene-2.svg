@@ -610,7 +610,6 @@
 .fl .sa0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 .fl .sa1 { fill: var(--fx-face); }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="397.1" height="231" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 

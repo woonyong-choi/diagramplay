@@ -1,4 +1,4 @@
-// 문서 품질 검사의 구조 판정(docs-1~14). 원본 모형과 배치가 끝난 장면을 읽는다(docs/design/figure-quality.md).
+// 문서 품질 검사의 구조 판정(docs-1~13). 원본 모형과 배치가 끝난 장면을 읽는다(docs/design/figure-quality.md).
 // 항목 목록과 기준 수치는 docs-items.js다. 요구 항목과 본문 단 읽힘(docs-15, docs-16)은 docs-text.js다.
 import { INNER_MAX } from '../measure/card.js';
 import { measure, wrap } from '../measure/fonts.js';
@@ -8,8 +8,7 @@ import { LIMITS } from './docs-items.js';
 
 const TAGGED = new Set(['box', 'external', 'store']);
 const PLAIN = new Set(['person', 'box', 'external', 'store']);
-const NAMED = new Set(['person', 'box', 'external', 'store', 'state', 'queue']);
-const DOTS = new Set(['start', 'final']);
+const NAMED = new Set(['person', 'box', 'external', 'store', 'queue']);
 // 같은 줄과 같은 칸으로 묶는 가운데 좌표 차이(px)
 const ROW_SLACK = 12;
 
@@ -19,12 +18,11 @@ const say = (problems, n) => (line, message) => problems.warn(line, message, { c
 // cost: time O(s + e), heap O(s + e), stack O(1)
 // vars: s = 도형 수, e = 선 수
 // basis: estimate
-/** 그래프 보기마다 { view, items, edges }. items는 시작점과 끝점을 뺀 배치한 카드, edges는 그 보기의 원본 선이다. */
+/** 그래프 보기마다 { view, items, edges }. items는 배치한 카드, edges는 그 보기의 원본 선이다. */
 export function graphViews({ figure, scene }) {
   return figure.views.filter((view) => view.strategy === 'graph').map((view) => ({
     view,
-    items: scene.items.filter((it) => it.view === view.id && !DOTS.has(it.shape)),
-    dots: scene.items.filter((it) => it.view === view.id && DOTS.has(it.shape)),
+    items: scene.items.filter((it) => it.view === view.id),
     edges: (view.edgeIds ?? []).map((index) => figure.edges[index]).filter(Boolean),
   }));
 }
@@ -32,8 +30,8 @@ export function graphViews({ figure, scene }) {
 // cost: time O(e), heap O(e), stack O(1)
 // vars: e = 선 수
 // basis: estimate
-/** 선이 갈래 없이 한 줄로 이어져 보기의 모든 카드(시작점과 끝점 포함)를 지나면 그 카드 수, 아니면 0. */
-export function chainLength({ items, dots, edges }) {
+/** 선이 갈래 없이 한 줄로 이어져 보기의 모든 카드를 지나면 그 카드 수, 아니면 0. */
+export function chainLength({ items, edges }) {
   if (!edges.length) return 0;
   const outs = new Map();
   const ins = new Map();
@@ -43,7 +41,7 @@ export function chainLength({ items, dots, edges }) {
   }
   const nodes = new Set([...outs.keys(), ...ins.keys()]);
   if ([...outs.values(), ...ins.values()].some((n) => n > 1)) return 0;
-  if (edges.length !== nodes.size - 1 || nodes.size !== items.length + dots.length) return 0;
+  if (edges.length !== nodes.size - 1 || nodes.size !== items.length) return 0;
   return nodes.size;
 }
 
@@ -93,7 +91,7 @@ function checkBadges(context, problems) {
 // docs-2: 카드가 모두 같은 모양이다. docs-3: 강조한 카드가 많다.
 function checkLook(context, problems) {
   for (const entry of context.views) {
-    // 내용 줄(값, 글 줄, 차트)이 있는 카드는 내용이 카드를 구별하므로 세지 않는다.
+    // 내용 줄(값, 글 줄)이 있는 카드는 내용이 카드를 구별하므로 세지 않는다.
     const plain = entry.items.filter((it) => PLAIN.has(it.shape) && !it.content);
     const isFlowchart = entry.items.some((it) => it.shape === 'decision');
     if (plain.length < LIMITS.flat || isFlowchart || chainLength(entry)) continue;
@@ -186,7 +184,7 @@ function checkLoose(context, problems) {
   for (const { items, edges } of context.views) {
     if (!edges.length) continue;
     const linked = new Set(edges.flatMap((e) => [e.from, e.to]));
-    const loose = items.filter((it) => !linked.has(it.id) && it.shape !== 'chart');
+    const loose = items.filter((it) => !linked.has(it.id));
     if (loose.length >= LIMITS.loose) say(problems, 11)(loose[0].line, `cards ${loose.map((it) => it.id).join(', ')} have no lines and stack apart from the declared order. Merge them into one card with text lines, or connect them`);
   }
 }
@@ -208,16 +206,5 @@ function checkSequences({ figure }, problems) {
   }
 }
 
-// cost: time O(c), heap O(1), stack O(1)
-// vars: c = 차트 수
-// basis: estimate
-// docs-14: 차트 계열이 많다.
-function checkSeries({ figure }, problems) {
-  for (const node of figure.nodes.filter((n) => n.shape === 'chart')) {
-    const count = node.plot.chart.series?.length ?? 0;
-    if (count > LIMITS.series) say(problems, 14)(node.line, `chart "${node.id}" has ${count} series, so colors repeat. Keep ${LIMITS.series} or fewer, or split the chart`);
-  }
-}
-
 /** 장면을 읽는 구조 판정. 순서대로 돈다. docs-7은 다시 배치가 필요해 compile/docs-check.js가 따로 부른다. */
-export const STRUCTURE_JUDGES = [checkBadges, checkLook, checkNames, checkLabels, checkSize, checkStaircase, checkLoose, checkSequences, checkSeries];
+export const STRUCTURE_JUDGES = [checkBadges, checkLook, checkNames, checkLabels, checkSize, checkStaircase, checkLoose, checkSequences];

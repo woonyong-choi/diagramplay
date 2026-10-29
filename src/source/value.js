@@ -1,6 +1,6 @@
 // 값 선언(`value id "이름" on=도형 [from=값 | ref=값]`)과 값 바꾸기 식(`set="id+1@도형, id=낱말"`)을 읽는다. 이름이 선언됐는지는 value-check.js가 확인한다.
 import { readIndicator } from './indicators.js';
-import { MAX_VALUE, RANGE_MESSAGE } from './chart-limits.js';
+import { MAX_VALUE, RANGE_MESSAGE } from './number-limits.js';
 import { checkId } from './names.js';
 import { readOptions } from './options.js';
 import { ID_PATTERN, NUMBER_PATTERN } from './words.js';
@@ -24,7 +24,7 @@ export function readValue({ tokens, line }, ctx, owner) {
   }
   const found = readOptions(rest, { scopes: ['value'], what: 'a value', line, ctx });
   if (owner !== undefined && found.on !== undefined) ctx.problems.error(line, `a value inside "${owner}" belongs to that card. Remove on=`);
-  // on=이 없는 값은 카드에 보이지 않고 조건과 차트 묶음이 읽는다.
+  // on=이 없는 값은 카드에 보이지 않고 조건과 참조 값이 읽는다.
   if (found.from !== undefined && found.ref !== undefined) ctx.problems.error(line, 'a value takes from= or ref=, not both. A reference always shows the value it points at');
   const fromLiteral = found.ref === undefined ? found.from ?? '0' : undefined;
   const from = fromLiteral === undefined ? undefined : readLiteral(fromLiteral, { line, key: 'from', ctx });
@@ -38,7 +38,7 @@ export function readValue({ tokens, line }, ctx, owner) {
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 값 글자 수
 // basis: estimate
-/** 값 글자 하나(숫자나 공백 없는 낱말)를 확인하고 숫자는 간단한 꼴로 돌려준다. 숫자는 차트 숫자와 같은 범위(절댓값 1e15 미만)다. 어긋나면 오류를 내고 undefined다. */
+/** 값 글자 하나(숫자나 공백 없는 낱말)를 확인하고 숫자는 간단한 꼴로 돌려준다. 숫자는 절댓값 1e15 미만이다(source/number-limits.js). 어긋나면 오류를 내고 undefined다. */
 function readLiteral(text, { line, key, ctx }) {
   if (/\s/.test(text)) {
     ctx.problems.error(line, `${key} is a number or a word without spaces. Found "${text}"`);
@@ -88,7 +88,7 @@ function readExpression(raw, { ids, line, ctx }) {
   if (op === ':=') return readRead(expression, raw, { line, ctx });
   if (op !== '=') {
     if (!SIGNED_STEP.test(operand)) return fail(`"${raw}" needs a number after ${op}`, { line, ctx });
-    // 차트 숫자와 같은 기준. 무한대가 되는 글과 1e15 이상은 글자로 쓸 수 없다.
+    // 무한대가 되는 글과 1e15 이상은 글자로 쓸 수 없다(source/number-limits.js).
     return Math.abs(Number(operand)) < MAX_VALUE ? { ...expression, operand: String(Number(operand)), operandLiteral: operand } : fail(RANGE_MESSAGE, { line, ctx });
   }
   if (operand === '') return fail(`"${raw}" needs a value after =`, { line, ctx });

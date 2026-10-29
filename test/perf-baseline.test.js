@@ -16,7 +16,7 @@ import cp from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import { join, resolve } from 'node:path';
 const root = process.cwd();
-const source = join(root, 'examples', 'box.diagramplay');
+const source = join(root, 'examples', 'api.diagramplay');
 const output = process.env.DIAGRAMPLAY_PERF_OUTPUT;
 const read = fs.readFileSync;
 const list = fs.readdirSync;
@@ -25,7 +25,7 @@ const exec = cp.execFileSync;
 let entered = false;
 fs.readdirSync = function(path, ...args) {
   const dir = resolve(String(path));
-  if (dir === join(root, 'examples')) return ['box.diagramplay'];
+  if (dir === join(root, 'examples')) return ['api.diagramplay'];
   if (['docs/assets', 'docs/assets/showcase'].some(name => dir === join(root, name))) return [];
   return list.call(this, path, ...args);
 };
@@ -68,7 +68,7 @@ test('G4 --write still creates a new baseline with the measured input and proven
   assert.equal(run.status, 0, run.stdout + run.stderr);
   const baseline = JSON.parse(readFileSync(output, 'utf8'));
   assert.equal(baseline.figures, 1);
-  assert.deepEqual(Object.keys(baseline.inputs), ['examples/box.diagramplay']);
+  assert.deepEqual(Object.keys(baseline.inputs), ['examples/api.diagramplay']);
   assert.equal(baseline.codeHash, HEAD);
   assert.match(baseline.scriptHash, /^[a-f0-9]{64}$/);
   assert.match(run.stdout, /baseline written to/);

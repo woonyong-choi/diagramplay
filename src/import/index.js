@@ -28,7 +28,7 @@ export function importDiagram(format, text) {
   const model = createModel(text);
   READERS[format](String(text), model);
   model.problems.throwIfAny();
-  if (!model.nodes.length && !model.chart) {
+  if (!model.nodes.length) {
     model.problems.error(0, `there is nothing to import. The ${format} source has no nodes`, { code: FAIL });
     model.problems.throwIfAny();
   }

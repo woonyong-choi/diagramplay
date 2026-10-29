@@ -10,9 +10,9 @@ const GALLERY_SCRIPT = `<script>${bindDiagramHost.toString()}; bindDiagramHost()
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 이름과 제목 글자 수
 // basis: estimate
-// 카드 머리와 문서 미리보기 절 제목. 원본 파일 이름(코드 글꼴)과 종류 꼬리표가 기본이다. 그림이 제목을 직접 그리는 차트는 그림 제목을 되풀이하지 않고, 그리지 않는 그림(흐름, 순서, 상태, 데이터)만 제목을 앞에 붙인다. 세 요소는 따로 놓인 flex 칸이라 간격과 기준선을 CSS가 정한다.
-function cardHead({ name, ext = '.diagramplay', title, kind, isChart }) {
-  const heading = title && !isChart ? `<span class="title">${renderRichHtml(title)}</span>` : '';
+// 카드 머리와 문서 미리보기 절 제목. 원본 파일 이름(코드 글꼴)과 종류 꼬리표가 기본이고, 제목이 있으면 앞에 붙인다. 세 요소는 따로 놓인 flex 칸이라 간격과 기준선을 CSS가 정한다.
+function cardHead({ name, ext = '.diagramplay', title, kind }) {
+  const heading = title ? `<span class="title">${renderRichHtml(title)}</span>` : '';
   return `<h2>${heading}<code class="name">${escapeXml(name)}${escapeXml(ext)}</code><span class="kind">${escapeXml(kind)}</span></h2>`;
 }
 
@@ -26,7 +26,7 @@ const pageOf = ({ href, page }) => (page ?? href);
 // basis: estimate
 /**
  * 여러 그림을 한 쪽에서 보는 목록. 그림마다 재생 화면을 iframe으로 넣는다.
- * @param figures { name, ext?, title, kind, isChart, href, page? }[]. href는 목록 쪽에서 본 확장자 뺀 상대 경로 원본 글자다(인코딩은 여기서 한다). page는 재생 화면 파일 이름(확장자 없이, 같은 폴더)이고 없으면 href와 같다.
+ * @param figures { name, ext?, title, kind, href, page? }[]. href는 목록 쪽에서 본 확장자 뺀 상대 경로 원본 글자다(인코딩은 여기서 한다). page는 재생 화면 파일 이름(확장자 없이, 같은 폴더)이고 없으면 href와 같다.
  */
 export function toGallery(figures, heading) {
   const cards = figures
@@ -44,7 +44,7 @@ export function toGallery(figures, heading) {
 // basis: estimate
 /**
  * 문서(README) 안 모습 미리보기. 그림마다 움직이는 SVG를 img로 넣는다(GitHub README와 같은 방식).
- * @param figures { name, ext?, title, kind, isChart, href }[]. href는 이 쪽에서 본 확장자 뺀 상대 경로 원본 글자다(인코딩은 여기서 한다).
+ * @param figures { name, ext?, title, kind, href }[]. href는 이 쪽에서 본 확장자 뺀 상대 경로 원본 글자다(인코딩은 여기서 한다).
  */
 export function toDocument(figures, heading) {
   const sections = figures

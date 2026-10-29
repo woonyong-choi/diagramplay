@@ -42,7 +42,7 @@ export function readFigure(source, problems) {
   for (const group of ctx.groups) if (!group.isRejected) problems.error(group.line, `close group "${group.id}" with "}"`);
   for (const block of ctx.sequenceBlocks ?? []) problems.error(block.line, 'close the sequence block with }');
   prepareSequenceFragments(figure, problems);
-  // 색을 고르지 않은 카드(표, API, 클래스, 차트 등)도 중립 면(plain)이라는 값을 모형에 담는다.
+  // 색을 고르지 않은 카드(표, API, 클래스 등)도 중립 면(plain)이라는 값을 모형에 담는다.
   for (const card of figure.nodes) card.appearance ??= VALUES.appearance.default;
   validateFigure(figure, problems);
   return figure;
@@ -51,9 +51,9 @@ export function readFigure(source, problems) {
 /**
  * 비어 있는 문서 모형.
  * source: 받은 원본 글 그대로(줄바꿈 CRLF, 첫 글자 포함). 읽기 전에 고치지 않고 정리하지 않는다. 문법 복사가 이 글을 쓴다.
- * nodes: { id, shape, label, sub, parent, tone, appearance, line, columns?, members?, cells?, plot?, spans? },
+ * nodes: { id, shape, label, sub, parent, tone, appearance, line, columns?, members? },
  * groups: { id, label, direction, parent, tone, appearance, line },
- * edges: { from, to, label, quiet, dashed, head, no, line, relation?, fromColumns?, toColumns?, fromCell?, toCell?, fromSpan?, toSpan? },
+ * edges: { from, to, label, quiet, dashed, head, no, line, relation?, fromColumns?, toColumns? },
  * views: { id, strategy, direction, label, members, line, isImplicit }. id는 v1, v2, ...로 resolveViews가 붙인다,
  * steps: { label, mode, speed, line, beats, tracks, forMs, keep, sets, status }
  */
@@ -83,8 +83,6 @@ function emptyFigure(source) {
     // `when`이나 `wait`를 하나라도 썼는지. 안 쓴 원본은 시간표가 이벤트 처리를 거치지 않는다.
     hasConditions: false,
     hasReserve: false,
-    start: undefined,
-    finals: [],
     steps: [],
   };
 }

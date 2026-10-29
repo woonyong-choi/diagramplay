@@ -1,10 +1,9 @@
 // 재생 화면 HTML 한 장과 목록 쪽. 스크립트, 스타일, 글꼴, 그림을 모두 안에 넣어 파일 하나로 열린다.
-import { chartMotionCss } from '@woonyong-choi/design-tokens/ui/diagram.mjs';
 import { CANVAS, canvasOf } from '../measure/canvas.js';
 import { createGlyphSet, embedFonts } from '../measure/fonts.js';
 import { paintCss } from '../draw/paint.js';
 import { hasStatus } from '../layout/status.js';
-import { STYLES, tokensFor, figureDefs, patternDefs } from '../draw/styles.js';
+import { STYLES, tokensFor } from '../draw/styles.js';
 import { escapeXml, figureDesc, plainText, roundCoord as r } from '../format/text.js';
 import { figureContent } from './content.js';
 import { responsiveContent } from './responsive.js';
@@ -69,12 +68,8 @@ async function canonicalHtml(result, name, source) {
   addTimelineGlyphs(timeline, glyphs);
   const fonts = await embedFonts(glyphs.used);
   const title = plainText(figure.title ?? name);
-  const charts = content.hasCharts;
-  const defs = documentDefs(figure, [content, responsive?.content]);
-  // 점이 나타나는 시각은 배치마다 다르므로(좁은 배치는 선 위치가 다르다) 넓은 배치와 좁은 배치의 시각을 모두 규칙으로 둔다.
-  const dotAts = [...new Set([...content.dotAts, ...(responsive?.content.dotAts ?? [])])].sort((a, b) => a - b);
-  const styles = [STYLES.control, STYLES.player, STYLES.figure, paintCss(result.scene), STYLES.chart, charts ? chartMotionCss(timeline.growMs, dotAts) : '', hasStatus(timeline) ? STYLES.status : ''].join('');
-  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }, defs), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', narrow: responsive ? `<template class="fl-narrow">${panelsMarkup(responsive.content, { title, desc: figureDesc(figure) })}</template>` : '', source });
+  const styles = [STYLES.control, STYLES.player, STYLES.figure, paintCss(result.scene), hasStatus(timeline) ? STYLES.status : ''].join('');
+  const frame = figureFrame({ labels: content.data.steps.map(step => step.label), canvas: panelsMarkup(content, { title, desc: figureDesc(figure) }), style: canvasOf(figure) !== CANVAS ? ` style="--figure-canvas: ${canvasOf(figure)}px"` : '', narrow: responsive ? `<template class="fl-narrow">${panelsMarkup(responsive.content, { title, desc: figureDesc(figure) })}</template>` : '', source });
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -95,17 +90,6 @@ figurePlay(document.querySelector('.fl-figure'), ${JSON.stringify(content.data, 
 </body>
 </html>
 `;
-}
-
-// cost: time O(c·p), heap O(p), stack O(1)
-// vars: c = 차트 수, p = 무늬 정의 수
-// basis: estimate
-/**
- * 문서에 한 번 두는 정의: 차트 화살표 표식과 모든 판(넓은 배치와 좁은 배치)의 차트가 쓰는 무늬. 무늬 id는 내용에서 만든 값이라(chart/pattern.js) 같은 id는 같은 내용이고, 이 한 벌을 모든 판 SVG가 `url(#id)`로 쓴다.
- * @param contents 그림 내용 목록(figureContent 결과, 없는 것은 건너뛴다)
- */
-function documentDefs(figure, contents) {
-  return figureDefs(figure) + patternDefs(contents.flatMap((content) => content?.charts ?? []));
 }
 
 // 그림 내용과, 좁은 배치가 있으면 그 내용.
@@ -148,9 +132,8 @@ function withCanonical(template) {
  * 판이 하나뿐인 그림은 둘레 여백을 걷은 보기 영역(data.tight)을 viewBox로 쓸 수 있도록 재생기가 맞춘다(player/play.js).
  * 보기 폭(--view-w)은 판 가운데 가장 넓은 것(content.width)이다. 판 폭 비율의 분모와 묶음의 하한 폭에 쓴다.
  * 첫 판 SVG는 그림 제목(`<title>`)과 부제 설명(`<desc>`)을 갖고, 나머지 판은 보기 이름이 접근성 이름이다.
- * 마커와 차트 무늬 정의(defs, documentDefs)는 문서에 한 번만 둔다(보이지 않는 SVG). 판 SVG들이 같은 문서 id로 쓰므로 판마다 정의를 복사하지 않아 문서 안 id가 겹치지 않는다.
  */
-function panelsMarkup(content, { title, desc }, defs) {
+function panelsMarkup(content, { title, desc }) {
   const view = content.width;
   const panels = content.panels.map((panel, i) => {
     const box = panel.frame;
@@ -163,7 +146,7 @@ function panelsMarkup(content, { title, desc }, defs) {
       `</section>`
     );
   });
-  return `<div class="dp-panels" style="--view-w: ${r(view)}">${panels.join('')}</div>${defs ? `<svg class="dp-defs" width="0" height="0" aria-hidden="true"><defs>${defs}</defs></svg>` : ''}`;
+  return `<div class="dp-panels" style="--view-w: ${r(view)}">${panels.join('')}</div>`;
 }
 
 export { toDocument, toGallery } from './listing.js';

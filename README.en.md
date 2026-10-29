@@ -46,7 +46,7 @@ To write your own source, read [Create your first figure](docs/usage.md#첫-그�
 
 ## Why
 
-To explain request movement and value changes in documentation, you need to show structure and execution order together. DiagramPlay lets you describe elements such as boxes and their connections in text, then add scenes with timed actions to the same figure. One source can combine structure, sequences, states, data relations, and charts.
+To explain request movement and value changes in documentation, you need to show structure and execution order together. DiagramPlay lets you describe elements such as boxes and their connections in text, then add scenes with timed actions to the same figure. One source can combine architecture, card flows, sequences, ERDs, and class diagrams with the requests, responses, events, queues, values, and state changes inside them. Statistical charts and measurement views are out of scope.
 
 A graphic editor is a better fit when you want to edit the layout and shapes of a static diagram directly. DiagramPlay is for text-based documentation that plays flows and value changes.
 

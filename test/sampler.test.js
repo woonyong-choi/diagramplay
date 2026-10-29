@@ -88,7 +88,7 @@ test('Q2 static is always the last frame, once holds it from the scene length on
   const total = 1400;
   assert.deepEqual(modes.map((_, si) => doc.total(si)), [total, total, total]);
   const rest = (frame) => ({ edges: frame.edges, pulses: frame.pulses, held: frame.held, values: frame.values.filter((value) => value !== null) });
-  const last = { edges: {}, pulses: {}, held: { edges: [], lit: [], parts: [], lights: {} }, values: ['1'] };
+  const last = { edges: {}, pulses: {}, held: { edges: [], lit: [], parts: [] }, values: ['1'] };
   const first = doc.sample(2, 0);
   assert.deepEqual([first.phase, first.d, activeEdges(first), rest(first).values], ['play', 0, ['0'], ['0']]);
   for (const elapsed of [0, 700, total - 1, total, total + 1, 3 * total]) {
@@ -282,24 +282,6 @@ test('Q8 the last frame is at rest: no halo and no line pill is left over, at an
   assert.deepEqual(left, []);
 });
 
-
-test('grid cell values change at arrival and restore when seeking backwards', async () => {
-  const source = diagramplay(`
-    box a "A"
-    grid g "Grid" {
-      item cell "unused"
-    }
-    value cell "Current" on=g.cell from=empty
-    a -> g.cell
-    scene "change" mode=once
-      a -> g.cell time=1s set="cell=loaded"
-  `);
-  const view = await player(source);
-  assert.ok(view.sample(0, 0).values.includes('empty'));
-  assert.ok(view.sample(0, 999).values.includes('empty'));
-  assert.ok(view.sample(0, 1000).values.includes('loaded'));
-  assert.deepEqual(view.sample(0, 0), view.fresh(0, 0));
-});
 
 test('shared motion math preserves forward and inverse browser results', () => {
   const context = vm.createContext({ matchMedia: () => ({ matches: false }) });

@@ -65,30 +65,28 @@ diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.
 
 | 모형 | DiagramPlay |
 |---|---|
-| 카드 `box`, `circle`, `store`, `person`, `decision`, `queue`, `state`, `table` | `box`, `box ... shape=circle`, `store`, `person`, `decision`, `queue ... slots=N`, `state`, `table { 열 }` |
+| 카드 `box`, `circle`, `store`, `person`, `decision`, `queue`, `table` | `box`, `box ... shape=circle`, `store`, `person`, `decision`, `queue ... slots=N`, `table { 열 }` |
 | 그룹(중첩, 방향) | `group id "이름" [direction=down] { }` |
 | 선(라벨, 점선, 화살촉 `end`·`both`·`none`) | `a -> b "라벨" [dashed] [head=both\|none]` |
 | 테이블 끝의 관계(다중성) | `a[.열] -> b[.열] relation=association from="..." to="..."` |
 | 외래 키(열 하나, 여러 열, 삭제 동작, 다중성) | 열의 `fk=테이블.열 [ondelete=...] [from= to=]`, 테이블 안 `fk (열, ...) -> 테이블 (열, ...)` |
 | 여러 열 키 | 테이블 안 `pk (열, ...)`, `unique (열, ...)` |
-| 처음·끝 상태 | `start id`, `final id` |
 | 메시지, 메모, 활성 구간, 구획 | `view sequence { }`와 장면 하나의 `a -> b "글" [dashed]`, `note`, `activate`, `deactivate`, `fragment alt\|loop\|opt\|par` |
-| 원 차트 행 | `chart id "제목" pie { row "이름" value=N }` |
 | 그림 방향 `down` | `view graph down`(`right`는 기본이라 적지 않는다) |
 
 쓰는 곳이 DiagramPlay 규칙을 한 번에 맞춘다.
 
 - 빈 그룹은 쓰지 않고 경고한다. 그 안의 그룹이 빠지면 카드는 가장 가까운 남은 그룹에 놓인다.
 - 열이 없는 테이블은 상자로 쓰고 경고한다(DiagramPlay 테이블은 열이 하나 이상이다).
-- 같은 방향의 같은 두 끝을 잇는 선은 하나로 합치고 라벨을 쉼표로 잇는다(경고). 자기 자신으로 가는 선(상태와 한 테이블의 서로 다른 두 열은 된다), 그룹과 그 안의 카드를 잇는 선은 건너뛴다(경고).
+- 같은 방향의 같은 두 끝을 잇는 선은 하나로 합치고 라벨을 쉼표로 잇는다(경고). 자기 자신으로 가는 선(한 테이블의 서로 다른 두 열은 된다), 그룹과 그 안의 카드를 잇는 선은 건너뛴다(경고).
 - 다중성과 관계 종류는 두 끝이 모두 테이블일 때만 쓴다. 한쪽이 상자면 다중성을 빼고 경고하며 화살촉 없는 선(`head=none`)으로 쓴다.
 - 외래 키는 가리키는 열 묶음이 그 테이블의 기본 키나 고유 키 전체일 때만 `fk`로 쓴다. 아니면 같은 다중성의 관계선으로 쓰고 경고한다. `set null` 삭제는 참조하는 열을 `nullable`로 쓰고, 그 열이 `not null`이면 삭제 동작을 빼고 경고한다. 열이 자기 자신을 가리키는 참조는 건너뛴다.
-- 두 상태를 잇는 전이에 사건 글이 없으면 `…`를 쓰고 경고한다. 메시지 글이 없을 때도 같다. 처음·끝 상태는 상태 카드만 될 수 있고 처음 상태는 하나다.
+- 메시지 글이 없으면 `…`를 쓰고 경고한다.
 - 순서 보기의 참여자는 처음 보내는 순서로, 보내지 않는 참여자는 원본 순서대로 뒤에 놓는다(DiagramPlay 순서 보기 규칙). 원본 순서와 다르면 경고한다.
 
 ### 이름과 글
 
-- 이름(id)은 원본 이름을 [`toId`](../../src/source/mistakes.js)로 고친 것(`OrderService` → `order-service`)이고, 테이블은 `-` 대신 `_`다. 영문자가 없는 이름(`주문`)은 `node`, `table`, `group`, `chart`로 시작한다. 겹치면 `-2`(테이블은 `_2`)를 붙인다. 보이는 이름은 원본 글 그대로다.
+- 이름(id)은 원본 이름을 [`toId`](../../src/source/mistakes.js)로 고친 것(`OrderService` → `order-service`)이고, 테이블은 `-` 대신 `_`다. 영문자가 없는 이름(`주문`)은 `node`, `table`, `group`으로 시작한다. 겹치면 `-2`(테이블은 `_2`)를 붙인다. 보이는 이름은 원본 글 그대로다.
 - 열 이름은 영문자로 시작하고 영문자, 숫자, `_`만 쓴다. 바꾼 이름은 그림에 보이는 글이 달라지므로 경고한다.
 - Mermaid 문장은 앞뒤 공백을 지우고 안의 공백 연속을 한 칸으로 줄인 뒤 읽는다. 한 줄의 길이에 비례하는 시간으로 읽기 위해서다(공백이 긴 줄에서 정규식이 되돌아가며 다시 맞춰 보는 일을 막는다). 순서 그림의 메시지는 정규식 대신 앞에서부터 화살표 자리를 찾아 가른다.
 - 글의 줄바꿈과 `<br>`는 공백이다. 따옴표와 역슬래시는 이스케이프한다. 짝이 맞지 않는 백틱은 지우고 경고한다(DiagramPlay 글의 백틱 짝은 코드 구간이다). 기호가 든 열 타입은 따옴표 글이다(`"varchar(255)"`).
@@ -142,18 +140,6 @@ diagramplay import [mermaid|dbml|d2|drawio|excalidraw] <파일|-> [--out 파일.
 
 Mermaid `loop`와 `opt`에는 횟수와 재생 여부가 없으므로 한 번 재생(`times=1`, `run=on`)으로 쓴다. 장면은 하나이고 이름은 `title`이나 `sequence`다.
 
-#### 상태 그림
-
-| Mermaid | DiagramPlay | 경고 |
-|---|---|---|
-| `a --> b : 사건` | `a -> b "사건"` | 사건이 없으면 `…` |
-| `[*] --> a`, `a --> [*]` | `start a`, `final a` | 둘째 처음 상태, 상태가 아닌 끝, 처음·끝 전이의 사건은 건너뜀 |
-| `state "글" as a` | `state a "글"` | 없음 |
-| `state a <<choice>>` | `decision` | `fork`, `join`은 상태로 바꿔 그림 |
-| `state a { ... }` | `group`(안의 `[*] --> b`는 묶음으로 들어오는 전이가 닿을 상태) | 묶음으로 들어오는 전이는 그 상태로 바꿔 그림, 묶음에서 나가는 전이와 안의 끝은 건너뜀 |
-| `direction` | 그림·그룹 방향(기본 `down`) | 없음 |
-| `a : 설명`, `note`, `--`, `classDef`, `class`, `style` | 없음 | 건너뜀 |
-
 #### 개체 관계 그림
 
 | Mermaid | DiagramPlay | 경고 |
@@ -165,10 +151,6 @@ Mermaid `loop`와 `opt`에는 횟수와 재생 여부가 없으므로 한 번 �
 | `A \|\|--o{ B : 글` | `a -> b "글" relation=association from="1" to="0..*"` | 없음 |
 | 기수 `\|o`, `\|\|`, `}o`, `}\|` | `0..1`, `1`, `0..*`, `1..*` | 없음 |
 | `..`(식별하지 않는 관계) | `dashed` | 없음 |
-
-#### 원 차트
-
-`pie [showData] [title 글]`, `title 글`, `"이름" : 값`은 `chart id "제목" pie { row "이름" value=값 }`이다. DiagramPlay 원 차트는 값을 늘 적으므로 `showData`는 같은 뜻이다. 0 이하이거나 숫자가 아닌 값은 건너뛴다. 제목이 없으면 `pie`다.
 
 ### DBML
 
@@ -284,10 +266,8 @@ JSON에는 문장 줄이 없어 경고 줄은 그 요소 id가 처음 나오는 
 |---|---|
 | Mermaid 순서도의 모양, 라벨 선, 점선, 굵은 선, 중첩 subgraph가 표대로 옮겨지고 strict로 빌드된다. 꾸밈 문장은 그 줄의 경고다 | `test/import.test.js`(IM1) |
 | Mermaid 순서 그림의 참여자, 메시지, 메모, 활성 구간, 네 구획이 옮겨지고 참여자 순서를 고친 것을 알린다 | `test/import.test.js`(IM2) |
-| Mermaid 상태 그림의 처음·끝, 사건, 묶음, 갈림길이 옮겨지고 빠진 사건과 메모를 그 줄에서 알린다 | `test/import.test.js`(IM3) |
 | Mermaid 개체 관계 그림의 테이블, 키, 다중성, 점선 관계가 옮겨지고 속성 없는 개체와 설명을 알린다 | `test/import.test.js`(IM4) |
-| Mermaid 원 차트가 차트 카드가 되고 0 이하의 조각을 알린다 | `test/import.test.js`(IM5) |
-| 모르는 그림 종류는 그 줄의 오류이고, 모르는 문장은 그 줄의 경고다(조용히 버리지 않는다) | `test/import.test.js`(IM6) |
+| 모르는 그림 종류(제거한 표현의 `stateDiagram`, `pie` 포함)는 그 줄의 오류이고, 모르는 문장은 그 줄의 경고다(조용히 버리지 않는다) | `test/import.test.js`(IM6) |
 | DBML 테이블, 키, null 규칙, 인라인·별도 참조, 다대다, 여러 열 키와 외래 키, enum, 테이블 묶음이 옮겨지고 건너뛴 설정을 그 줄에서 알린다 | `test/import.test.js`(IM7) |
 | D2 노드, 라벨, 화살표 넷, 컨테이너, shape, direction, sql_table과 외래 키가 옮겨지고 꾸밈과 바꾼 모양을 알린다 | `test/import.test.js`(IM8) |
 | 명령이 원본 옆이나 `--out`에 새 파일만 쓰고, 표준 입력, `--json`, 겹침, 이미 있는 파일, 사용법 오류가 위 계약대로다. 옮긴 파일은 `render --strict`가 통과한다 | `test/import.test.js`(IM9) |

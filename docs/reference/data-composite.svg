@@ -606,7 +606,6 @@
 .fl .a2 { opacity: 0; visibility: hidden; }
 .fl .a3 { opacity: 0; }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="648.1" height="215" class="fl-canvas-surface"/>
 <g transform="translate(0 0)">
 

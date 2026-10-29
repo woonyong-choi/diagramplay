@@ -1,7 +1,6 @@
-// 박자별 상태를 CSS keyframes class와 SMIL 점으로 바꾼다. 시계, 켜짐 keyframes, 점, 차트는 이 폴더의 파일이 나눠 맡는다.
+// 박자별 상태를 CSS keyframes class와 SMIL 점으로 바꾼다. 시계, 켜짐 keyframes, 점은 이 폴더의 파일이 나눠 맡는다.
 import { litIds } from '../timeline/compose.js';
 import { PULSE_MS } from '../timeline/pulse.js';
-import { animateChart } from './chart.js';
 import { drawStatusPills } from '../draw/status.js';
 import { drawFlashes, drawValues } from '../draw/values.js';
 import { discreteWindows } from './discrete.js';
@@ -17,11 +16,11 @@ const PILL_FADE = Object.freeze({ off: PULSE_MS });
 // basis: estimate
 /**
  * 움직이는 SVG의 움직임 만들기. 한 바퀴 시계 하나를 모든 요소가 나눠 쓴다. 정지(static) 시계는 마지막 상태만 정한다: 점과 펄스가 없고 값과 상태 알약이 마지막 모습으로 놓인다.
- * @param timeline 장면 하나로 자른 시간표({ segs, total, growMs, pulses })
+ * @param timeline 장면 하나로 자른 시간표({ segs, total, pulses })
  * @param clock createClock 결과
- * @returns { css, decorate, packet, windows, chart, values, flashes, status, isStatic }. values(scene, timeline, glyphs)는 값 글자와 큐 찬 칸 요소, flashes(scene, timeline)는 값이 바뀔 때 켜지는 배경 면, status(scene, timeline, glyphs)는 장면별 도형 상태 알약 층이다. decorate(scene)은 (kind, i, extra)로 요소의 켜짐 class를 돌려주는 함수를 만든다
+ * @returns { css, decorate, packet, windows, values, flashes, borders, status, isStatic }. values(scene, timeline, glyphs)는 값 글자와 큐 찬 칸 요소, flashes(scene, timeline)는 값이 바뀔 때 켜지는 배경 면, status(scene, timeline, glyphs)는 장면별 도형 상태 알약 층이다. decorate(scene)은 (kind, i, extra)로 요소의 켜짐 class를 돌려주는 함수를 만든다
  */
-export function createAnimator({ segs, growMs, pulses = [], marks = {} }, clock, { prefix = '', root = '.fl' } = {}) {
+export function createAnimator({ segs, pulses = [], marks = {} }, clock, { prefix = '' } = {}) {
   const css = [];
   const isStatic = clock.mode === 'static';
   const { windows, spanWindows, stack } = createWindows(clock, segs, css, prefix);
@@ -42,7 +41,6 @@ export function createAnimator({ segs, growMs, pulses = [], marks = {} }, clock,
     stack,
   };
   const decorate = (scene) => (kind, i, extra) => decorateElement(kind, { id: (kind.startsWith('group') ? scene?.groups[i] : scene?.items[i])?.id, i, extra, scene }, motion);
-  const chart = (card) => animateChart({ clock, segs, growMs, css, windows, root }, card);
   const packet = isStatic ? () => '' : (move, glyphs) => drawPacket(clock, move, glyphs);
   const atsOf = (key) => pulses.filter((p) => p.key === key).map((p) => p.at);
   const valueRows = (scene, timeline, glyphs) => drawValues(scene, timeline, { glyphs, windows: discrete, isStatic });
@@ -50,7 +48,7 @@ export function createAnimator({ segs, growMs, pulses = [], marks = {} }, clock,
   // 점이 도형에 닿을 때의 후광: 도형 윤곽(`.fl-stroke`)과 같은 모양의 겹침 선이 80/80/240 화면 ms 동안 나타났다 사라진다. 면과 선 굵기는 바뀌지 않는다.
   const borders = (scene) => (isStatic ? undefined : (index, shape) => borderPulse(shape, pulseAnimate(clock, atsOf(`node:${scene.items[index].id}`))));
   const status = (scene, timeline, glyphs) => drawStatusPills(scene, timeline, { glyphs, windows: discrete, isStatic, name: (_, item) => item });
-  return { css, decorate, packet, windows, chart, values: valueRows, flashes, borders, status, isStatic };
+  return { css, decorate, packet, windows, values: valueRows, flashes, borders, status, isStatic };
 }
 
 // cost: time O(n), heap O(n), stack O(1)
@@ -71,18 +69,15 @@ function borderPulse(shape, anim) {
 // vars: b = 박자 수
 // basis: estimate
 // 요소 종류별 켜짐과 꺼짐 스타일. 값은 이 파일이 정하지 않는다. figure.css의 효과 한 벌(`--fx-*`)이 켜짐과 평소를 정하고, 여기서는 그 사용자 정의 속성을 시각에 맞춰 고를 뿐이다(HTML 재생기의 `.on` 규칙이 읽는 것과 같다).
-// 켜짐은 모든 카드, 칸, 줄, 선 라벨이 같은 효과다: 공통 UI 강조 윤곽과 옅은 강조 면. 꺼짐은 요소의 평소 값(도형이 고른 모습 포함, draw/paint.js)이다. target은 { id, i, extra, scene }(i는 요소 번호, extra는 열 이름이나 카드 층, 차트 카드 묶음의 'ground')다.
+// 켜짐은 모든 카드, 칸, 줄, 선 라벨이 같은 효과다: 공통 UI 강조 윤곽과 옅은 강조 면. 꺼짐은 요소의 평소 값(도형이 고른 모습 포함, draw/paint.js)이다. target은 { id, i, extra, scene }(i는 요소 번호, extra는 열 이름이나 카드 층)다.
 function decorateElement(kind, { id, i, extra, scene }, { segs, toggle, quiet, moving, litNode, cardState, stack }) {
   switch (kind) {
     case 'node':
-      // 차트 카드의 글자 바탕과 받침 선은 켜진 카드 면을 따른다. 면은 윤곽 요소가, 차트는 그 형제 묶음이 가지므로 같은 켜짐 구간을 묶음에 따로 건다. 건 것은 차트 묶음의 color(chart.css의 바탕 색 운반)이고, 사용자 정의 속성 keyframes는 테마가 바뀌어도 따라가지 않아 쓰지 않는다.
-      if (extra === 'ground') return toggle(litNode(id), 'color: var(--fx-face-on)', 'color: var(--fx-face)');
       return toggle(litNode(id), 'fill: var(--fx-face-on); stroke: var(--fx-edge)', 'fill: var(--fx-face); stroke: var(--fx-edge-rest)');
     // 그룹은 `light`가 명시했을 때만 경계선이 강조 색이다(figure.css의 `.fl-group.on > .frame-box`와 같다). 굵기와 면은 바뀌지 않고, 켜진 적 없는 그룹은 class를 만들지 않는다.
     case 'group':
       return segs.some((s) => litIds(s).has(id)) ? toggle(litNode(id), 'stroke: var(--fx-edge)', 'stroke: var(--fx-edge-rest)') : '';
-    // 켜진 표 줄과 격자 칸은 면만 바뀐다(figure.css의 `.fl-part.on`과 같다).
-    case 'cell':
+    // 켜진 표 줄은 면만 바뀐다(figure.css의 `.fl-part.on`과 같다).
     case 'part':
       return toggle(segs.map((s) => s.partsOn.includes(extra)), 'fill: var(--fx-face-on)', 'fill: var(--fx-face)');
     // 조용한 선은 보임(불투명도)과 강조(색)가 한 요소에서 따로 움직이므로 한 class에 쌓는다. 따로 걸면 뒤의 `animation`이 앞의 것을 덮는다.

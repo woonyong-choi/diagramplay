@@ -618,7 +618,6 @@
 .fl .a7 { animation: a7 2.5s 1 forwards linear; }
 .fl .sa0 { fill: var(--fx-face); stroke: var(--fx-edge-rest); }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="255" height="663" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 <g id="g-0" class="fl-group" data-id="edge"><rect x="44" y="16" width="148" height="110" rx="8" class="frame-box fl-stroke dashed "/><text x="62" y="35.4" class="frame">엣지</text></g>

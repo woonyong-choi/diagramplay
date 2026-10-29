@@ -616,7 +616,6 @@
 .fl .sa1 { opacity: 1; visibility: visible; }
 .fl .sa2 { opacity: 1; }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="307" height="307" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 
