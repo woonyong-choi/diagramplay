@@ -26,7 +26,7 @@
   --color-figure-outline: var(--color-category-gray-line);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
   --color-figure-canvas: var(--color-ui-card);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -54,13 +54,12 @@
   --primitive-ink: #303336;
   --primitive-muted: #55606e;
   --primitive-line: #dfe3e8;
-  --primitive-search-hover: #d9e6ff;
-  --primitive-help-hover: #ebf1ff;
+  --primitive-help-hover: #eff0f2;
   --primitive-figure-dark-node: #303136;
   --primitive-figure-dark-edge: #50535b;
   --primitive-figure-dark-separator: #454850;
-  --primitive-figure-dark-hover: #343e50;
-  --primitive-figure-dark-selection: #274174;
+  --primitive-figure-dark-hover: #3e3f44;
+  --primitive-figure-dark-selection: #513f2e;
   --primitive-figure-dark-muted: #a9adb6;
   --primitive-figure-dark-outline: #868686;
   --primitive-figure-number-fill: #303336;
@@ -133,7 +132,7 @@
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
