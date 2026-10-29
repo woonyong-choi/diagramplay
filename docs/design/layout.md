@@ -73,7 +73,7 @@
 | 문서 미리보기 문단 | `text.body-text` | 18px·400 | `ink` |
 | 도형 이름 | `text.caption` | 13px·400 | `ink` |
 | 차트 제목 | `text.small`, `font-weight.semibold` | 15px·600 | `ink` |
-| 장면 탭 | `text.small`, `font-weight.semibold` | 15px·600, 높이 32, 반경 8, 1px 선(사이트 단추와 같은 탭) | `body`, 선택은 메인 파랑 면 위 `color.feature-tab-ink` |
+| 장면 탭 | `text.small`, `font-weight.semibold` | 15px·600, 높이 32, 반경 8, 1px 선(사이트 단추와 같은 탭) | `body`, 선택은 메인 주황 면 위 `color.feature-tab-ink`(어두운 글자) |
 | 테마 선택 | `text.body-text`를 기준으로 `text.feature-tab-font`, `font-weight.semibold` | 공통 분절 변형, 선택과 비선택의 굵기 동일 | `color.platform-color`, 선택 `color.control-paper` |
 | 차트 항목 이름 | `text.caption` | 13px·400, 워터폴 합계 행 600 | `ink` |
 | 테이블 열 이름·격자 항목 | `text.caption` | 13px·400 | `body` |

@@ -160,7 +160,7 @@ group backend "주문 시스템" direction=down {
 }
 ```
 
-전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `tone=blue`는 색 역할이다. 기본 중성 카드로 충분하면 생략한다. 사람과 서비스 브랜드 외의 기술 역할은 카드 이름으로 구분한다. `appearance=filled|outline`에 `tone`을 생략하면 진한 회색 `gray` 계열을 쓴다. 색 이름은 `blue`, `orange`, `gray`, `silver` 넷이고, 구조 그림은 회색을 기본으로 경로 역할에만 파랑·주황을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
+전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `tone=orange`는 색 역할이다. 기본 중성 카드로 충분하면 생략한다. 사람과 서비스 브랜드 외의 기술 역할은 카드 이름으로 구분한다. `appearance=filled|outline`에 `tone`을 생략하면 진한 회색 `gray` 계열을 쓴다. 색 이름은 `blue`, `orange`, `gray`, `silver` 넷이고, 구조 그림은 회색을 기본으로 경로 역할에만 파랑·주황을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
 
 [구성도 레퍼런스](reference/architecture.md)는 그룹, 아이콘과 번호 선을 설명한다. 내장 아이콘과 파일 기반 사용자 아이콘을 고르는 규칙은 [번호, 배지, 아이콘, 복제 개수](design/figure-syntax.md#번호-배지-아이콘-복제-개수)에 있다.
 
@@ -453,7 +453,7 @@ scene "구조"
 
 scene "접수가 더 빠를 때" mode=loop for=8s
   track producer -> jobs at=0s every=1s time=700ms wait="jobs<4" timeout=1s else=retry reserve="jobs+1"
-  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1" tone=orange
+  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1" tone=blue
 ```
 
 ![접수와 처리가 독립적으로 진행되는 큐](usage-queue.svg)<!-- diagramplay -->
