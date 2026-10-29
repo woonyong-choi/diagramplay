@@ -736,11 +736,11 @@ scene "같은 시각에 요청한다" for=8s
 | `group.dashed` | 값 없음(낱말만) |
 | `group.badge` | 글, 최대 8자 |
 | `group.icon` | 이름 또는 세트:이름 |
-| `group.tone` | `blue`, `orange`, `gray`, `silver` |
+| `group.tone` | `orange`, `blue`, `gray`, `silver` |
 | `group.appearance` | `plain`, `filled`, `outline` |
 | `node.badge` | 글, 최대 8자 |
 | `node.icon` | 이름 또는 세트:이름 |
-| `node.tone` | `blue`, `orange`, `gray`, `silver` |
+| `node.tone` | `orange`, `blue`, `gray`, `silver` |
 | `node.appearance` | `plain`, `filled`, `outline` |
 | `box.count` | 2 이상 정수 |
 | `queue.slots` | 1 이상 32 이하 정수 |
@@ -753,7 +753,7 @@ scene "같은 시각에 요청한다" for=8s
 | `scene.keep` | 값 이름 목록 |
 | `scene.set` | 글 |
 | `hop.time` | 시간 |
-| `hop.tone` | `blue`, `orange`, `gray`, `silver` |
+| `hop.tone` | `orange`, `blue`, `gray`, `silver` |
 | `hop.set` | 글 |
 | `hop.lost` | 0 이상 100 이하 퍼센트 |
 | `hop.when` | 조건 글 |
@@ -765,7 +765,7 @@ scene "같은 시각에 요청한다" for=8s
 | `track.at` | 시간(0 가능) |
 | `track.every` | 시간 |
 | `track.time` | 시간 |
-| `track.tone` | `blue`, `orange`, `gray`, `silver` |
+| `track.tone` | `orange`, `blue`, `gray`, `silver` |
 | `track.set` | 글 |
 | `track.lost` | 0 이상 100 이하 퍼센트 |
 | `track.when` | 조건 글 |
@@ -788,7 +788,7 @@ scene "같은 시각에 요청한다" for=8s
 | `edge.head` | `end`, `both`, `none` |
 | `box.shape` | `rect`, `circle`, `tile` |
 | `show.tag` | 글 |
-| `show.tone` | `blue`, `orange`, `gray`, `silver` |
+| `show.tone` | `orange`, `blue`, `gray`, `silver` |
 | `show.appearance` | `plain`, `filled`, `outline` |
 | `show.meta` | 글 |
 | `show.mark` | 글, 최대 8자 |
@@ -841,7 +841,7 @@ scene "같은 시각에 요청한다" for=8s
 | `scale` | `scale 값` | `linear`, `log` | `linear` |
 | `zero` | `zero 값` | `on`, `off` | `on` |
 | `chartType` |  | `bar`, `stacked`, `percent`, `dumbbell`, `box`, `scatter`, `line`, `step`, `area`, `ecdf`, `difference`, `heatmap`, `pie`, `donut`, `histogram`, `waterfall` | 없음 |
-| `tone` | `group.tone`, `node.tone`, `hop.tone`, `track.tone`, `show.tone` | `blue`, `orange`, `gray`, `silver` | 없음 |
+| `tone` | `group.tone`, `node.tone`, `hop.tone`, `track.tone`, `show.tone` | `orange`, `blue`, `gray`, `silver` | 없음 |
 | `appearance` | `group.appearance`, `node.appearance`, `show.appearance` | `plain`, `filled`, `outline` | `plain` |
 | `role` | `series.role` | `main`, `compare`, `reference` | 계열이 하나나 둘이면 선언 순서대로 main, compare(`dumbbell`은 compare, main), 셋 이상이면 없음 |
 | `head` | `edge.head` | `end`, `both`, `none` | `end` |

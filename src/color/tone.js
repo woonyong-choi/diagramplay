@@ -1,4 +1,4 @@
-// 이름 있는 색(`tone=`, `fill=`, `stroke=`)과 이름 없는 점과 태그가 받는 색의 순서. 이름은 범주 색 도우미(color/palette.js)의 구분색 넷(blue, orange, gray, silver)뿐이다.
+// 이름 있는 색(`tone=`, `fill=`, `stroke=`)과 이름 없는 점과 태그가 받는 색의 순서. 이름은 범주 색 도우미(color/palette.js)의 구분색 넷(orange, blue, gray, silver)뿐이다. 순서는 토큰이 정한다(주황이 메인 색과 같은 첫 계열).
 // 이름 없는 색의 순서도 같은 도우미(categoryPaint)가 정한다. 상태(성공, 경고, 실패)는 색 이름이 아니라 상태 아이콘이 알린다.
 import { PALETTE, categoryPaint } from './palette.js';
 

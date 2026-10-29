@@ -481,16 +481,18 @@ test('U8 repeated masked symbols keep their definitions and use local IDs', () =
   }
 });
 
-test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits in the drawing, the tab row below it, and neither depends on the figure', async () => {
+test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits in its own row above the drawing, the tab row below it, and neither depends on the figure', async () => {
   const frame = parseMarkup(figureFrame({ canvas: '<p>x</p>', source: 'diagramplay\n' }), { html: true });
   const figure = findOne(frame, (n) => n.tag === 'figure' && hasClass(n, 'fl-figure'), 'figure');
-  const [surface, foot] = figure.children.filter((n) => n.tag === 'div');
-  assert.ok(hasClass(surface, 'fl-surface') && hasClass(foot, 'fl-foot'));
-  const tools = findOne(surface, (n) => hasClass(n, 'app-toolbar'), 'toolbar');
+  // 틀 순서: 도구 단추 줄(틀 밖 위) → 그림 틀 → 장면 탭 줄
+  const [header, surface, foot] = figure.children.filter((n) => n.tag === 'div');
+  assert.ok(hasClass(header, 'app-tool-header') && hasClass(header, 'is-row') && hasClass(surface, 'fl-surface') && hasClass(foot, 'fl-foot'));
+  assert.deepEqual(findAll(surface, (n) => hasClass(n, 'app-toolbar')), [], 'the toolbar is outside the drawing frame');
+  const tools = findOne(header, (n) => hasClass(n, 'app-toolbar'), 'toolbar');
   assert.equal(tools.attrs.role, 'toolbar');
   assert.deepEqual(tools.children.filter((n) => n.tag === 'button').map((n) => n.attrs['aria-label']), ['문법 복사', 'HTML 다운로드', '전체화면']);
   assert.deepEqual(tools.children.filter((n) => n.tag === 'button').map((n) => classes(n).find((name) => name !== 'app-tool-button')), ['fl-copy', 'fl-download', 'fl-full']);
-  assert.equal(descendants(surface).indexOf(tools) < descendants(surface).findIndex((n) => hasClass(n, 'fl-canvas')), true, 'toolbar before the canvas');
+  assert.ok(findOne(surface, (n) => hasClass(n, 'fl-canvas'), 'canvas'), 'the canvas is inside the frame');
   const tabs = findOne(foot, (n) => hasClass(n, 'app-tablist'), 'tab row');
   assert.equal(tabs.attrs.role, 'tablist');
   assert.deepEqual(tabs.children, [], 'a frame without labels has no tabs');
