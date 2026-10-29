@@ -44,7 +44,7 @@
   --color-main-dark-border: #ff8904;
   --color-main-dark-ink: #ff8904;
   --color-main-dark-tint-3: #513f2e;
-  --color-main-dark-on: var(--primitive-ink-deep);
+  --color-main-dark-on: var(--color-gray-0);
   --font-figure-sans: FigSans, FigSansSym, FigSansMath, ui-sans-serif, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
   --font-figure-mono: FigMono, FigSans, FigSansSym, FigSansMath, ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-prose-block-radius: var(--radius-xl);
@@ -67,7 +67,6 @@
   --primitive-figure-dark-outline: #868686;
   --primitive-figure-number-fill: #303336;
   --primitive-figure-number-ink: #ffffff;
-  --primitive-ink-deep: #1c1c1e;
   --primitive-body-ink: #595c5e;
   --primitive-body-ink-dark: #cacacb;
   --border-width-thin: 1px;

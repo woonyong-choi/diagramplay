@@ -49,7 +49,7 @@
   --color-category-blue-on: var(--color-gray-1000);
   --color-category-orange-fill: #ff6900;
   --color-category-orange-line: #f54900;
-  --color-category-orange-on: var(--color-gray-1000);
+  --color-category-orange-on: var(--color-gray-0);
   --color-category-gray-fill: #8b8f95;
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
