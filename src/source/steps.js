@@ -4,21 +4,20 @@ import { readActivation } from './sequence-life.js';
 import { readContent } from './content.js';
 import { readMoveOptions } from './move-options.js';
 import { isOverTimeLimit, overLimitMessage, parseNumber, parseTime, timeHint } from './values.js';
-import { ID_PATTERN } from './words.js';
 
 // cost: time O(t), heap O(t), stack O(1)
 // vars: t = 문장 낱말 수
 // basis: estimate
 /** 시간 흐름 문장 하나를 읽어 지금 장면에 더한다. word는 문장 첫 낱말이거나 이동 줄이면 'hop'이다. */
 export function readTimeline(word, statement, ctx) {
-  const handlers = { scene: readScene, hop: readHops, track: readTrack, show: readShow, clear: readClear, light: readLight, wait: readWait, note: readNote, reveal: readReveal, activate: readActivation, deactivate: readActivation };
+  const handlers = { scene: readScene, hop: readHops, track: readTrack, show: readShow, clear: readClear, light: readLight, wait: readWait, note: readNote, activate: readActivation, deactivate: readActivation };
   if (word !== 'scene') checkMixedStep(word, statement.line, ctx);
   handlers[word](statement, ctx);
 }
 
 /** 빈 박자. 박자 줄마다 하나씩 만든다. */
 export function emptyBeat(line) {
-  return { line, hops: [], ops: [], light: [], chartLight: [], waitMs: 0, reveal: [], notes: [], isPause: false };
+  return { line, hops: [], ops: [], light: [], waitMs: 0, notes: [], isPause: false };
 }
 
 // cost: time O(t), heap O(t), stack O(1)
@@ -107,28 +106,15 @@ function readClear({ tokens, line }, ctx) {
   attachBeat(ctx, line).ops.push({ type: 'clear', node: id.value, line });
 }
 
-// cost: time O(t), heap O(t), stack O(1)
-// vars: t = 문장 낱말 수
-// basis: estimate
-// 카드와 칸: `light a b.part`. 차트 카드: `light 차트 "항목"`, `light 차트 x=값`, `light 차트 "행" "열"`.
+// `light a b.part`. 카드와 칸 이름만 받는다.
 function readLight({ tokens, line }, ctx) {
   const args = tokens.slice(1);
   const beat = pushBeat(ctx, line);
   if (!args.length) ctx.problems.error(line, 'light needs at least one target');
-  if (!args.some((t) => t.type === 'text' || t.type === 'option')) {
-    for (const t of args) {
-      if (t.type === 'word') beat.light.push(t.value);
-      else ctx.problems.error(line, `light takes names. Found "${t.value}"`);
-    }
-    return;
+  for (const t of args) {
+    if (t.type === 'word') beat.light.push(t.value);
+    else ctx.problems.error(line, `light takes names. Found "${t.value}"`);
   }
-  const [target, ...rest] = args;
-  const isX = rest.length === 1 && rest[0].type === 'option' && rest[0].key === 'x' && parseNumber(rest[0].value) !== undefined;
-  const isTexts = rest.length >= 1 && rest.length <= 2 && rest.every((t) => t.type === 'text');
-  if (target.type !== 'word') ctx.problems.error(line, 'write a chart light as: light chart "item", light chart x=value, or light chart "row" "column"');
-  else if (isX) beat.chartLight.push({ chart: target.value, x: parseNumber(rest[0].value), line });
-  else if (isTexts) beat.chartLight.push({ chart: target.value, names: rest.map((t) => t.value), line });
-  else ctx.problems.error(line, 'in a chart, write light chart "item", light chart x=value, or light chart "row" "column"');
 }
 
 // `wait 2s`
@@ -158,21 +144,6 @@ function readNote({ tokens, line }, ctx) {
     return;
   }
   beat.notes.push({ node: id.value, text: text.value, line });
-}
-
-// cost: time O(t), heap O(t), stack O(1)
-// vars: t = 문장 낱말 수
-// basis: estimate
-// `reveal 차트.계열 …`. 계열이 없는 차트는 `reveal 차트`로 통째로 드러낸다.
-function readReveal({ tokens, line }, ctx) {
-  const ids = tokens.slice(1);
-  if (!ids.length || ids.some((t) => t.type !== 'word')) ctx.problems.error(line, 'write reveal as: reveal chart.series');
-  const beat = pushBeat(ctx, line);
-  for (const t of ids.filter((w) => w.type === 'word')) {
-    const [chart, series, ...more] = t.value.split('.');
-    if (more.length || !ID_PATTERN.test(chart) || (series !== undefined && !ID_PATTERN.test(series))) ctx.problems.error(line, `write a series as chart.series. Found "${t.value}"`);
-    else beat.reveal.push({ chart, series, line });
-  }
 }
 
 function pushBeat(ctx, line) {

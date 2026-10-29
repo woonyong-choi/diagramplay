@@ -1,5 +1,4 @@
 // 공통 상태 계약: 켜짐과 평소의 모습은 figure.css의 효과 한 벌(`--fx-*`) 하나가 정하고, 움직이는 SVG의 keyframes와 HTML 재생기의 규칙이 같은 사용자 정의 속성을 읽는다.
-// 차트 방향선의 화살촉은 색 역할마다 정의 하나이고, 차트 종류가 섞여도 선언 순서와 상관없이 몸통과 같은 역할의 색을 읽는다.
 // 브라우저에서 계산된 색은 보지 않는다(화면 검수는 따로 한다). 여기서는 출력이 어떤 정의를 읽는지만 본다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -8,50 +7,23 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { figureRoles, STYLES } from '../src/draw/styles.js';
 import { paintCss } from '../src/draw/paint.js';
-import { seriesBoundary, seriesOutline } from '../src/chart/metrics.js';
 import { build, diagramplay, toHtml, toSvg } from './support.js';
-
-test('bright_series_boundary_supplies_color_without_overriding_shared_stroke', () => {
-  // 직접 라벨이 필요한 계열(3·4번 회색)만 같은 계열의 경계를 가진다. 파랑·주황과 기대값 계열은 없다.
-  const chart = { series: [{ role: 'main' }, {}, {}, {}, { role: 'reference' }] };
-  for (const index of [0, 1, 4]) assert.equal(seriesBoundary(chart, index), '', `series ${index}`);
-  const boundary = seriesBoundary(chart, 3);
-  assert.ok(boundary.includes(`--chart-boundary: ${seriesOutline(chart, 3)}`));
-  assert.doesNotMatch(boundary, /style="stroke:/);
-});
 
 const GRAPH = diagramplay(`
   table t "T" {
     id bigint pk
   }
-  grid g "G" cols=2 {
-    item a "A" col=0
-  }
   box s "S" tone=orange appearance=outline
   box f "F" tone=blue appearance=filled
   s -> f "go"
   view graph {
-    t g s f
+    t s f
   }
   scene "s"
-    light t.id g.a
+    light t.id
     light s f
     s -> f
 `);
-
-const DUMBBELL = `chart d "지연" dumbbell {
-  x "지연(ms)"
-  series before "전" role=compare
-  series after "후" role=main
-  row "a" before=10 after=5
-}`;
-const SCATTER = `chart p "점" scatter {
-  x "크기(줄)"
-  y "장애(건)"
-  point "p1" x=1 y=1
-  point "p2" x=2 y=2
-  link "p1" -> "p2"
-}`;
 
 const KEYFRAMES = /@keyframes[^{]*\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g;
 
@@ -105,75 +77,14 @@ test('S1 켜짐과 평소 모습은 효과 한 벌(--fx-*)을 움직이는 SVG�
     assert.deepEqual(read.filter((name) => !defined.has(name)), [], 'every --fx-* that is read is defined in the same document');
   }
   const frames = (svg.match(KEYFRAMES) ?? []).filter((k) => k.includes('--fx-'));
-  assert.ok(frames.length > 0, 'the lit nodes, parts and cells animate through --fx-*');
+  assert.ok(frames.length > 0, 'the lit nodes and parts animate through --fx-*');
   assert.ok(frames.every((k) => !/--color-state-active\)|--color-paint/.test(k)), 'keyframes do not repeat token colors');
   assert.match(html, /\.fl-part\.on :is\(\.part-bg, \.grid-cell\)\s*\{\s*fill: var\(--fx-face-on\)/, 'the HTML lit field and cell read the same lit face as the animated SVG');
-  assert.ok(frames.some((k) => k.includes('fill: var(--fx-face-on)') && !k.includes('stroke')) && frames.some((k) => k.includes('fill: var(--fx-face);')), 'the animated SVG lights a field and a cell by that lit face only');
+  assert.ok(frames.some((k) => k.includes('fill: var(--fx-face-on)') && !k.includes('stroke')) && frames.some((k) => k.includes('fill: var(--fx-face);')), 'the animated SVG lights a field by that lit face only');
   assert.match(svg, /\.fl-node\.ap-outline\s*\{\s*--fx-edge-rest: var\(--paint-outline\)/, 'the shared appearance changes only the rest values');
   assert.match(svg, /\.fl-node\.ap-filled\s*\{\s*--fx-face: var\(--paint-fill\)/);
   assert.match(svg, /\.tn-orange\s*\{[^}]*--paint-outline: var\(--color-paint-orange-outline\)/);
   assert.match(svg, /\.tn-blue\s*\{[^}]*--paint-fill: var\(--color-paint-blue-fill\)/);
-});
-
-// 켜진 차트 카드: 카드 면은 켜짐 면(--fx-face-on)으로 바뀌므로 글자 바탕과 받침 선도 같은 구간에 같은 면을 따라야 한다.
-// 면은 윤곽 요소의 class가, 차트는 그 형제 묶음(.fl-chart)이 가지므로 움직이는 SVG는 묶음에 같은 켜짐 구간을 따로 건다.
-// 건 속성은 일반 상속 속성 color다(chart.css의 `.fl-chart`가 바탕 면을 color로 싣고 받는 쪽이 currentColor로 읽는다). 사용자 정의 속성 keyframes는 시작 때 값이 굳어 테마가 바뀌어도 따라가지 않는다.
-const LIT_CHART = diagramplay(`
-  box a "A"
-  a -> sales
-  chart sales "매출" line {
-    x "시각(시)"
-    y "지연(ms)"
-    series u "A" role=main
-    series v "B" role=compare
-    point x=1 u=1 v=3
-    point x=2 u=2 v=1
-    point x=3 u=4 v=2
-  }
-  view graph down
-  scene "켜짐" mode=loop
-    a -> sales time=600ms
-    light sales
-    wait 1s
-`);
-
-test('S3 켜진 차트 카드의 글자 바탕과 받침 선은 정지 SVG, 움직이는 SVG, HTML 모두 켜진 카드 면을 따른다', async () => {
-  const result = await build(LIT_CHART);
-  const groupsOf = (out) => [...out.matchAll(/<g class="fl-chart(?: ([\w-]+))?" data-chart="sales"/g)].map((m) => m[1]);
-  const GROUND_ON = 'color: var(--fx-face-on)';
-  const GROUND_OFF = 'color: var(--fx-face)';
-
-  const still = await toSvg(result, { isStatic: true });
-  const [stillName] = groupsOf(still);
-  assert.match(stillName ?? '', /^a\d+$/, 'the static SVG puts a lit class on the chart group, not only on the card face');
-  assert.ok(still.includes(`.fl .${stillName} { ${GROUND_ON}; }`), 'the final state is lit, so the ground is the lit face');
-  // 면을 정하는 CSS 상태는 여기 한 곳에서 본다(components.test.js U10은 그려진 형상만 본다). 별칭은 그림 바탕, 카드 면, 켜진 카드 면이고 차트 묶음이 일반 상속 속성 color로 싣는다.
-  // 글자 뒤 바탕 면과 받침 선은 그 color(currentColor)만 읽고 자기 color를 정하지 않는다.
-  assert.match(still, /\.fl \{\s*--chart-ground:\s*var\(--color-figure-canvas\);/);
-  assert.match(still, /\.fl \.fl-node \{\s*--chart-ground:\s*var\(--fx-face\);/);
-  assert.match(still, /\.fl \.fl-node\.on \{\s*--chart-ground:\s*var\(--fx-face-on\);/);
-  assert.match(still, /\.fl \.fl-chart \{\s*color:\s*var\(--chart-ground\);/);
-  assert.match(still, /\.fl \.chart-text-bg \{\s*fill:\s*currentColor;/);
-  for (const [selector, stroke] of [['chart-rule-casing', 'currentColor'], ['chart-after', 'var\\(--chart-boundary, currentColor\\)']]) assert.match(still, new RegExp(`\\.fl \\.${selector} \\{\\s*stroke:\\s*${stroke};\\s*stroke-width:[^;]+;\\s*\\}`), `${selector} reads the shared boundary or carried ground and sets no color of its own`);
-
-  const moving = await toSvg(result);
-  assert.doesNotMatch(moving, /\.play\b/, 'standalone SVG uses its scene timeline, not HTML playback classes');
-  const names = groupsOf(moving);
-  const live = names.find((name) => /^a\d+$/.test(name ?? ''));
-  assert.ok(live, 'the animated SVG puts a lit class on the chart group');
-  const frames = (moving.match(KEYFRAMES) ?? []).find((k) => k.startsWith(`@keyframes ${live} `));
-  assert.ok(frames?.includes(GROUND_ON) && frames.includes(GROUND_OFF), 'the loop turns the ground from the rest face to the lit face and back with the card');
-  assert.ok(moving.includes(`.fl .${live} { animation: ${live} `), 'the keyframes run on the chart group');
-  assert.ok(!frames.includes('--chart-ground'), 'the keyframes animate the inherited color, not the alias');
-  const declaring = (moving.match(KEYFRAMES) ?? []).filter((k) => /[{;]\s*--[\w-]+\s*:/.test(k));
-  assert.deepEqual(declaring.map((k) => k.slice(0, k.indexOf('{')).trim()), [], 'no keyframes declare a custom property, whose value would freeze at the start and miss a theme change');
-  const frozen = names.find((name) => /^sa\d+$/.test(name ?? ''));
-  assert.ok(frozen === undefined || moving.includes(`.fl .${frozen} { ${GROUND_ON}; }`), 'the final-state layer holds the lit ground');
-
-  const html = await toHtml(result, 'lit');
-  assert.ok(groupsOf(html).length > 0 && groupsOf(html).every((name) => name === undefined), 'the HTML player has no lit class on the chart group');
-  assert.match(html, /\.fl \.fl-node\.on\s*\{\s*--chart-ground:\s*var\(--fx-face-on\)/, 'the HTML player lights the ground by the existing .on rule, which the chart group carries as color');
-  assert.match(html, /\.fl \.fl-chart\s*\{\s*color:\s*var\(--chart-ground\)/, 'the same carrier in the HTML player');
 });
 
 // 움직이는 SVG의 시간은 재생기(player/sample.js)와 같다: 점이 선을 떠나면 선 색과 알약은 평소로 돌아오고(알약은 표시 400ms, speed와 상관없다), 조용한 선의 보임만 마지막 모습까지 남는다.
@@ -268,28 +179,6 @@ test('S5 light가 켠 그룹은 경계 색만 강조 색이 되고 굵기와 면
   assert.doesNotMatch(frames, /stroke-width|fill/, 'only the border colour changes');
   assert.match(await toHtml(result, 'group'), /\.fl \.fl-group\.on > \.frame-box \{\s*stroke: var\(--fx-edge\);\s*\}/, 'the HTML player lights the same border');
   assert.match(svg, /\.fl \.frame-box \{\s*--fx-edge-rest: var\(--color-figure-outline\);\s*fill: none;\s*stroke: var\(--fx-edge-rest\);/, 'a group reads its rest border through the variable, set on the rect itself so a badge inside the group does not inherit it');
-});
-
-for (const [first, order] of [['덤벨', [DUMBBELL, SCATTER]], ['산점도', [SCATTER, DUMBBELL]]]) {
-  test(`S2 차트 종류가 섞여도 방향선 화살촉은 몸통과 같은 역할의 색을 읽는다 (${first} 먼저)`, async () => {
-    const result = await build(diagramplay(`${order.join('\n')}\nscene "a"`));
-    for (const out of [await toSvg(result), await toHtml(result, 'arrows')]) {
-      assert.deepEqual([...out.matchAll(/<marker id="(fl-arrow-[a-z]+)"/g)].map((m) => m[1]).sort(), ['fl-arrow-main', 'fl-arrow-muted'], 'one marker per role, whatever the declaration order');
-      const lines = [...out.matchAll(/class="chart-(?:arrow|link) arrow-([a-z]+) pop" marker-end="url\(#(fl-arrow-[a-z]+)\)"/g)];
-      assert.ok(lines.length >= 2, 'both chart kinds draw a direction line');
-      assert.ok(lines.every(([, role, marker]) => marker === `fl-arrow-${role}`), 'each line points at the marker of its own role');
-      assert.doesNotMatch(out, /url\(#fl-arrow\)/, 'no shared marker whose color the first chart decides');
-    }
-  });
-}
-
-// 소비자 조사 T-E4: 구두점만 다른 차트 이름도 서로 다른 재생 시각을 가진다.
-test('S1 차트 이름의 하이픈은 애니메이션 이름을 충돌시키지 않는다', async () => {
-  const card = id => `chart ${id} "C" bar {\n x "x(u)"\n series v "V"\n row "A" v=1\n}\n`;
-  const result = await build(diagramplay(card('ab') + card('a-b') + 'scene "순서"\n reveal ab.v\n wait 1s\n reveal a-b.v\n'));
-  const svg = await toSvg(result);
-  const names = [...svg.matchAll(/@keyframes ([^ {]+)/g)].map(m => m[1]);
-  assert.equal(new Set(names).size, names.length);
 });
 
 test('surface_paint_and_relation_dashes_are_owned_by_shared_css', async () => {

@@ -12,8 +12,6 @@ import { iconBody } from '@woonyong-choi/design-tokens/ui/svg.mjs';
 import { drawTexts } from '../src/draw/texts.js';
 import { drawDecor } from '../src/draw/decor.js';
 import { edgeMarker } from '../src/draw/arrow.js';
-import { TEXT } from '../src/chart/metrics.js';
-import { pulseOverlay } from '../src/chart/pulse-overlay.js';
 import { drawEdgeLabel } from '../src/draw/connector.js';
 import { crossingCuts } from '../src/draw/crossings.js';
 import { pointAlong, routePolyline } from '../src/math/route.js';
@@ -246,7 +244,7 @@ test('U6 a label is rich text in every slot that takes a label: backticks make c
 // ---- 글 역할 ----
 
 // 측정(STYLE)과 그리기(CSS)는 글 역할의 크기와 굵기를 같은 토큰으로 읽는다. 다르면 잰 폭과 그린 폭이 어긋난다. 크기와 굵기만 보고 색과 자리는 보지 않는다.
-test('U11 a measured text role is the drawn role: the CSS of every role has the size and weight of its STYLE, and chart names are measured and drawn at the same weight', () => {
+test('U11 a measured text role is the drawn role: the CSS of every role has the size and weight of its STYLE', () => {
   const rulesOf = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({ selectors: selectors.split(',').map((s) => s.trim()), body }));
   const declared = (css, selector, property) => rulesOf(css).filter((rule) => rule.selectors.includes(selector)).flatMap(({ body }) => [...body.matchAll(new RegExp(`(?:^|;|\\s)${property}:\\s*([^;]+);`, 'g'))].map(([, value]) => value.trim()));
   const sizeOf = (css, selector) => values.text[/--text-([\w-]+)\)/.exec(declared(css, selector, 'font-size').at(-1))[1]];
@@ -255,13 +253,10 @@ test('U11 a measured text role is the drawn role: the CSS of every role has the 
     return weight === undefined ? 400 : values["font-weight"][/--font-weight-(\w+)\)/.exec(weight)[1]];
   };
   const WEIGHTS = { regular: 400, semibold: 600, semiboldLiteral: 600 };
-  const roles = [['.fl .label', STYLE.label], ['.fl .sub', STYLE.sub], ['.fl .frame', STYLE.group], ['.fl .row', STYLE.row], ['.fl .meta', STYLE.meta], ['.fl .cell', STYLE.cell], ['.fl .item', STYLE.item], ['.fl .mini', STYLE.mini], ['.fl .chip', STYLE.chip], ['.fl .edgelabel', STYLE.pill], ['.fl .tag', STYLE.tag], ['.fl .mark', STYLE.mark], ['.fl .cell .key', STYLE.key], ['.fl .value', STYLE.value], ['.fl .badge', BADGE_STYLE]];
+  const roles = [['.fl .label', STYLE.label], ['.fl .sub', STYLE.sub], ['.fl .frame', STYLE.group], ['.fl .row', STYLE.row], ['.fl .meta', STYLE.meta], ['.fl .cell', STYLE.cell], ['.fl .mini', STYLE.mini], ['.fl .chip', STYLE.chip], ['.fl .edgelabel', STYLE.pill], ['.fl .tag', STYLE.tag], ['.fl .mark', STYLE.mark], ['.fl .cell .key', STYLE.key], ['.fl .value', STYLE.value], ['.fl .badge', BADGE_STYLE]];
   for (const [selector, style] of roles) assert.deepEqual([sizeOf(STYLES.figure, selector), weightOf(STYLES.figure, selector)], [style.size, WEIGHTS[style.face]], selector);
   // 글자 사이 간격은 잰 폭이 아는 것(tracking.text, 문서 전체)뿐이다. 그룹 제목에 따로 간격을 주지 않는다.
   assert.deepEqual(declared(STYLES.figure, '.fl .frame', 'letter-spacing'), []);
-  // 차트의 행 이름과 끝 이름은 보통 굵기로 재고(chart/labels.js, end-labels.js) 보통 굵기로 그린다. 굵은 면은 합계 행과 강조 값에만 있다.
-  assert.deepEqual([sizeOf(STYLES.chart, '.fl .chart-label'), weightOf(STYLES.chart, '.fl .chart-label')], [TEXT, 400]);
-  assert.deepEqual([sizeOf(STYLES.chart, '.fl .chart-end-label'), weightOf(STYLES.chart, '.fl .chart-end-label')], [TEXT, 400]);
   assert.deepEqual([sizeOf(STYLES.status, '.fl .status-text'), weightOf(STYLES.status, '.fl .status-text')], [BADGE_STYLE.size, 600]);
 });
 
@@ -405,66 +400,6 @@ test('U8 a concept icon is one symbol: the card header, the tile and the group t
 
 // ---- HTML 그림 틀 ----
 
-// 차트의 글자 뒤 바탕 면과 받침 선은 차트가 놓인 면의 색이다. 차트 보기는 그림 바탕, 차트 카드는 카드 면이다. 여기서는 그려진 형상(어느 묶음 안에 놓였는가)만 보고, 면을 정하는 CSS는 component-state.test.js가 본다.
-test('U10 a chart is drawn on the surface it sits on: in a plot view and inside each chart card, with circular measured markers and neutral reference lines', async () => {
-  const source = diagramplay(`
-    box a "A"
-    chart c "C" bar {
-      x "x(u)"
-      series v "v"
-      row "r" v=1
-    }
-    chart l "L" line {
-      x "t(h)"
-      y "v(ms)"
-      series u "u" role=main
-      series goal "goal" role=reference
-      point x=1 u=1 goal=2
-      point x=2 u=2 goal=2
-    }
-    view graph "Cards" {
-      a
-      c
-      l
-    }
-    view plot "Numbers" {
-      c
-    }
-    view plot "Goals" {
-      l
-    }
-    chart e "Distribution" ecdf {
-      x "x(ms)"
-      y "p"
-      series actual "actual"
-      series target "target" role=reference
-      sample 1 series=actual
-      sample 2 series=actual
-      sample 1 series=target
-      sample 3 series=target
-    }
-    view plot "Distribution" {
-      e
-    }
-  `);
-  const svg = await toSvg(await build(source), { isStatic: true });
-  const dom = parseMarkup(svg);
-  assert.ok(findAll(dom, (n) => hasClass(n, 'fl-plot')).length > 0, 'a chart in a plot view');
-  const cards = findAll(dom, (n) => hasClass(n, 'fl-shape-chart'));
-  assert.equal(cards.length, 2, 'two chart cards');
-  for (const card of cards) assert.ok(findAll(card, (n) => hasClass(n, 'fl-chart')).length > 0, 'the chart is drawn inside its card, so it inherits the card face');
-  // 바탕 면을 정하는 CSS 상태(--chart-ground, 운반하는 color, currentColor를 읽는 지움 면과 받침 선)는 component-state.test.js S3 한 곳에서 본다.
-  const references = findAll(dom, (n) => hasClass(n, 'chart-dashed'));
-  assert.ok(references.length > 0);
-  assert.ok(references.every(n => n.attrs.stroke === 'var(--color-data-reference)'));
-  const dots = findAll(dom, n => hasClass(n, 'dot') && n.attrs['data-at'] !== undefined);
-  assert.ok(dots.length > 0 && dots.every(n => n.tag === 'circle'));
-  assert.equal(findAll(dom, n => n.attrs.fill === 'currentColor' && n.attrs.stroke).length, 0, 'reference lines have no point markers');
-  assert.ok(findAll(dom, (n) => Object.values(n.attrs).some((v) => String(v).includes('--chart-ground'))).length === 0, 'no presentation attribute names the alias');
-  // 바탕 면 값은 그림 바탕(배경 사각형과 설명 판)과 같은 토큰이다.
-  assert.ok(findAll(dom, (n) => n.tag === 'rect' && hasClass(n, 'fl-canvas-surface')).length > 0);
-});
-
 test('U8 repeated masked symbols keep their definitions and use local IDs', () => {
   const iconData = { role: 'concept', svg: '<svg viewBox="0 0 24 24"><defs><mask id="cut"><rect width="24" height="24" fill="white"/></mask></defs><rect width="24" height="24" mask="url(#cut)"/></svg>' };
   const decor = { items: [{ kind: 'icon', x: 0, y: 0, w: values.icon['size-small'] }] };
@@ -506,7 +441,6 @@ test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits
     still: 'box a "A"\n',
     one: 'box a "A"\nbox b "B"\na -> b\nscene "only" mode=static\n  a -> b "go"\n',
     three: 'box a "A"\nbox b "B"\na -> b\nscene "x" mode=static\n  a -> b "1"\nscene "y" mode=static\n  a -> b "2"\nscene "z" mode=static\n  a -> b "3"\n',
-    chart: 'chart c "C" bar {\n  x "x(u)"\n  series v "v"\n  row "r" v=1\n}\n',
   })) {
     const html = await toHtml(await build(diagramplay(source)), 'doc');
     const dom = parseMarkup(html, { html: true });
@@ -544,17 +478,6 @@ test('U9 every page has one frame, one toolbar and one tab row: the toolbar sits
   const title = head.decor.items.find(item => item.kind === 'title');
   assert.equal(title.x - icon.x - icon.w, values.spacing['1']);
   assert.equal(head.lead, 0);
-});
-
-test('U1 grid surface follows its cell body and leaves the title outside', async () => {
-  const result = await build(diagramplay('grid g "Rows" rows=2 {\n  item a "A" row=0\n  item b "B" row=1\n}\n'));
-  const item = result.scene.items.find(item => item.id === 'g');
-  const { surfaceOutline } = await import('../src/draw/surface.js');
-  const rect = parseMarkup(surfaceOutline(item) + '/>');
-  assert.ok(rect);
-  assert.equal(num(rect, 'y'), item.y + item.cells[0].y);
-  assert.equal(num(rect, 'height'), item.cells.at(-1).y + item.cells.at(-1).h - item.cells[0].y);
-  assert.ok(num(rect, 'y') > item.y);
 });
 
 // 소비자 조사 T-E2: 두 자리 이상 번호도 측정한 알약 높이 안에 들어간다.
@@ -633,11 +556,6 @@ test('hidden chip relayout preserves room already gained on other track legs', a
     box api "주문 API" {
       text "접수한 주문을 저장소에 보냅니다"
       value pending "처리 중"
-      chart traffic "처리량" bar "예시 데이터. 처리 중인 주문 수" {
-        x "주문 수(건)"
-        series orders "진행 중"
-        row "현재" orders=pending
-      }
     }
     store db "재고 DB"
     value stock "재고" on=db from=120
@@ -652,26 +570,4 @@ test('hidden chip relayout preserves room already gained on other track legs', a
   `), { strict: true });
   assert.equal(result.warnings.length, 0);
   assert.equal(result.timeline.tracks.length, 2);
-});
-
-test('chart_pulse_keeps_geometry_and_motion_but_delegates_paint_to_shared_roles', () => {
-  for (const [tag, extra, modifier] of [
-    ['rect', {}, ''],
-    ['rect', { stroke: 'blue', 'stroke-width': '3' }, 'has-ring'],
-    ['path', { fill: 'none', d: 'M0 0L10 10' }, 'is-line'],
-    ['line', { x2: '10' }, 'is-line'],
-    ['text', {}, 'is-text'],
-  ]) {
-    const html = pulseOverlay({ tag, attrs: { x: '7', class: 'chart-value grow', 'data-effect': 'var(--color-data-main)', ...extra }, id: 'mark', inner: tag === 'text' ? '42' : '', children: '<animate attributeName="opacity"/>' });
-    assert.match(html, /x="7"/);
-    assert.match(html, /data-pulse-of="mark"/);
-    assert.match(html, /<animate attributeName="opacity"/);
-    assert.match(html, /--pulse-effect:var\(--color-data-main\)/);
-    const style = /style="([^"]+)"/.exec(html)[1];
-    assert.ok(style.split(';').filter(Boolean).every(value => value.startsWith('--pulse-')), style);
-    if (modifier) assert.ok(html.includes(modifier));
-    if (extra['stroke-width']) assert.match(html, /--pulse-width:3/);
-    if (tag === 'text') assert.doesNotMatch(html, /class="[^"]*grow/);
-    else assert.match(html, /class="[^"]*grow/);
-  }
 });

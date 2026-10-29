@@ -4,7 +4,6 @@ import { resolveBudget } from '../compile/budget.js';
 import { arrivalOffsetMs } from '../math/easing.js';
 import { createStepEngine } from '../flow/events.js';
 import { hopMs } from './hop-ms.js';
-import { chartSegState, createChartRun } from './charts.js';
 import { flowSeg } from './flow.js';
 import { rowPulses } from './rows.js';
 import { createSeg } from './seg.js';
@@ -77,24 +76,21 @@ const stepInfo = ({ label, mode, speed }) => ({ label, mode, speed });
 /**
  * 시간표를 만든다. 이동 시간에 선 길이가 필요해 배치가 끝난 장면을 받는다.
  * @param deps { cards, chips, scene }. chips는 이동 글을 글 상자 줄로 나누는 함수, scene은 배치가 끝난 장면(edges의 points를 쓴다)이다
- * @returns { segs, total, steps, growMs, tracks?, values? }. steps는 장면마다 정확히 { label, mode, speed }이고 growMs는 차트 계열이 자라는 시간이다. 표시 길이(presentation)와 표시 정보(marks, pulses)는 장면을 검사한 뒤 timeline-marks.js가 더한다. tracks는 흐름이 지나는 길 { points, names, line }, values는 값 줄마다 값이 바뀌는 시각이다(docs/design/playback.md).
- * seg: { si, bi, t0, t1, move, hops, nodesOn, partsOn, cards, cardsBefore, cardsAt, charts?, status?, pulses? }. nodesOn은 `light`가 켠 도형뿐이다. pulses는 점이 도형에 닿는 시각 { id, at }(구간 처음 뒤 ms)이다. 선이 켜진 구간은 구간에 적지 않고 이동의 길 계획(hop)이 정한다.
- * 구간 길이는 논리 시간이다: 이동이 끝나는 시각, 차트가 자라는 시간, 이벤트 처리가 소비한 시각 가운데 늦은 것에 적은 `wait`를 더한 값이고 효과 시간이나 옛 머묾은 없다. 장면마다 표시 길이(presentation)는 timeline.presentation이다.
- * charts는 차트 카드 id → { series, growing, lights }이다. 이동은 보기마다 hop 하나로 펼쳐지고, 같은 at, ms, cut을 갖는다(docs/design/playback.md 투영).
+ * @returns { segs, total, steps, tracks?, values? }. steps는 장면마다 정확히 { label, mode, speed }이다. 표시 길이(presentation)와 표시 정보(marks, pulses)는 장면을 검사한 뒤 timeline-marks.js가 더한다. tracks는 흐름이 지나는 길 { points, names, line }, values는 값 줄마다 값이 바뀌는 시각이다(docs/design/playback.md).
+ * seg: { si, bi, t0, t1, move, hops, nodesOn, partsOn, cards, cardsBefore, cardsAt, status?, pulses? }. nodesOn은 `light`가 켠 도형뿐이다. pulses는 점이 도형에 닿는 시각 { id, at }(구간 처음 뒤 ms)이다. 선이 켜진 구간은 구간에 적지 않고 이동의 길 계획(hop)이 정한다.
+ * 구간 길이는 논리 시간이다: 이동이 끝나는 시각, 이벤트 처리가 소비한 시각 가운데 늦은 것에 적은 `wait`를 더한 값이고 효과 시간이나 옛 머묾은 없다. 장면마다 표시 길이(presentation)는 timeline.presentation이다.
+ * 이동은 보기마다 hop 하나로 펼쳐지고, 같은 at, ms, cut을 갖는다(docs/design/playback.md 투영).
  */
 export function buildTimeline(figure, deps) {
   const speed = figure.paceMs ?? DURATION.hop;
-  const growMs = figure.paceMs ?? DURATION.reveal;
-  // 박자를 지나며 이어지는 값: 시각, 값 줄, 차트 움직임
+  // 박자를 지나며 이어지는 값: 시각, 값 줄
   const run = {
     figure,
     speed,
-    growMs,
     t: 0,
     tracks: [],
     values: [],
     owned: new Map(),
-    charts: createChartRun(figure),
     // 장면 사이로 넘길 값(`keep`)이 있는 그림만 장면이 끝난 값을 적어 둔다.
     isKept: figure.steps.some((step) => step.keep?.length),
     carry: new Map(),
@@ -106,7 +102,7 @@ export function buildTimeline(figure, deps) {
   if (!figure.steps.length && figure.values.length) for (const row of declaredRows(figure, deps.cards)) run.values.push(row);
   const { waits, skips, stalls, events, reserves } = run.conditions ?? {};
   const extra = { ...(run.tracks.length ? { tracks: run.tracks } : {}), ...(run.values.length ? { values: run.values } : {}), ...(run.conditions ? { waits, skips, stalls, events, ...(reserves ? { reserves } : {}) } : {}) };
-  return { segs, total: run.t, steps: figure.steps.map(stepInfo), initialCards: deps.cards.initial, growMs, rowPulses: rowPulses(segs, deps.cards.contents), ...extra };
+  return { segs, total: run.t, steps: figure.steps.map(stepInfo), initialCards: deps.cards.initial, rowPulses: rowPulses(segs, deps.cards.contents), ...extra };
 }
 
 // cost: time O(b·(h + e + k) + w·e), heap O(b·(e + k)), stack O(1)
@@ -151,8 +147,8 @@ function startOf(step, run) {
 // basis: estimate
 // 박자 장면의 구간들과, 값 바꾸기 식이 쓰는 이동 목록(박자 시작에 점이 출발해 이동 시간 뒤 도착한다).
 function beatSegs({ step, si, engine }, run, deps) {
-  // 장면 안에서 쌓이는 값: 지나간 선, 밝힌 대상, 차트 밝히기
-  const memory = { lit: new Set(), charts: new Map() };
+  // 장면 안에서 쌓이는 값: 밝힌 대상
+  const memory = { lit: new Set() };
   // 조건을 쓴 장면은 박자마다 이벤트를 처리해 실제로 출발한 이동과 출발 시각을 먼저 정한다. 앞 박자가 끝난 뒤의 값을 읽는다.
   const segs = step.beats.map((beat, bi) => {
     const { started, endMs } = engine && beat.hops.length ? startedHops(beat, { run, deps, engine }) : {};
@@ -184,24 +180,21 @@ function plainHops(beat, { run, chips, scene }) {
 function beatSeg({ step, si, beat, bi, timed, endMs = 0 }, { memory, run }, { cards, chips, scene }) {
   const hops = timed ? timed.flatMap((entry) => timedHop(entry, { chips })) : plainHops(beat, { run, chips, scene });
   lightBeat(memory, beat);
-  const charts = chartSegState(run, memory, { si, bi, beat });
   const pulses = arrivalPulses(hops);
   const move = hops.reduce((end, h) => Math.max(end, (h.at ?? 0) + (h.cut ?? h.ms)), 0);
-  // 박자의 논리 길이: 이동이 끝나는 시각, 차트가 자라는 시간, 이벤트 처리가 소비한 시각 가운데 가장 늦은 것에 적은 `wait`를 더한다. 그 밖의 시간은 없다.
+  // 박자의 논리 길이: 이동이 끝나는 시각과 이벤트 처리가 소비한 시각 가운데 늦은 것에 적은 `wait`를 더한다. 그 밖의 시간은 없다.
   // 효과(후광, 알약 줄어듦)의 400ms는 논리 시각이 아니라 표시 시간이라 여기에 더하지 않는다(timeline/marks.js presentationOf). 박자는 서로 붙어 이어진다.
-  const grow = Object.values(charts).some((c) => c.growing.length) ? run.growMs : 0;
   const card = cards.beats.get(beat.planned ?? beat);
   return createSeg(run, {
     line: beat.line,
     si,
     bi,
-    length: Math.max(move, grow, endMs) + beat.waitMs,
+    length: Math.max(move, endMs) + beat.waitMs,
     move,
     hops,
     nodesOn: [...memory.lit].filter((id) => !id.includes('.')),
     partsOn: [...memory.lit].filter((id) => id.includes('.')),
     card: { before: card.before, after: card.after, at: cardTimes(hops, card) },
-    charts,
     status: step.status,
     extra: pulses.length ? { pulses } : {},
   });

@@ -36,7 +36,7 @@ export function drawEdge(e, j, { decorate, glyphs, scene, cuts }) {
 
 // 선과 라벨 묶음이 함께 쓰는 class. 라벨 묶음도 선과 같이 켜지고 조용해진다.
 function edgeClass(e, j, decorate) {
-  return `fl-edge${e.isMark ? ' mark' : ''}${e.quiet ? ` quiet ${decorate('quiet', j)}` : ''}`;
+  return `fl-edge${e.quiet ? ` quiet ${decorate('quiet', j)}` : ''}`;
 }
 
 // cost: time O(n), heap O(out), stack O(1)

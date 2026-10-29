@@ -5,10 +5,7 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { figureViewBounds } from '../src/html/view-bounds.js';
 import { statusBoxes } from '../src/layout/status.js';
-import { toElk } from '../src/layout/elk.js';
-import { buildModel } from '../src/layout/model.js';
 
-import postcss from 'postcss';
 
 import { EXAMPLES, build, diagramplay, descendants, findAll, findOne, parseMarkup, read, reject, textContent, textsOf, toHtml, toSvg } from './support.js';
 
@@ -106,11 +103,6 @@ test('X6 builds are deterministic: the same source gives byte-identical SVG and 
     box b "B"
     value n "n" on=b from=0
     a -> b
-    chart c "C" bar {
-      x "x(u)"
-      series v "v"
-      row "r" v=n
-    }
     scene "x" mode=loop
       a -> b "go" set="n+1"
     scene "y" mode=once
@@ -127,40 +119,24 @@ test('X6 builds are deterministic: the same source gives byte-identical SVG and 
 
 // 독립 결과물은 배경과 정지·재생 층이 읽는 색 선언과 변수 정의를 함께 싣는다.
 test('renderers_embed_required_style_variables', async () => {
-  const trace = diagramplay(`
-    box a "A"
-    trace t "T" unit=ms {
-      span one "ONE" lane=a at=0 dur=100
-      span two "TWO" lane=a at=100 dur=300
-    }
-    scene "spans" mode=loop
-      light t.one
-      wait 1s
-      light t.two
-  `);
   const sources = [MOVE('loop'), diagramplay(`
-    chart c "Heatmap" heatmap {
-      cell "r" "a" 1
-      cell "r" "b" 2
+    table t "T" {
+      id bigint pk
+      name text
     }
-    scene "cells" mode=loop
-      light c "r" "a"
-      wait 1s
-      light c "r" "b"
-  `), diagramplay(`
-    chart load "Area" area {
-      x "x(u)"
-      y "y(u)"
-      series a "A"
-      series b "B"
-      point x=0 a=1 b=3
-      point x=1 a=4 b=2
+    box a "A" {
+      text "본문" tag="새"
+      value n "처리" from=1 display=bar max=4
     }
-    scene "areas" mode=loop
-      reveal load.a
+    queue q "Q" slots=3
+    a -> t.id
+    a -> q
+    scene "cells" mode=loop status="a=ok"
+      light t.id
+      a -> q set="n+1"
       wait 1s
-      reveal load.b
-  `), trace];
+      light t.name
+  `)];
   for (const source of sources) {
     const result = await build(source);
     const outputs = [['svg', await toSvg(result)], ['static', await toSvg(result, { isStatic: true })], ['html', await toHtml(result)]];
@@ -168,37 +144,9 @@ test('renderers_embed_required_style_variables', async () => {
       const defined = new Set([...output.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]));
       const required = new Set([...output.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((match) => match[1]));
       const dom = parseMarkup(output, { html: format === 'html' });
-      const heatCells = findAll(dom, (node) => (node.attrs.class ?? '').split(/\s+/).includes('chart-heat'));
-      // 공통 차트 CSS의 강도 변수는 히트맵 칸이 있을 때만 읽고, 각 칸이 공급한다.
-      if (!heatCells.length) required.delete('--s');
-      for (const cell of heatCells) assert.match(cell.attrs.style, /(?:^|;)\s*--s\s*:/);
-      const pulses = findAll(dom, (node) => (node.attrs.class ?? '').split(/\s+/).includes('fl-mark-pulse'));
-      if (!pulses.length) required.delete('--pulse-effect');
-      for (const pulse of pulses) assert.match(pulse.attrs.style, /(?:^|;)\s*--pulse-effect\s*:/);
-      // 면적 차트 면의 계열 색은 면적 면이 있을 때만 읽고, 각 면이 공급한다.
-      const areas = findAll(dom, (node) => (node.attrs.class ?? '').split(/\s+/).includes('chart-area'));
-      if (!areas.length) required.delete('--chart-area');
-      for (const area of areas) assert.match(area.attrs.style, /(?:^|;)\s*--chart-area\s*:/);
-
+      assert.ok(dom, format);
       assert.deepEqual([...required].filter((name) => !defined.has(name)).sort(), [], `${format}\n${source}`);
 
-      // #242: 차트 카드가 없어도 추적 글자와 축의 색 선언이 독립 결과물에 있어야 한다.
-      if (source === trace) {
-        const css = findAll(dom, (node) => node.tag === 'style').map(textContent).join('\n');
-        const declarations = new Map();
-        postcss.parse(css).walkRules((rule) => {
-          if (rule.parent.type !== 'root') return;
-          for (const selector of rule.selectors) {
-            const properties = declarations.get(selector) ?? new Set();
-            rule.walkDecls((decl) => properties.add(decl.prop));
-            declarations.set(selector, properties);
-          }
-        });
-        for (const [role, property] of [['chart-label', 'fill'], ['chart-rule-label', 'fill'], ['chart-tick', 'fill'], ['chart-unit', 'fill'], ['chart-grid', 'stroke'], ['chart-axis', 'stroke']]) {
-          assert.ok(findAll(dom, (node) => (node.attrs.class ?? '').split(/\s+/).includes(role)).length, `${format} draws ${role}`);
-          assert.ok(declarations.get(`.fl .${role}`)?.has(property), `${format} embeds ${role} ${property}`);
-        }
-      }
     }
   }
 });
@@ -251,34 +199,25 @@ test('X8 the canonical copy in the page head rebuilds the whole page byte for by
 });
 
 test('X9 one panel per view, in the order declared, and the same panels in the narrow-screen layout', async () => {
+  const names = ['a', 'b', 'c', 'd', 'e', 'f'];
   const source = diagramplay(`
-    person u "U"
-    box s "S"
-    chart c "C" bar {
-      x "x(u)"
-      series v "v"
-      row "r" v=1
-    }
-    u -> s
+    ${names.map((n) => `box ${n} "Service ${n.toUpperCase()}"`).join('\n    ')}
+    ${names.slice(1).map((n, i) => `${names[i]} -> ${n}`).join('\n    ')}
     view graph "Structure" {
-      u
-      s
+      ${names.join('\n      ')}
     }
     view sequence "Calls" {
-      u
-      s
-    }
-    view plot "Numbers" {
-      c
+      a
+      b
     }
   `);
   const html = parseMarkup(await toHtml(await build(source), 'x'), { html: true });
   const views = (root) => findAll(root, (n) => n.tag === 'section' && n.attrs['data-strategy']).map((n) => n.attrs['data-strategy']);
   const wide = findOne(html, (n) => /\bfl-canvas\b/.test(n.attrs.class ?? ''), 'canvas');
   const narrow = findOne(html, (n) => n.tag === 'template' && /\bfl-narrow\b/.test(n.attrs.class ?? ''), 'narrow template');
-  assert.deepEqual(views(wide), ['graph', 'sequence', 'plot']);
-  assert.deepEqual(views(narrow), ['graph', 'sequence', 'plot']);
-  assert.deepEqual(textsOf(wide).filter((t) => ['Structure', 'Calls', 'Numbers'].includes(t)), ['Structure', 'Calls', 'Numbers']);
+  assert.deepEqual(views(wide), ['graph', 'sequence']);
+  assert.deepEqual(views(narrow), ['graph', 'sequence']);
+  assert.deepEqual(textsOf(wide).filter((t) => ['Structure', 'Calls'].includes(t)), ['Structure', 'Calls']);
 });
 
 test('X9 siblings keep their declared order when the narrow-screen layout stacks them one per layer, and the wide layout is unchanged', async () => {
@@ -307,20 +246,12 @@ test('X9b every panel of the wide and the narrow-screen layout shares its natura
   const names = ['a', 'b', 'c', 'd', 'e', 'f'];
   const source = diagramplay(`
     ${names.map((n) => `box ${n} "Service ${n.toUpperCase()}"`).join('\n    ')}
-    chart numbers "Numbers" bar {
-      x "x(u)"
-      series v "v"
-      row "r" v=1
-    }
     ${names.slice(1).map((n, i) => `${names[i]} -> ${n}`).join('\n    ')}
     view graph "Structure" {
       ${names.join('\n      ')}
     }
     view sequence "Calls" {
       ${names.join('\n      ')}
-    }
-    view plot "Numbers" {
-      numbers
     }
   `);
   const html = await toHtml(await build(source), 'x');
@@ -332,7 +263,7 @@ test('X9b every panel of the wide and the narrow-screen layout shares its natura
     const bundle = findOne(root, (n) => /\bdp-panels\b/.test(n.attrs.class ?? ''), 'panel bundle');
     const viewW = variable(bundle.attrs.style, '--view-w');
     const panels = findAll(root, (n) => n.tag === 'section' && /\bdp-panel\b/.test(n.attrs.class ?? ''));
-    assert.equal(panels.length, 3);
+    assert.equal(panels.length, 2);
     // 보기 폭은 표준 캔버스 폭으로 부풀리지 않은 가장 넓은 판의 폭이다.
     assert.equal(viewW, Math.max(...panels.map((panel) => variable(panel.attrs.style, '--panel-w'))));
     for (const panel of panels) {
@@ -370,7 +301,7 @@ test('X9d the narrow-screen layout is shipped only when it hides no more moving 
   // 좁은 폭의 구조 배치는 이동 글 4개를 가리므로 쓰지 않고, 넓은 배치의 자연 크기를 유지한다.
   assert.equal(await narrowOf('flow.diagramplay'), undefined);
   // 이동 글을 가리지 않는 좁은 배치는 그대로 쓴다.
-  assert.ok(await narrowOf('metric.diagramplay'));
+  assert.ok(await narrowOf('queue.diagramplay'));
 });
 
 test('X9c the shared viewer has no viewport-height cap in the document, and keeps the fixed full-screen frame', async () => {
@@ -383,7 +314,7 @@ test('X9c the shared viewer has no viewport-height cap in the document, and keep
 
 // 도구 막대의 순서와 마크업은 components.test.js U9가 본다. 여기서는 어떤 그림에도 재생 조작이 없다는 것만 본다.
 test('X10 no figure has a play, speed, loop or progress control', async () => {
-  const sources = [DOC, diagramplay('box a "A"\n'), diagramplay('chart c "C" bar {\n  x "x(u)"\n  series v "v"\n  row "r" v=1\n}\n')];
+  const sources = [DOC, diagramplay('box a "A"\n'), read(EXAMPLES, 'value-indicators.diagramplay')];
   for (const source of sources) {
     const html = parseMarkup(await toHtml(await build(source), 'doc'), { html: true });
     const names = findAll(html, (n) => n.tag === 'button').map((n) => n.attrs['aria-label']);
@@ -440,43 +371,4 @@ test('X9d an embedded player reports its height again when a late host connects'
   assert.equal(messages.length, 0);
   events.message({ source: parent, data: { theme: 'light' } });
   assert.equal(messages.at(-1).figureHeight, 1635);
-});
-
-test('grid-only layout aligns equal memory columns and preserves narrow graph reading', async () => {
-  for (const name of ['memory', 'memory-address', 'sql-join']) {
-    const source = read(EXAMPLES, `${name}.diagramplay`);
-    const wide = await build(source, { baseDir: EXAMPLES, layoutWidth: 1400 });
-    const [first, , last] = wide.scene.items;
-    assert.equal(first.y, last.y, `${name}: equal-height end columns share a baseline`);
-    for (const layoutWidth of [720, 360]) {
-      const narrow = await build(source, { baseDir: EXAMPLES, layoutWidth });
-      assert.ok(narrow.scene.width <= layoutWidth, `${name}: ${narrow.scene.width} exceeds ${layoutWidth}`);
-      assert.equal(narrow.scene.items.length, wide.scene.items.length);
-    }
-  }
-});
-
-test('mixed grid graphs retain collision-free pointer labels and stack flow', async () => {
-  for (const name of ['pointer', 'stack']) {
-    const source = read(EXAMPLES, `${name}.diagramplay`);
-    const wide = await build(source, { baseDir: EXAMPLES, layoutWidth: 1400 });
-    assert.ok(wide.scene.items.some((item) => item.shape !== 'grid'));
-    const narrow = await build(source, { baseDir: EXAMPLES, layoutWidth: 360, strict: false });
-    assert.equal(narrow.scene.items.length, wide.scene.items.length);
-    assert.ok(narrow.warnings.every((warning) => warning.message.includes('exceeding the requested')));
-  }
-});
-
-test('grid-only placement preserves safe and single-layer layout priorities', async () => {
-  const result = await build(read(EXAMPLES, 'sql-join.diagramplay'), { baseDir: EXAMPLES });
-  const sizes = new Map(result.scene.items.map((item) => [item.id, item.size]));
-  const options = (overrides) => {
-    const figure = { ...result.figure, direction: result.scene.items[0].direction, ...overrides };
-    return toElk(buildModel(figure, sizes), figure).layoutOptions;
-  };
-  assert.equal(options({ safeLayout: true })['elk.layered.nodePlacement.strategy'], undefined);
-  const single = options({ safeLayout: true, oneNodePerLayer: true });
-  assert.equal(single['elk.layered.nodePlacement.strategy'], 'SIMPLE');
-  assert.equal(single['elk.layered.layering.coffmanGraham.layerBound'], '1');
-  assert.equal(single['elk.separateConnectedComponents'], 'false');
 });

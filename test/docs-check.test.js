@@ -33,7 +33,7 @@ test('D1 without --docs there is no document check, and a require line is only r
   assert.deepEqual(twice.diagnostics.map((d) => [d.code, d.severity, d.line]), [['syntax', 'warning', 3]]);
 });
 
-test('D2 require finds table columns and chart rows, passes on one alternative, and fails on the line of a missing item', (t) => {
+test('D2 require finds table columns and card text, passes on one alternative, and fails on the line of a missing item', (t) => {
   const source = diagramplay(`
     require "pull_requests"
     require "merged_at"
@@ -43,10 +43,8 @@ test('D2 require finds table columns and chart rows, passes on one alternative, 
       id bigint pk
       merged_at timestamp
     }
-    chart c "추이" bar {
-      x "건수(개)"
-      series v "개수"
-      row "주간 머지" v=3
+    box c "추이" {
+      text "주간 머지"
     }
   `);
   const result = run(t, source);
@@ -114,15 +112,12 @@ test('D6 width wide, groups chained like stairs, and cards with no lines', (t) =
   assert.ok(!has(t, loose.replace('a -> b\n', 'a -> b\nc -> d\n'), 'docs-11'));
 });
 
-test('D7 sequence messages and scenes, chart series, and text size in a 680px column', (t) => {
+test('D7 sequence messages and scenes, and text size in a 680px column', (t) => {
   const sequence = (scenes) => diagramplay(`person a "가"\nbox b "나"\nbox c "다"\nview sequence {\n  a\n  b\n  c\n}\n${scenes}`);
   const five = Array.from({ length: 5 }, (_, i) => `  a -> b "요청${i}"`).join('\n');
   assert.ok(has(t, sequence(`scene "하나"\n${five}\n`), 'docs-12'));
   assert.ok(!has(t, sequence('scene "하나"\n  a -> b "요청"\n  b -> c "전달"\n'), 'docs-12'));
   assert.ok(has(t, sequence('scene "하나"\n  a -> b "요청"\nscene "둘"\n  b -> c "전달"\n'), 'docs-13'));
-  const series = (n) => diagramplay(`chart c "차트" bar {\n  x "값(개)"\n${Array.from({ length: n }, (_, i) => `  series s${i} "계열${i}"`).join('\n')}\n  row "가" ${Array.from({ length: n }, (_, i) => `s${i}=1`).join(' ')}\n}\n`);
-  assert.ok(has(t, series(5), 'docs-14'));
-  assert.ok(!has(t, series(4), 'docs-14'));
   const people = (n) => diagramplay(`${Array.from({ length: n }, (_, i) => `box p${i} "참여자 이름${i}"`).join('\n')}\nview sequence {\n${Array.from({ length: n }, (_, i) => `  p${i}`).join('\n')}\n}\nscene "하나"\n  p0 -> p1 "요청"\n`);
   assert.ok(has(t, people(9), 'docs-16'));
   assert.ok(!has(t, people(3), 'docs-16'));

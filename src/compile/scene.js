@@ -1,9 +1,7 @@
 // 보기마다 도형 크기와 배치를 정하고 판을 합쳐, 시간표와 이동 글상자를 함께 검사한 장면을 만든다.
 // 값 글자 자리는 값이 모든 장면에서 가질 글의 실제 폭이라 시간표에 기대고, 시간표는 배치에 기댄다. 그래서 자리가 더는 넓어지지 않을 때까지 되풀이한다(measure/value-slots.js).
 import { maxOf } from '../math/extremes.js';
-import { checkChartFigure, checkFigure, isSoundGraph } from '../check/figure.js';
-import { buildChartFrames, chartCards, drawChartBase, extentOf } from '../chart/card-frames.js';
-import { mapSceneCharts, sceneCharts } from '../chart/scene.js';
+import { checkFigure, isSoundGraph } from '../check/figure.js';
 import { planClashes } from '../chip/clash.js';
 import { planHops } from '../chip/plan.js';
 import { roomByView, sweepByView, widenForHiddenChips } from '../chip/room.js';
@@ -14,10 +12,6 @@ import { layoutOrFail } from '../layout/graph.js';
 import { composePanels } from '../layout/panels.js';
 import { layoutSequence } from '../layout/sequence.js';
 import { shiftScene } from '../layout/shift.js';
-import { layoutTime } from '../layout/time.js';
-import { layoutTiming, timingScenes } from '../layout/timing.js';
-import { checkGridBudget, checkGridExtent } from '../measure/grid-cost.js';
-import { countLines } from '../measure/line-counts.js';
 import { sizeNode, sizeParticipant } from '../measure/sizes.js';
 import { reflowTimeline } from '../timeline/reflow.js';
 import { FigureError, createProblems, makeDiagnostic } from '../source/problems.js';
@@ -35,21 +29,18 @@ import { viewFigure } from './views.js';
  * @param reference 재배치할 때 쓸 이전 결과(figure, scene, timeline, valueTexts). 있으면 사건과 시각을 그대로 두고 경로만 새로 만든다
  * @returns { scene, timeline, valueTexts }
  */
-export async function buildScene(figure, { source, limits, layoutWidth, chartWidth, reference }, problems) {
+export async function buildScene(figure, { source, limits, layoutWidth, reference }, problems) {
   checkEventBudget(figure, limits);
   let texts = reference?.valueTexts ?? initialValueTexts(figure);
   for (let round = 1; ; round++) {
-    checkGridBudget(figure, limits, texts);
-    const placed = await placeScene(figure, { texts, source, limits, layoutWidth, chartWidth, reference }, problems);
+    const placed = await placeScene(figure, { texts, source, limits, layoutWidth, reference }, problems);
     const observed = collectValueTexts(figure, placed.timeline);
     const next = unionTexts(texts, observed);
-    if (figure.values.some(value => value.cell)) checkGridBudget(figure, limits, next, placed.timeline);
     const grown = grownSlots(texts, next);
-    for (const value of figure.values.filter((v) => v.cell || v.indicator)) {
+    for (const value of figure.values.filter((v) => v.indicator)) {
       if (next.get(value.id).size > texts.get(value.id).size && !grown.includes(value.id)) grown.push(value.id);
     }
-    const isExtentGrown = chartCards(figure).some((card) => JSON.stringify(extentOf(card, figure, texts)) !== JSON.stringify(extentOf(card, figure, next)));
-    if (reference || (!grown.length && !isExtentGrown)) return finish(placed, texts, { figure, layoutWidth }, problems);
+    if (reference || !grown.length) return finish(placed, texts, { figure, layoutWidth }, problems);
     texts = next;
     if (round >= SLOT_ITERATIONS) throw unstable(figure, grown);
   }
@@ -58,7 +49,7 @@ export async function buildScene(figure, { source, limits, layoutWidth, chartWid
 // 값 글 집합이 수렴하지 않을 때의 오류. 줄은 아직 자리가 넓어지는 첫 값의 선언 줄이다.
 function unstable(figure, grown) {
   const value = figure.values.find((v) => v.id === grown[0]);
-  const id = value?.id ?? grown[0] ?? 'a chart';
+  const id = value?.id ?? grown[0];
   return new FigureError([makeDiagnostic({ severity: 'error', line: value?.line ?? figure.line, message: `value "${id}" text set does not settle; its width changes hop times` }, { code: 'layout-unstable' })]);
 }
 
@@ -70,7 +61,7 @@ function finish(placed, texts, { figure, layoutWidth }, problems) {
   const { scene, timeline, local } = placed;
   for (const error of local.errors) problems.errors.push(error);
   for (const warning of local.warnings) problems.warnings.push(warning);
-  // 배치 목표 폭은 그래프 보기에만 걸린다. 순서나 차트 판이 더 넓어도 그래프의 폭이 아니다.
+  // 배치 목표 폭은 그래프 보기에만 걸린다. 순서 판이 더 넓어도 그래프의 폭이 아니다.
   const graphWidth = Math.max(0, ...scene.panels.filter((panel) => panel.strategy === 'graph').map((panel) => panel.box.w));
   if (layoutWidth !== undefined && graphWidth > layoutWidth) problems.warn(figure.line, `the layout needs ${Math.ceil(graphWidth)}px, exceeding the requested ${layoutWidth}px. Shape sizes are preserved`, { code: 'layout-width' });
   checkSpeeds(figure, timeline);
@@ -102,11 +93,9 @@ const LAYOUT_CHECKS = new Set(['check-2', 'check-3', 'check-4', 'check-5', 'chec
  * 한 번의 값 글자 자리로 배치, 시간표, 그림 검사를 하고 장면을 돌려준다. 그래프 보기가 3번이나 4번 오류를 내면 안전 배치(줄 바꿈, 모델 순서 없음)로 한 번 더 하고,
  * 그 오류가 줄면 그쪽을 쓴다. 둘 다 걸리면 층 안 순서를 원본 순서로 둔 안전 배치를 마지막으로 본다. aspect를 적었는데 안전 배치를 쓰면 무시했다고 경고한다.
  */
-async function placeScene(figure, { texts, source, limits, layoutWidth, chartWidth, reference }, problems) {
+async function placeScene(figure, { texts, source, limits, layoutWidth, reference }, problems) {
   const cards = collectCards(figure, texts);
-  const charts = new Map();
-  for (const card of chartCards(figure)) charts.set(card.id, drawChartBase(card, { figure, texts, chartWidth, problems: createProblems(source) }));
-  const inputs = { cards, charts, texts, source, limits, layoutWidth, chartWidth, reference };
+  const inputs = { cards, texts, source, limits, layoutWidth, reference };
   const graphs = figure.views.filter((v) => v.strategy === 'graph');
   const directions = new Map(graphs.map((v) => [v.id, v.direction]));
   const failures = (a) => a.local.errors.filter((d) => LAYOUT_CHECKS.has(d.code)).length;
@@ -137,35 +126,28 @@ function ignoredAspect(figure, attempt, problems) {
 // basis: estimate
 // 장면 한 번. variant는 안전 배치로 다시 배치할 보기(safe), 층 안 순서를 원본 순서로 둘 보기(keep), 보기별 선 간격 요구(room), 선 옆 폭 요구(sweep)다. 검사 결과는 따로 모은 진단 그릇(local)에 담는다.
 async function attemptScene(figure, inputs, variant) {
-  const { cards, charts, source, limits, reference } = inputs;
+  const { cards, source, limits, reference } = inputs;
   const local = createProblems(source);
-  const names = new Map(figure.nodes.map((n) => [n.id, n.label]));
   const panels = [];
-  for (const view of figure.views) panels.push(await layoutPanel(figure, view, { ...inputs, names }, variant, local));
+  for (const view of figure.views) panels.push(await layoutPanel(figure, view, inputs, variant, local));
   const scene = composePanels(panels);
   const timeline = reference ? reflowTimeline(reference, { figure, scene }) : buildTimeline(figure, { cards, chips: wrapChip, scene, limits });
   widenForChips(scene, timeline);
   planChips(scene, timeline, limits);
-  attachCharts(figure, { scene, timeline, charts }, local);
-  // 타이밍 판의 장면 모양은 시간표의 값 변화, 이동 시각과 장면 표시 길이(presentation)를 읽는다. 판 크기는 시간표와 상관없어 배치를 다시 하지 않는다.
-  for (const timing of scene.timings) timing.scenes = timingScenes(timing, { timeline, scene });
+  attachMarks(scene, timeline);
   // 태그 색은 원본에 처음 나온 순서로 정한다(docs/design/figure-syntax.md 카드 줄).
   const rows = [...figure.nodes.flatMap((node) => node.content ?? []), ...figure.steps.flatMap((s) => s.beats.flatMap((b) => b.ops.map((o) => o.row)))];
   scene.tagOrder = rows.filter((row) => row?.tag && !row.tone).map((row) => row.tag);
   const { hiddenChipWarnings } = checkFigure({ figure, scene, timeline }, local);
-  for (const chart of sceneCharts(scene).values()) checkChartFigure(chart, local);
   return { scene, timeline, local, hiddenChipWarnings };
 }
 
 // cost: time O(elk), heap O(s + e), stack O(d)
 // vars: elk = 배치 시간, s = 도형 수, e = 선 수, d = 그룹 깊이
 // basis: estimate
-// 보기 하나를 배치한다. 그래프는 elkjs, 순서는 격자 배치, 차트와 시간은 그림 크기대로다.
-async function layoutPanel(figure, view, { cards, charts, texts, names, layoutWidth, chartWidth }, variant, local) {
+// 보기 하나를 배치한다. 그래프는 elkjs, 순서는 격자 배치다.
+async function layoutPanel(figure, view, { cards, layoutWidth }, variant, local) {
   const base = { view: view.id, strategy: view.strategy, label: view.label };
-  if (view.strategy === 'plot') return { ...base, chart: { ...charts.get(view.cardIds[0]).drawn, id: view.cardIds[0] } };
-  if (view.strategy === 'time') return { ...base, time: layoutTime(figure.nodes.find((n) => n.id === view.cardIds[0]), names, chartWidth) };
-  if (view.strategy === 'timing') return { ...base, timing: layoutTiming(view, { width: chartWidth, statuses: sceneStatuses(figure) }) };
   if (view.strategy === 'sequence') {
     const sequence = viewFigure(figure, view);
     // 순서 보기의 참여자는 머리 모양만 그린다(표, API, 클래스는 공통 카드 머리). 카드 내용은 같은 카드를 담은 그래프 보기가 보인다.
@@ -174,18 +156,9 @@ async function layoutPanel(figure, view, { cards, charts, texts, names, layoutWi
   }
   const isSafe = variant.safe.has(view.id);
   const graph = { ...viewFigure(figure, view), ...(isSafe ? { aspect: undefined, safeLayout: true } : {}), chipRoom: variant.room.get(view.id), chipSweep: variant.sweep?.get(view.id), keepOrder: variant.keep?.has(view.id) === true };
-  const contentOf = (id) => (cards.contents.get(id) ?? []).map((rows) => rows.map((row) => row.chartId ? { ...row, chart: charts.get(row.chartId).drawn } : row));
-  const sizes = new Map(graph.nodes.map((n) => [n.id, sizeNode(n, contentOf(n.id), countLines(graph, n.id), charts.get(n.id)?.drawn, texts)]));
-  checkGridExtent(graph, sizes, local);
+  const sizes = new Map(graph.nodes.map((n) => [n.id, sizeNode(n, cards.contents.get(n.id) ?? [])]));
   local.throwIfAny();
   return { ...base, scene: await layoutOrFail(graph, sizes, { problems: local, width: layoutWidth, isSound: isSoundGraph }) };
-}
-
-// 카드 id → 장면들이 그 카드에 쓰는 상태 종류 집합. 타이밍 보기가 상태 알약 자리를 미리 잡는다.
-function sceneStatuses(figure) {
-  const statuses = new Map();
-  for (const { node, kind } of figure.steps.flatMap((step) => step.status ?? [])) statuses.set(node, new Set([...(statuses.get(node) ?? []), kind]));
-  return statuses;
 }
 
 // cost: time O(h·l + s + e·p), heap O(1), stack O(1)
@@ -198,7 +171,6 @@ function widenForChips(scene, timeline) {
   if (need <= scene.width) return;
   const dx = (need - scene.width) / 2;
   shiftScene(scene, dx, 0);
-  for (const item of [...scene.plots, ...scene.times, ...scene.timings]) item.x += dx;
   for (const panel of scene.panels) {
     panel.box.x += dx;
     // 제목이 있는 판의 그리는 영역은 그림 폭 전체다(layout/panels.js). 제목 없는 판은 frame이 box 그 자체라 위에서 함께 옮겨졌다.
@@ -222,27 +194,12 @@ function planChips(scene, timeline, limits) {
   planClashes(scene, timeline);
 }
 
-// cost: time O(c·f·draw), heap O(c·f·out), stack O(1)
-// vars: c = 값에 묶인 차트 카드 수, f = 프레임 수, draw = 차트를 그리는 비용, out = 만든 SVG 글자 수
+// cost: time O(m + p), heap O(m + p), stack O(1)
+// vars: m = 켜짐 표시 수, p = 값 깜빡임 수
 // basis: estimate
-/**
- * 값에 묶인 차트 카드의 프레임을 만들어 장면(chartFrames)과 시간표(charts)에 붙이고, 표식 id가 붙은 그림으로 바꾼다. 시간표의 표시 정보(marks, pulses)도 여기서 정한다.
- * 묶은 값이 없는 차트는 프레임이 하나뿐이라 장면의 chartFrames와 시간표의 charts에 들지 않는다.
- */
-function attachCharts(figure, { scene, timeline, charts }, local) {
-  scene.chartFrames = {};
-  timeline.charts = {};
-  const bodies = new Map();
-  for (const card of chartCards(figure)) {
-    const { pin } = charts.get(card.id);
-    const built = buildChartFrames(card, { figure, timeline, pin }, local);
-    if (!built) continue;
-    scene.chartFrames[card.id] = { marks: built.marks, frames: built.frames };
-    timeline.charts[card.id] = { id: card.id, rows: built.rows };
-    bodies.set(card.id, { body: built.body, defs: built.defs });
-  }
-  Object.assign(scene, mapSceneCharts(scene, (id, chart) => bodies.has(id) ? { ...chart, ...bodies.get(id) } : chart));
+// 시간표의 표시 정보(marks, pulses, presentation)를 정한다. 재생기와 움직이는 SVG가 같은 정보를 읽는다.
+function attachMarks(scene, timeline) {
   timeline.marks = marksOf(timeline, { quiet: new Set(scene.edges.flatMap((edge, j) => (edge.quiet ? [j] : []))) });
-  timeline.pulses = pulsesOf(timeline, timeline.charts);
+  timeline.pulses = pulsesOf(timeline);
   timeline.presentation = presentationOf(timeline);
 }

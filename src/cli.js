@@ -238,11 +238,11 @@ async function writeGallery(args) {
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 원본 글자 수
 // basis: estimate
-// 제목과 종류는 빌드한 문법 해석 결과를 쓴다. 종류는 보기 방식을 이은 글(`graph+sequence+plot`)이고 차트 보기만 있으면 isChart다. 제목을 생략한 원본의 첫 주석만 목록용 설명으로 읽는다.
+// 제목과 종류는 빌드한 문법 해석 결과를 쓴다. 종류는 보기 방식을 이은 글(`graph+sequence`)이다. 제목을 생략한 원본의 첫 주석만 목록용 설명으로 읽는다.
 function describe(figure, source) {
   const title = figure.title ?? /^[\t ]*#\s*(.+)$/m.exec(source)?.[1] ?? '';
   const strategies = [...new Set(figure.views.map((v) => v.strategy))];
-  return { title, kind: strategies.join('+'), isChart: strategies.length === 1 && strategies[0] === 'plot' };
+  return { title, kind: strategies.join('+') };
 }
 
 // cost: time O(d), heap O(n), stack O(1), io 1

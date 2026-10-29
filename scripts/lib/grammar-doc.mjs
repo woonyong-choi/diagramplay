@@ -5,7 +5,7 @@ export const DOC_START = '<!-- grammar-table:start -->';
 export const DOC_END = '<!-- grammar-table:end -->';
 
 const SECTION_NAMES = { preamble: '시작 선언', header: '머리', declare: '선언', timeline: '시간 흐름' };
-const BLOCK_NAMES = { card: '카드 본문 안', chart: '차트 블록 안', class: '클래스 블록 안', table: '테이블 블록 안', grid: '격자 블록 안', trace: '추적 블록 안' };
+const BLOCK_NAMES = { card: '카드 본문 안', class: '클래스 블록 안', table: '테이블 블록 안' };
 const TYPE_NAMES = { flag: '값 없음(낱말만)', text: '글', word: '낱말', number: '숫자' };
 
 const code = (text) => `\`${text}\``;
@@ -51,21 +51,16 @@ function usedBy(list) {
 // cost: time O(v·i), heap O(v·i), stack O(1)
 // vars: v = 값 목록 수, i = 목록의 값 수
 // basis: estimate
-// 값 목록 한 줄. 기본값은 목록의 default, 역할은 차트 종류의 firstRole이 정한 선언 순서 규칙이다.
+// 값 목록 한 줄. 기본값은 목록의 default이고, 없으면 기본 규칙 글이다.
 function valueRows() {
   return Object.entries(VALUES).map(([list, { items, default: fallback }]) => `| ${code(list)} | ${usedBy(list)} | ${Object.keys(items).map(code).join(', ')} | ${fallback ? code(fallback) : defaultText(list)} |`);
 }
 
-// cost: time O(t), heap O(t), stack O(1)
-// vars: t = 차트 종류 수
+// cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 // 기본값이 없는 목록의 기본 규칙 글
 function defaultText(list) {
-  if (list === 'sceneMode') return `줄이 있는 장면은 ${code('once')}, 줄이 없는 장면은 ${code('static')}`;
-  if (list !== 'role') return '없음';
-  const automatic = ['main', 'compare'];
-  const first = Object.entries(VALUES.chartType.items).filter(([, item]) => item.firstRole).map(([type, item]) => `${code(type)}은 ${[item.firstRole, ...automatic.filter((r) => r !== item.firstRole)].join(', ')}`);
-  return `계열이 하나나 둘이면 선언 순서대로 ${automatic.join(', ')}${first.length ? `(${first.join(', ')})` : ''}, 셋 이상이면 없음`;
+  return list === 'sceneMode' ? `줄이 있는 장면은 ${code('once')}, 줄이 없는 장면은 ${code('static')}` : '없음';
 }
 
 // cost: time O(s + o + v·i), heap O(s + o + v·i), stack O(1)

@@ -1,8 +1,5 @@
 // 스크립트 없이 움직이는 SVG와 멈춘 SVG. 장면 하나의 시간표 상태를 CSS keyframes와 SMIL로 옮긴다(docs/design/playback.md).
 // 장면의 mode가 재생 방식을 정한다: static은 마지막 상태 하나, once는 한 번 재생하고 마지막 상태에 머물며, loop는 되풀이한다. speed는 재생 속도일 뿐 시간표의 ms는 바꾸지 않는다.
-import { chartCards } from '../chart/card-frames.js';
-import { mapSceneCharts, sceneCharts } from '../chart/scene.js';
-import { animateFrameBody } from '../animate/frames.js';
 import { createAnimator } from '../animate/animator.js';
 import { createClock } from '../animate/clock.js';
 import { drawScene } from '../draw/figure.js';
@@ -10,8 +7,7 @@ import { hasStatus } from '../layout/status.js';
 import { paintCss } from '../draw/paint.js';
 import { drawTrackPaths } from '../draw/tracks.js';
 import { createGlyphSet, embedFonts } from '../measure/fonts.js';
-import { STYLES, tokensFor, figureDefs, patternDefs } from '../draw/styles.js';
-import { WHOLE_CHART } from '../timeline/charts.js';
+import { STYLES, tokensFor } from '../draw/styles.js';
 import { escapeXml, figureDesc, plainText, roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
@@ -35,28 +31,25 @@ export async function toSvg(result, { scene: selector = 0, isStatic = false, nam
   const timeline = isStill ? finalState(sliced) : sliced;
   const clock = isStill ? createClock(1, { mode: 'static', displayMs: 1 }) : createClock(timeline.total, { speed: step.speed, mode, displayMs: result.timeline.presentation[si] });
   const glyphs = createGlyphSet();
-  const charts = chartDrawings(result);
   // 움직이는 SVG는 움직임 층(`.fl-motion`)과 스크립트 없는 마지막 모습 층(`.fl-still`) 둘을 싣는다. 움직임 줄이기(`prefers-reduced-motion: reduce`)에서는 마지막 모습 층만 보이고 SMIL과 keyframes가 도는 층은 숨는다.
   // 정지 장면과 길이 0인 장면은 층이 하나뿐인 마지막 모습이다.
-  const motionLayer = drawLayer(result, { si, timeline, clock, glyphs, charts, root: isStill ? '.fl' : '.fl .fl-motion' });
-  const stillLayer = isStill ? undefined : drawLayer(result, { si, timeline: finalState(sliced), clock: createClock(1, { mode: 'static', displayMs: 1 }), glyphs, charts, root: '.fl .fl-still', prefix: 's' });
+  const motionLayer = drawLayer(result, { si, timeline, clock, glyphs });
+  const stillLayer = isStill ? undefined : drawLayer(result, { si, timeline: finalState(sliced), clock: createClock(1, { mode: 'static', displayMs: 1 }), glyphs, prefix: 's' });
   const { content } = motionLayer;
   // 그림의 폭 속성은 자연 크기(viewBox 폭, 한 단위 1px)다. 넣는 칸이 더 넓어도 커지지 않아 같은 글 역할이 그림마다 같은 크기로 보이고, 칸이 좁으면 이미지의 max-width가 줄인다. 높이는 viewBox 비율이다.
   const width = content.width;
   const height = content.height;
   const fonts = await embedFonts(glyphs.used);
   const title = figure.title ?? name;
-  const chartStyle = charts.length || usesChartRoles(result.scene) ? STYLES.chart : '';
   const place = (layer, className) => `<g${className ? ` class="${className}"` : ''} transform="translate(${r((width - layer.content.width) / 2)} 0)">\n${layer.content.svg}\n</g>`;
   const layers = stillLayer ? `${place(motionLayer, 'fl-motion')}\n${place({ content: { ...stillLayer.content, svg: scopeIds(stillLayer.content.svg, 'still-') } }, 'fl-still')}` : place(motionLayer);
   const head = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="fl" width="${r(width)}" viewBox="0 0 ${r(width)} ${r(height)}" role="img" data-scene="${si}" data-mode="${mode}">
 <title>${escapeXml(plainText(title))}</title>${figureDesc(figure)}
 `;
-  const styles = `${STYLES.figure}${paintCss(result.scene)}${chartStyle}${hasStatus(timeline) ? STYLES.status : ''}
+  const styles = `${STYLES.figure}${paintCss(result.scene)}${hasStatus(timeline) ? STYLES.status : ''}
 ${motionLayer.css.join('\n')}${stillLayer ? `\n${stillLayer.css.join('\n')}` : ''}
 `;
-  const body = `<defs>${figureDefs(figure)}${patternDefs(charts.map(({ drawn }) => drawn))}</defs>
-<rect x="${values["border-width"].thin / 2}" y="${values["border-width"].thin / 2}" width="${r(width - values["border-width"].thin)}" height="${r(height - values["border-width"].thin)}" class="fl-canvas-surface"/>
+  const body = `<rect x="${values["border-width"].thin / 2}" y="${values["border-width"].thin / 2}" width="${r(width - values["border-width"].thin)}" height="${r(height - values["border-width"].thin)}" class="fl-canvas-surface"/>
 ${layers}
 </svg>
 `;
@@ -67,18 +60,12 @@ ${layers}
 // cost: time O(g·b + b·h + out), heap O(out), stack O(1)
 // vars: g = 켜고 끄는 요소 수, b = 박자 수, h = 박자의 이동 수, out = 만든 SVG 글자 수
 // basis: estimate
-// 한 시계로 그린 층 하나: 움직이는 층이나 마지막 모습 층. 같은 그리기 길(drawBody)을 쓰고 시계와 시간표만 다르다. root는 이 층의 CSS 규칙이 걸리는 범위, prefix는 이 층의 CSS class 이름 앞 글이다.
+// 한 시계로 그린 층 하나: 움직이는 층이나 마지막 모습 층. 같은 그리기 길(drawBody)을 쓰고 시계와 시간표만 다르다. prefix는 이 층의 CSS class 이름 앞 글이다.
 // 장면 하나의 SVG라 그 장면의 순서 요소만 보이고 다른 장면의 메시지는 숨는다(자리는 같다).
-function drawLayer(result, { si, timeline, clock, glyphs, charts, root, prefix }) {
-  const animator = createAnimator(timeline, clock, { prefix, root });
-  for (const chart of charts) animator.chart(chart);
-  const content = drawBody({ ...result, scene: { ...withFrames(result.scene, { timeline, clock }), shownSi: si, timingClock: clock } }, { animator, glyphs, timeline });
+function drawLayer(result, { si, timeline, clock, glyphs, prefix }) {
+  const animator = createAnimator(timeline, clock, { prefix });
+  const content = drawBody({ ...result, scene: { ...result.scene, shownSi: si } }, { animator, glyphs, timeline });
   return { content, css: animator.css };
-}
-
-// 차트 밖에서 차트 역할(눈금, 격자, 표식 선)을 쓰는 판: 추적의 시간 보기, 타이밍 보기, 눈금자 격자의 틀과 괄호.
-function usesChartRoles(scene) {
-  return scene.times.length > 0 || (scene.timings?.length ?? 0) > 0 || scene.items.some((it) => it.rulerUnit !== undefined);
 }
 
 // cost: time O(n), heap O(n), stack O(1)
@@ -125,15 +112,15 @@ function noSceneMessage(steps, shown) {
   return `no scene ${JSON.stringify(shown)}. ${steps.length ? `Scenes: ${steps.map((s, i) => `${i + 1} "${s.label}"`).join(', ')}` : 'This figure has no scenes'}`;
 }
 
-// cost: time O(b + v·c + f), heap O(b + v·c + f), stack O(1)
-// vars: b = 박자 수, v = 값 줄 수, c = 값이 바뀌는 횟수, f = 차트 프레임 구간 수
+// cost: time O(b + v·c), heap O(b + v·c), stack O(1)
+// vars: b = 박자 수, v = 값 줄 수, c = 값이 바뀌는 횟수
 // basis: estimate
 /**
- * 시간표에서 장면 하나만 떼어 시각을 0부터 다시 센다. 값 줄, 펄스, 차트 프레임은 그 장면 것만 남는다. 장면이 없는 문서는 모든 것이 보이는 구간 하나다.
+ * 시간표에서 장면 하나만 떼어 시각을 0부터 다시 센다. 값 줄과 펄스는 그 장면 것만 남는다. 장면이 없는 문서는 모든 것이 보이는 구간 하나다.
  */
 function sliceTimeline(timeline, si) {
   const segs = timeline.segs.filter((s) => s.si === si);
-  if (!segs.length) return { segs: [emptySeg(timeline.initialCards)], total: 1, growMs: timeline.growMs, pulses: [], values: timeline.values ?? [], charts: {}, tracks: timeline.tracks };
+  if (!segs.length) return { segs: [emptySeg(timeline.initialCards)], total: 1, pulses: [], values: timeline.values ?? [], tracks: timeline.tracks };
   const t0 = segs[0].t0;
   const shift = (t) => t - t0;
   const rebased = (row) => ({ ...row, t0: shift(row.t0), t1: shift(row.t1), changes: row.changes.map(([t, text]) => [shift(t), text]), periods: row.periods.map(([a, b, text]) => [shift(a), shift(b), text]) });
@@ -146,24 +133,22 @@ function sliceTimeline(timeline, si) {
     values: (timeline.values ?? []).flatMap((row, number) => (row.si === si ? [{ ...rebased(row), number }] : [])),
     pulses: [...(timeline.pulses ?? []).filter((p) => p.si === si).map((p) => ({ ...p, at: shift(p.at) })), ...arrivalsOf(segs, shift)].sort((a, b) => a.at - b.at),
     marks: Object.fromEntries(Object.entries(timeline.marks ?? {}).map(([key, ranges]) => [key, ranges.filter(([, , owner]) => owner === si).map(([from, to]) => [shift(from), shift(to)])])),
-    charts: Object.fromEntries(Object.entries(timeline.charts ?? {}).map(([id, chart]) => [id, { ...chart, rows: chart.rows.filter((row) => row.si === si).map((row) => ({ ...row, t0: shift(row.t0), t1: shift(row.t1), periods: row.periods.map(([a, b, frame, changed]) => [shift(a), shift(b), frame, changed]) })) }])),
   };
 }
 
-// 점이 도형에 닿는 후광(구간의 pulses)을 값과 차트의 펄스와 같은 모양 { key: `node:도형`, at }로 장면 시각에 놓는다.
+// 점이 도형에 닿는 후광(구간의 pulses)을 값의 펄스와 같은 모양 { key: `node:도형`, at }로 장면 시각에 놓는다.
 const arrivalsOf = (segs, shift) => segs.flatMap((seg) => (seg.pulses ?? []).map(({ id, at }) => ({ key: `node:${id}`, at: shift(seg.t0) + at })));
 
-// 장면이 없는 문서의 구간: 카드는 선언한 값 줄이 놓인 내용(rows는 시간표의 선언한 값 줄)이고 모든 계열이 보이며 선과 도형은 켜지지 않는다.
-// 차트 상태(charts)는 비워 둔다. 상태가 없는 차트는 animateChart가 선언한 모든 계열(계열이 없으면 차트 전체)을 보이고, 밝힌 행과 자라는 계열은 없다.
+// 장면이 없는 문서의 구간: 카드는 선언한 값 줄이 놓인 내용(rows는 시간표의 선언한 값 줄)이고 선과 도형은 켜지지 않는다.
 function emptySeg(cards) {
-  return { si: 0, bi: 0, t0: 0, t1: 1, move: 0, hops: [], nodesOn: [], partsOn: [], cards, cardsBefore: cards, cardsAt: {}, charts: {} };
+  return { si: 0, bi: 0, t0: 0, t1: 1, move: 0, hops: [], nodesOn: [], partsOn: [], cards, cardsBefore: cards, cardsAt: {} };
 }
 
 // cost: time O(b + v), heap O(b + v), stack O(1)
 // vars: b = 박자 수, v = 값 줄 수
 // basis: estimate
 /**
- * 장면의 마지막 상태 하나로 줄인다: 마지막 구간의 카드, 지나온 선과 밝힌 도형과 밝힌 차트 행, 값 줄마다 마지막 글, 차트 프레임의 마지막 구간. 점, 펄스, 자라는 움직임은 없다. 밝히기(light)는 효과가 아니라 장면 끝까지 남는 상태다.
+ * 장면의 마지막 상태 하나로 줄인다: 마지막 구간의 카드, 지나온 선과 밝힌 도형, 값 줄마다 마지막 글. 점과 펄스는 없다. 밝히기(light)는 효과가 아니라 장면 끝까지 남는 상태다.
  * once 재생이 끝난 모습과 같다.
  */
 function finalState(timeline) {
@@ -176,7 +161,6 @@ function finalState(timeline) {
     cardsBefore: last.cards,
     cardsAt: {},
     pulses: undefined,
-    charts: Object.fromEntries(Object.entries(last.charts ?? {}).map(([id, c]) => [id, { series: c.series, growing: [], lights: c.lights }])),
   };
   const lastText = (row) => row.periods.at(-1)[2];
   // 장면에서 한 번이라도 지난 조용한 선은 마지막 모습에서도 보인다(보임일 뿐 활성은 아니다). 켜 둔 도형은 구간의 nodesOn이 정한다.
@@ -188,32 +172,7 @@ function finalState(timeline) {
     marks,
     pulses: [],
     values: timeline.values.map((row) => ({ ...row, t0: 0, t1: 1, initial: lastText(row), changes: [], periods: [[0, 1, lastText(row)]] })),
-    charts: Object.fromEntries(Object.entries(timeline.charts).map(([id, chart]) => [id, { ...chart, rows: chart.rows.map((row) => ({ ...row, t0: 0, t1: 1, periods: row.periods.length ? [[0, 1, row.periods.at(-1)[2], []]] : [] })) }])),
   };
-}
-
-// cost: time O(c), heap O(c), stack O(1)
-// vars: c = 차트 카드 수
-// basis: estimate
-// 장면에 그려진 차트 카드마다 { id, seriesIds, drawn }. 같은 차트가 차트 보기와 카드로 함께 놓이면 한 번이다.
-function chartDrawings({ figure, scene }) {
-  const drawings = sceneCharts(scene);
-  return chartCards(figure).flatMap((card) => {
-    const drawn = drawings.get(card.id);
-    if (!drawn) return [];
-    const series = card.plot.chart.series.map((s) => s.id);
-    return [{ id: card.id, seriesIds: series.length ? series : [WHOLE_CHART], drawn }];
-  });
-}
-
-// cost: time O(m·p), heap O(out), stack O(1)
-// vars: m = 표식 수, p = 구간 수, out = 만든 SVG 글자 수
-// basis: estimate
-// 값에 묶인 차트의 그림을 프레임 전환 SMIL을 담은 그림으로 바꾼 장면.
-function withFrames(scene, { timeline, clock }) {
-  const frames = scene.chartFrames ?? {};
-  const animate = (id, drawn) => (frames[id] ? { ...drawn, body: animateFrameBody(drawn.body, { id, chartFrames: frames[id], rows: timeline.charts[id]?.rows ?? [], clock, pulses: timeline.pulses }) } : drawn);
-  return mapSceneCharts(scene, animate);
 }
 
 // cost: time O(scene + b·h), heap O(out), stack O(1)

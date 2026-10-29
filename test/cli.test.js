@@ -89,6 +89,30 @@ test('L2 #396 one failing source among several makes render write nothing for an
   assert.deepEqual(snapshot(dir), before, 'ok.svg is not written either');
 });
 
+// #423: 제거한 통계 차트, 측정 보기, 칸 격자, 독립 상태도 문법은 일반 오류이고 render와 md가 아무 파일도 쓰지 않는다.
+test('L2 #423 a removed chart, trace, grid or state statement is a plain error and render and md write nothing', (t) => {
+  const removed = {
+    'chart.diagramplay': diagramplay('chart c "C" bar {\n  series v "v"\n  row "r" v=1\n}\n'),
+    'trace.diagramplay': diagramplay('box a "A"\ntrace t "T" {\n  span s "S" lane=a at=0 dur=1\n}\n'),
+    'grid.diagramplay': diagramplay('grid g "G" rows=1 cols=1 {\n  item x "x"\n}\n'),
+    'state.diagramplay': diagramplay('state s "S"\nstart s\n'),
+    'plot.diagramplay': diagramplay('box a "A"\nview timing {\n  a\n}\n'),
+    'doc.md': '# 문서\n\n```diagramplay\ndiagramplay\nchart c "C" pie {\n  row "r" value=1\n}\n```\n',
+  };
+  const dir = workspace(t, removed);
+  const before = snapshot(dir);
+  for (const name of Object.keys(removed).filter((file) => file.endsWith('.diagramplay'))) {
+    const run = cli(['render', name, '--html', '--json'], { cwd: dir });
+    assert.equal(run.status, 1, name);
+    const codes = run.stdout.trim().split('\n').map((line) => JSON.parse(line).code);
+    assert.ok(codes.length && codes.every((code) => code === 'syntax'), `${name}: ${run.stdout}`);
+  }
+  const md = cli(['md', 'doc.md'], { cwd: dir });
+  assert.equal(md.status, 1);
+  assert.match(md.stderr, /unknown statement "chart"/);
+  assert.deepEqual(snapshot(dir), before, 'no SVG, HTML or Markdown change is written');
+});
+
 test('L2 #397 importing the command module from a script whose path no longer exists does not throw and does not run the command', (t) => {
   const dir = workspace(t, {});
   const cliUrl = new URL('../src/cli.js', import.meta.url).href;

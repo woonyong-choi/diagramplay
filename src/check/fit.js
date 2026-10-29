@@ -1,10 +1,10 @@
 // 1번: 글이 자기 칸 안쪽에 들어간다. 크기는 잰 글로 정하므로 구조 그림의 실패는 이 도구의 버그다.
 // 도형의 글은 모두 측정이 놓은 text(measure/texts.js)이고 그리는 쪽과 같은 값이라, 이 검사는 text의 글 사각형(textSpan)이 칸 안에 드는지 한 번에 읽는다.
-// 종류마다 다른 것은 칸의 모양(마름모, 원, 격자 칸)과 같은 줄 글끼리 겹치지 않는지(표 열의 이름과 형식, 내용 줄의 태그와 본문과 표시와 값)뿐이다.
+// 종류마다 다른 것은 칸의 모양(마름모, 원)과 같은 줄 글끼리 겹치지 않는지(표 열의 이름과 형식, 내용 줄의 태그와 본문과 표시와 값)뿐이다.
 import { FIT_SLACK, measure } from '../measure/fonts.js';
 import { PAD } from '../measure/card.js';
 import { CONTENT } from '../measure/content.js';
-import { GRID, groupTitleWidth } from '../measure/sizes.js';
+import { groupTitleWidth } from '../measure/sizes.js';
 import { TYPE_GAP } from '../measure/table.js';
 import { STYLE, textSpan } from '../measure/texts.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
@@ -59,7 +59,6 @@ function checkItemFits(it, fail) {
     check(row.texts, room);
     checkColumnGap(row, it, fail);
   }
-  for (const cell of it.cells ?? []) check(cell.texts, { left: cell.x + GRID.cellPadX, right: cell.x + cell.w - GRID.cellPadX });
   if (it.content) checkContentFits(it, fail);
 }
 
@@ -89,7 +88,6 @@ function checkContentFits(it, fail) {
 function checkRowFits(laid, { it, within }, fail) {
   const where = `the card of "${it.id}"`;
   const line = laid.row.line ?? it.line;
-  if (laid.chart && (!fits(laid.chart.width, it.content.w) || !fits(laid.chart.height, laid.height))) fail(line, 'embedded chart', where);
   if (laid.graph && laid.graph.nodes.some((n) => !isInside({ x: laid.graph.at.x + n.x, width: n.w }, within))) fail(line, 'mini graph', where);
   const spans = laid.texts.map((t) => ({ t, ...textSpan(ORIGIN, t) }));
   const valued = [...(laid.valueSlot?.texts.values() ?? [])].map((t) => ({ t, ...textSpan(ORIGIN, t) }));
@@ -101,18 +99,5 @@ function checkRowFits(laid, { it, within }, fail) {
       if (sameLine(a, b) && !fits(first.x + first.width, second.x)) fail(line, `card text "${second.t.text}"`, where);
     }
     for (const v of valued) if (sameLine(a, v) && !fits(a.x + a.width, v.x)) fail(line, `value of "${a.t.text}"`, where);
-  }
-}
-
-// cost: time O(r·n), heap O(r), stack O(1)
-// vars: r = 항목 수, n = 이름 글자 수
-// basis: estimate
-/** 차트 검사. 차트에는 선과 도형이 없어 1번(항목 이름, 열 이름, 점 이름이 자기 칸에 들어간다)만 해당한다. */
-export function checkChartFits(chart, problems) {
-  const reported = new Set();
-  for (const fit of chart.fits) {
-    if (reported.has(fit.text) || fit.width <= fit.room + FIT_SLACK) continue;
-    reported.add(fit.text);
-    problems.error(fit.line, `[check 1] ${fit.what} "${fit.text}" is wider than its space (${Math.floor(fit.room)}px). Shorten the name`);
   }
 }

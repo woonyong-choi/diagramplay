@@ -1,4 +1,4 @@
-// 도형, 그룹, 상태, 테이블, API 카드와 선 선언 문장을 읽는다. 이름 확인과 겹침 확인은 validate.js가 파일을 다 읽은 뒤 한다.
+// 도형, 그룹, 테이블, API 카드와 선 선언 문장을 읽는다. 이름 확인과 겹침 확인은 validate.js가 파일을 다 읽은 뒤 한다.
 import { STATEMENTS, flagNames, optionsOf } from './grammar.js';
 import { readGroup } from './group.js';
 import { checkId, parentFor, rejectName, skipBlock } from './names.js';
@@ -19,33 +19,12 @@ const OPEN_FORM = (word, id) => `write ${word} as: ${word} ${id} "name" {`;
 // cost: time O(t), heap O(t), stack O(1)
 // vars: t = 문장 낱말 수
 // basis: estimate
-/** 도형, 그룹, 처음과 끝 상태 선언 하나를 읽는다. 블록을 여는 카드는 blocks.js가 맡는다. */
+/** 도형, 그룹 선언 하나를 읽는다. 블록을 여는 카드는 blocks.js가 맡는다. */
 export function readDeclaration(statement, ctx) {
   const word = statement.tokens[0].value;
   if (word === 'group') readGroup(statement, ctx);
-  else if (word === 'start' || word === 'final') readStateMark(statement, ctx);
   else if (STATEMENTS[word]?.node) readNode(statement, ctx);
   else ctx.problems.error(statement.line, `unknown statement "${word}"`);
-}
-
-// cost: time O(f), heap O(1), stack O(1)
-// vars: f = 끝 상태 수
-// basis: estimate
-// `start id`, `final id`
-function readStateMark({ tokens, line }, ctx) {
-  const [head, id, extra] = tokens;
-  if (id?.type !== 'word' || extra) {
-    ctx.problems.error(line, `write ${head.value} as: ${head.value} state-id`);
-    return;
-  }
-  if (head.value === 'start') {
-    if (ctx.figure.start) ctx.problems.error(line, `there is already a start state "${ctx.figure.start.id}" (line ${ctx.figure.start.line})`);
-    else ctx.figure.start = { id: id.value, line };
-  } else {
-    const known = ctx.figure.finals.find((f) => f.id === id.value);
-    if (known) ctx.problems.error(line, `"${id.value}" is already a final state (line ${known.line})`);
-    else ctx.figure.finals.push({ id: id.value, line });
-  }
 }
 
 // cost: time O(1), heap O(1), stack O(1)

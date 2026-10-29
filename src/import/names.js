@@ -73,17 +73,6 @@ export const quote = (text) => `"${String(text).replace(/[\\"]/g, (c) => `\\${c}
 /** 테이블 열 타입. 영문자로 시작하는 낱말이면 그대로, 기호가 들면 따옴표 글이다(declare.js의 타입 규칙). */
 export const typeWord = (type) => (/^[a-z][a-z0-9_]*$/i.test(type) ? type : quote(type));
 
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-/** DiagramPlay 숫자 꼴(`-`와 소수점만 쓰는 십진수). 지수 표기가 되는 아주 크거나 작은 수는 소수로 풀어 쓴다. 숫자가 아니면 undefined다. */
-export function decimal(raw) {
-  const value = Number(String(raw).trim());
-  if (!Number.isFinite(String(raw).trim() === '' ? NaN : value)) return undefined;
-  const text = String(value);
-  if (!/e/i.test(text)) return text;
-  return value.toFixed(20).replace(/\.?0+$/, '');
-}
-
 // cost: time O(n), heap O(n), stack O(1)
 // vars: n = 글자 수
 // basis: estimate

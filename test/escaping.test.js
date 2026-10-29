@@ -34,22 +34,8 @@ const everywhere = (text, word = text) => {
       field f ${q('ty')}
       method m ${quote(`(): ${text}`)}
     }
-    grid gr ${q('Gr')} cols=2 {
-      item i ${q('It')}
-    }
     queue q ${q('Q')} slots=2
     value n ${q('V')} on=a from=${word}
-    chart c ${q('C')} bar ${q('sub')} {
-      x ${quote(`X ${text}(u)`)}
-      series s ${q('Se')}
-      row ${q('R')} s=1
-      row ${q('M')} s=-
-      rule 2 ${q('Ru')}
-      missing ${q('Mi')}
-    }
-    trace tr ${q('Tr')} {
-      span sp ${q('Sp')} lane=a at=0 dur=1
-    }
     u -> a ${q('E')}
     a -> b ${q('F')}
     a -> q
@@ -83,7 +69,7 @@ test('I1 hostile text in any slot keeps the SVG well-formed XML and shows the te
   }
   const shownIn = async (scene) => textsOf(parseMarkup(await toSvg(result, { scene, isStatic: true }))).join(' ').replace(/\s+/g, ' ');
   const [first, second] = [await shownIn(0), await shownIn(1)];
-  for (const [shown, slots] of [[first, ['U', 'A', 'B', 'G', 'K', 'Gr', 'It', 'Q', 'C', 'R', 'Se', 'E', 'F', 'Sh', 'No', 'Mv']], [second, ['Fr', 'Br', 'In']]]) {
+  for (const [shown, slots] of [[first, ['U', 'A', 'B', 'G', 'K', 'Q', 'E', 'F', 'Sh', 'No', 'Mv']], [second, ['Fr', 'Br', 'In']]]) {
     for (const slot of slots) assert.ok(shown.includes(`${slot} ${HOSTILE}`), `${slot} ${HOSTILE} not found; text near it: ${shown.match(new RegExp(`${slot}[^]{0,50}`))?.[0]}`);
   }
   const title = findAll(parseMarkup(await toSvg(result, { isStatic: true })), (n) => n.tag === 'title').map(textContent);
@@ -95,8 +81,11 @@ test('I1 the HTML keeps the structure of a benign twin: same elements and script
   const hostile = await build(everywhere(HOSTILE, WORD), { strict: false });
   const shape = async (result) => {
     const dom = parseMarkup(await toHtml(result, 'doc'), { html: true });
-    const tags = descendants(dom).map((n) => n.tag);
-    return { scripts: tags.filter((t) => t === 'script').length, styles: tags.filter((t) => t === 'style').length, svgs: tags.filter((t) => t === 'svg').length, injected: tags.filter((t) => ['img', 'iframe', 'object', 'embed', 'b'].includes(t)).length };
+    // 좁은 배치(template.fl-narrow)는 글 폭에 따라 실리거나 빠지므로(검사 7번 기준) 구조 비교에서 뺀다. 그 안의 글도 아래 injected가 따로 본다.
+    const wide = (node) => (node.children ?? []).flatMap((child) => (!child.tag || (child.tag === 'template' && /\bfl-narrow\b/.test(child.attrs.class ?? '')) ? [] : [child, ...wide(child)]));
+    const tags = wide(dom).map((n) => n.tag);
+    const injected = descendants(dom).filter((n) => ['img', 'iframe', 'object', 'embed', 'b'].includes(n.tag)).length;
+    return { scripts: tags.filter((t) => t === 'script').length, styles: tags.filter((t) => t === 'style').length, svgs: tags.filter((t) => t === 'svg').length, injected };
   };
   assert.deepEqual(await shape(hostile), await shape(benign));
   assert.equal((await shape(hostile)).injected, 0);

@@ -2,24 +2,7 @@
 // 문법 단순화(G2, G3, G5) 계약이다. 시험 이름 첫 낱말이 요구사항 번호이고, 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다. (G1, 이름 있는 보기의 거절은 cards.test.js의 S9가 본다.)
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { reflowFigure } from '../src/compile/figure.js';
-import { build, diagramplay, findAll, findOne, lineOf, num, panelStrategies, parseMarkup, reject, textsOf, toHtml, toSvg, valueOf } from './support.js';
-
-const CHART = 'chart c "C" bar {\n  x "x(u)"\n  series v "v"\n  row "r" v=1\n}\n';
-const TRACE = 'trace t "T" {\n  span s "s" lane=a at=0 dur=1\n}\n';
-const BODY_CHART = `box api "API" {
-  text "현재 주문"
-  value pending "진행 중" from=10
-  chart counts "처리량" bar {
-    x "주문 수(건)"
-    series orders "주문"
-    row "기준" orders=20
-    row "현재" orders=pending
-  }
-}
-box user "고객"
-user -> api
-`;
+import { build, diagramplay, lineOf, panelStrategies, parseMarkup, reject, textsOf, toHtml, toSvg, valueOf } from './support.js';
 
 test('#186 a card body renders in declaration order without a scene in SVG and HTML', async () => {
   for (const shape of ['box', 'person', 'external', 'store']) {
@@ -75,49 +58,12 @@ test('#186 invalid body syntax and a body hidden by a sequence-only view are loc
   }
 });
 
-test('#188 an embedded chart stays inside its owner and shares value changes, fixed axes and responsive layout', async () => {
-  const base = await build(diagramplay(`${BODY_CHART}scene "초기"\nscene "접수"\n  user -> api set="pending=30"\n`));
-  for (const result of [base, await reflowFigure(base, { layoutWidth: 320, chartWidth: 224 })]) {
-    const before = await toSvg(result, { scene: 0 });
-    const after = await toSvg(result, { scene: 1, isStatic: true });
-    const bars = (markup) => {
-      const dom = parseMarkup(markup);
-      const owner = findOne(dom, (n) => n.attrs['data-id'] === 'api');
-      assert.equal(findAll(dom, (n) => n.attrs['data-id'] === 'counts').length, 0, 'no extra chart card');
-      const chart = findOne(owner, (n) => n.attrs['data-chart'] === 'counts');
-      return findAll(chart, (n) => n.tag === 'rect' && n.attrs['data-mark'] && !n.attrs['data-mark'].includes('.')).map((n) => num(n, 'width'));
-    };
-    const [fixed0, changed0] = bars(before);
-    const [fixed1, changed1] = bars(after);
-    assert.equal(fixed0, fixed1, 'axis is reserved across scenes');
-    assert.ok(Math.abs(changed0 / fixed0 - 0.5) < 0.02);
-    assert.ok(Math.abs(changed1 / fixed1 - 1.5) < 0.02);
-    assert.equal(valueOf(parseMarkup(after), '진행 중'), '30');
-    assert.equal(await toSvg(result, { scene: 0 }), before, 'exporting another scene did not mutate the initial chart');
-  }
-});
-
-test('#188 embedded chart errors retain their source line and ownership cannot be bypassed by an edge or a view', async () => {
-  for (const [extra, needle] of [['view plot {\n counts\n}', ' counts'], ['user -> counts', 'user -> counts']]) {
-    const source = diagramplay(`${BODY_CHART}${extra}`);
-    const line = source.split('\n').findIndex((text) => text === needle) + 1;
-    assert.ok((await reject(source)).some((p) => p.line === line && p.message.includes('owner')));
-  }
-  const source = diagramplay(BODY_CHART.replace('orders=20', 'orders=-20'));
-  assert.ok((await reject(source)).some((p) => p.line === lineOf(source, 'orders=-20') && p.message.includes('negative')));
-});
-
 test('G2 #187 default views follow the declared composition, independently of edges', async () => {
   const cases = [
     ['box a "A"\n', ['graph']],
-    [CHART, ['plot']],
-    [`box a "A"\n${CHART}`, ['graph']],
-    [`box a "A"\n${CHART}a -> c\n`, ['graph']],
-    [`box a "A"\n${TRACE}`, ['graph', 'time']],
-    [`${CHART}box a "A"\n${TRACE}`, ['graph', 'time']],
-    [`${CHART}view graph\n`, ['graph']],
-    [`box a "A"\n${CHART}view graph\n`, ['graph']],
-    [`${CHART}${CHART.replaceAll('chart c ', 'chart d ')}`, ['plot', 'plot']],
+    ['box a "A"\nbox b "B"\n', ['graph']],
+    ['box a "A"\nbox b "B"\na -> b\n', ['graph']],
+    ['group g "G" {\n  box a "A"\n}\nbox b "B"\n', ['graph']],
   ];
   for (const [body, expected] of cases) assert.deepEqual(await panelStrategies(diagramplay(body)), expected, body);
 });
@@ -125,8 +71,6 @@ test('G2 #187 default views follow the declared composition, independently of ed
 test('G2 an explicit view only adds: its members get no second implicit view and an unlisted card still gets one graph', async () => {
   assert.deepEqual(await panelStrategies(diagramplay('box a "A"\nbox b "B"\nview graph\n')), ['graph']);
   assert.deepEqual(await panelStrategies(diagramplay('box a "A"\nbox b "B"\nview graph "All"\n')), ['graph']);
-  assert.deepEqual(await panelStrategies(diagramplay(`box a "A"\n${TRACE}view time "Timing" {\n  t\n}\n`)), ['time', 'graph']);
-  assert.deepEqual(await panelStrategies(diagramplay(`box a "A"\n${CHART}view plot "Numbers" {\n  c\n}\n`)), ['plot', 'graph']);
   assert.deepEqual(await panelStrategies(diagramplay('person u "U"\nbox s "S"\nview sequence {\n  u\n  s\n}\n')), ['sequence']);
   assert.deepEqual(await panelStrategies(diagramplay('person u "U"\nbox s "S"\nbox z "Z"\nview sequence {\n  u\n  s\n}\n')), ['sequence', 'graph']);
   // 같은 카드를 여러 방식에 함께 놓는 일은 그대로 된다
@@ -135,8 +79,7 @@ test('G2 an explicit view only adds: its members get no second implicit view and
 
 test('G2 an explicit view lists only members its kind can hold', async () => {
   const wrong = [
-    [`box a "A"\n${CHART}view plot {\n  a\n}\n`, 'a'],
-    [`box a "A"\n${TRACE}view time {\n  a\n}\n`, 'a'],
+    ['decision a "A"\nbox b "B"\nview sequence {\n  a\n  b\n}\n', 'decision'],
     ['box a "A"\nview sequence {\n  zz\n}\n', 'zz'],
   ];
   for (const [body, member] of wrong) {

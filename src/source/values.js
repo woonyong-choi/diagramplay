@@ -1,5 +1,4 @@
 // 원본의 시간과 숫자 값을 읽는다.
-import { MIN_VALUE } from './chart-limits.js';
 import { NUMBER_PATTERN, TIME_PATTERN } from './words.js';
 import { closest } from './problems.js';
 
@@ -56,14 +55,4 @@ export function timeHint(text) {
 export function parseNumber(text) {
   const number = NUMBER_PATTERN.test(text ?? '') ? Number(text) : undefined;
   return Number.isFinite(number) ? number : undefined;
-}
-
-/** 숫자 모양은 맞지만 Number로 바꾸면 무한대가 되는 글인지. 모양이 틀린 글과 다른 오류 메시지를 내기 위해 가른다. */
-export function isOverflowNumber(text) {
-  return NUMBER_PATTERN.test(text ?? '') && !Number.isFinite(Number(text));
-}
-
-/** 숫자 모양이고 0이 아닌데 절댓값이 지원 하한보다 작은 글인지. Number로 바꾸면 0이 되는 글(0 뒤에 0이 400개인 소수)도 포함한다. */
-export function isTinyNumber(text) {
-  return NUMBER_PATTERN.test(text ?? '') && /[1-9]/.test(text) && Math.abs(Number(text)) < MIN_VALUE;
 }

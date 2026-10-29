@@ -1,8 +1,5 @@
 // 도형, 카드, 선 라벨 크기를 정한다. 여기서 정한 크기를 배치에 넘기고 그대로 그린다(docs/design/layout.md 도형 크기와 연결점).
-import { maxOf } from '../math/extremes.js';
 import { plainText } from '../format/text.js';
-import { CANVAS, FIGURE_PAD } from './canvas.js';
-import { emptyRegions } from '../source/grid-space.js';
 import { tableDescription } from '../format/columns.js';
 import { tableLayout } from './table.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
@@ -11,15 +8,10 @@ import { DECOR, STACK_STEP, groupDecor, nodeDecor } from './decor.js';
 import { sizeClassifier } from './class.js';
 import { CONTENT, contentMinWidth, sizeContent } from './content.js';
 import { measure, wrap } from './fonts.js';
-import { KEY_ARROW_ROOM, LANE_STEP, planGridLinks } from './grid-links.js';
 import { queueSlots, sizeQueue } from './queue.js';
-import { STYLE, stackTexts, textAt, titleTexts } from './texts.js';
+import { STYLE, textAt, titleTexts } from './texts.js';
 
-const SPACE = values.spacing;
 const SIZE = values.spacing.figure;
-
-/** 칸 격자 안쪽 간격. pad는 칸 묶음과 틀 사이, cellPadX, cellPadY는 칸 안 글 둘레, titlePad는 제목 줄 위아래, textMax는 칸 글 한 줄의 가장 긴 너비다. */
-export const GRID = Object.freeze({ pad: SPACE["3"], cellPadX: SPACE["2"], cellPadY: SPACE["1-5"], titlePad: SPACE["1-5"], textMax: INNER_MAX });
 
 // cost: time O(k·r·n²), heap O(k·r), stack O(1)
 // vars: k = 카드 내용 수, r = 카드 줄 수, n = 줄 글자 수
@@ -27,21 +19,15 @@ export const GRID = Object.freeze({ pad: SPACE["3"], cellPadX: SPACE["2"], cellP
 /**
  * 도형 하나의 크기와 글 자리. box는 배치에 넘기는 사각형, margin은 배치 바깥 여백(위, 아래)이다.
  * 도형의 모든 글은 texts(measure/texts.js)로 한 번 놓여 그리는 쪽과 충돌 검사가 같은 값을 읽는다.
- * @param node 그림 모형의 도형. shape: person, box, external, store, queue, decision, state, table, api, classifier, chart, grid, start, final
+ * @param node 그림 모형의 도형. shape: person, box, external, store, queue, decision, circle, table, api, classifier
  * @param contents 시간 흐름에서 이 도형에 보일 내용 목록. 내용은 줄 목록이다
- * @param lineCounts 격자 칸에 이은 선 끝 cells(grid-links.js의 links)
- * @param valueTexts 값 이름 → 모든 장면에서 나타날 글 집합. 격자 칸 값 크기를 정한다
- * @param drawn 차트 카드가 그린 차트({ body, width, height, ... }). 크기는 모든 프레임 가운데 가장 큰 차트의 크기다
- * @returns { w, h, marginTop, marginBottom, texts?, decor?, description?, content?: { w, h, layouts }, cells?, empties?, unit?, titleH?, chart? }. description은 머리 말고 본문이 있는 표·API·클래스의 화면 읽기용 글이다. 격자의 cells는 { id, kind, x, y, w, h, lines, texts, ... } 칸 목록이고 좌표는 격자 왼쪽 위가 원점이다. empties는 빈 자리를 묶은 구간 { row0, row1, col0, col1, x, y, w, h } 목록이고(행×열이 아니라 칸 수에 비례), unit은 단위 칸 하나의 { w, h, gutter, x, y }다
+ * @returns { w, h, marginTop, marginBottom, texts?, decor?, description?, content?: { w, h, layouts } }. description은 머리 말고 본문이 있는 표·API·클래스의 화면 읽기용 글이다
  */
-export function sizeNode(node, contents = [], lineCounts = { out: 0, in: 0 }, drawn = undefined, valueTexts = new Map()) {
+export function sizeNode(node, contents = []) {
   if (node.shape === 'classifier') return sizeClassifier(node);
-  if (node.shape === 'chart') return { w: drawn.width, h: drawn.height, marginTop: 0, marginBottom: 0, chart: drawn };
   if (node.shape === 'table' || node.shape === 'api') return sizeTable(node, contents);
-  if (node.shape === 'grid') return sizeGrid(node, lineCounts.cells, valueTexts);
   if (node.shape === 'circle') return sizeCircle(node);
   if (node.shape === 'queue') return sizeQueue(node);
-  if (node.shape === 'start' || node.shape === 'final') return { w: SIZE.node['state-dot'], h: SIZE.node['state-dot'], marginTop: 0, marginBottom: 0 };
   if (isHeaded(node)) return sizeHeaded(node, contents);
   const labelLines = wrap(node.label, INNER_MAX, STYLE.label);
   const subLines = node.sub ? wrap(node.sub, INNER_MAX, STYLE.sub) : [];
@@ -169,175 +155,6 @@ export function stretchHeight(size, h) {
   if (d <= 0) return size;
   return { ...size, h, texts: size.texts?.map((t) => ({ ...t, center: t.center + d })), decor: size.decor && { ...size.decor, y: size.decor.y + d } };
 }
-
-// cost: time O(c·n² + c log c + k·c), heap O(c + k), stack O(1)
-// vars: c = 칸 수, n = 칸 글자 수, k = 칸에 이은 선 끝 수
-// basis: estimate
-// 칸 격자: 제목 줄과 칸 묶음이 모두 배치 사각형 안이다. 칸 단위(가로, 세로)는 모든 칸이 글을 넣을 수 있는 가장 작은 크기이고, 칸은 차지한 단위 수만큼 커진다.
-// 칸에 이은 선이 안쪽 칸으로 돌아 나갈 통로가 있으면 행 사이가 벌어진다(grid-links.js).
-function sizeGrid(node, links = [], valueTexts) {
-  const { titleLines, titleW, unitW, keyWidth: keyBase, lined, ruler, regionW } = gridLines(node, valueTexts);
-  const incoming = new Map();
-  let keyExtra = 0;
-  if (keyBase) for (const link of links) if (link.way === 'in' && !link.isInner) {
-    const count = (incoming.get(link.cell) ?? 0) + 1;
-    incoming.set(link.cell, count);
-    keyExtra = Math.max(keyExtra, (count - 1) * LANE_STEP);
-  }
-  // 들어오는 선이 있으면 식별자와 칸 사이에 마지막 가로 구간과 화살촉 자리(KEY_ARROW_ROOM)를 더 둔다. keyExtra는 여러 선의 세로 통로 몫이다.
-  const keyRoom = keyBase && incoming.size ? KEY_ARROW_ROOM : 0;
-  const keyWidth = keyBase + keyRoom + keyExtra;
-  const titleH = titleLines.length * STYLE.label.line + GRID.titlePad * 2;
-  const rulerH = ruler ? STYLE.item.line + GRID.cellPadY : 0;
-  const unitH = lined.reduce((tallest, cell) => {
-    const textHeight = cell.valueId
-      ? maxOf(cell.variants.map((variant) => variant.lines.length)) * STYLE.value.line + cell.detailLines.length * STYLE.item.line
-      : (cell.lines.length + cell.detailLines.length) * STYLE.item.line;
-    return Math.max(tallest, Math.ceil((Math.max(textHeight, cell.keyLines.length * STYLE.item.line) + GRID.cellPadY * 2) / cell.rows));
-  }, SIZE.grid.cell) + keyExtra * 2;
-  const plan = planGridLinks({ rows: node.rows, cols: node.cols, cells: node.cells, links }, { pad: GRID.pad, keyWidth, unitW, unitH, titleH: titleH + rulerH, titleHalf: titleW / 2, rightExtra: regionW, noNorth: Boolean(ruler) });
-  const box = ({ row, col, rows, cols }) => ({ x: GRID.pad + keyWidth + col * unitW, y: plan.rowTop(row), w: cols * unitW, h: rows * unitH + (rows - 1) * plan.gutter });
-  const cells = lined.map(({ text, label, ...c }) => {
-    const placed = { ...c, ...box(c) };
-    const role = c.kind === 'gap' ? 'item gap' : 'item';
-    const details = c.detailLines.map((line) => ({ role: 'item gap', text: line, style: STYLE.item }));
-    if (c.valueId) {
-      // 값 글과 보조 글을 한 묶음으로 칸 세로 가운데에 놓는다. 값 글의 줄 수는 가장 많은 상태로 자리를 잡아 값이 바뀌어도 보조 글이 움직이지 않는다.
-      const valueH = maxOf(c.variants.map((v) => v.lines.length)) * STYLE.value.line;
-      const top = placed.y + (placed.h - valueH - details.length * STYLE.item.line) / 2;
-      const variants = c.variants.map(({ text, lines }) => ({
-        text,
-        texts: stackTexts(lines.map((line) => ({ role: 'value', text: line, style: STYLE.value })), {
-          x: placed.x + placed.w / 2, top, height: valueH,
-        }),
-      }));
-      const detailTexts = stackTexts(details, { x: placed.x + placed.w / 2, top: top + valueH });
-      return { ...placed, texts: variants.flatMap((variant) => variant.texts), variants, detailTexts };
-    }
-    return { ...placed, texts: stackTexts([...c.lines.map((line) => ({ role, text: line, style: STYLE.item })), ...details], { x: placed.x + placed.w / 2, top: placed.y, height: placed.h }) };
-  });
-  const empties = emptyRegions(node).map((r) => ({ ...r, ...box({ row: r.row0, col: r.col0, rows: r.row1 - r.row0, cols: r.col1 - r.col0 }) }));
-  const unit = { w: unitW, h: unitH, gutter: plan.gutter, x: GRID.pad + keyWidth, y: plan.rowTop(0) };
-  const texts = titleTexts({ labelLines: titleLines }, { x: (plan.w - regionW + keyWidth) / 2, top: 0, height: titleH });
-  for (const cell of cells) texts.push(...stackTexts(cell.keyLines.map(text => ({ role: 'item gap', text, style: STYLE.item })), {
-    x: cell.x - GRID.cellPadX - keyRoom - keyExtra, top: cell.y, height: cell.h, anchor: 'end',
-  }), ...(cell.detailTexts ?? []));
-  const extras = ruler ? rulerParts(node, { ruler, unit, rulerTop: titleH, rulerH }) : {};
-  if (extras.texts) texts.push(...extras.texts);
-  return { w: plan.w, h: plan.h, marginTop: 0, marginBottom: 0, texts, cells, empties, unit, titleH: titleH + rulerH, cellEnds: plan.ends, cellRoutes: plan.inner, ...(extras.braces ? { braces: extras.braces } : {}) };
-}
-
-// cost: time O(k + g), heap O(k + g), stack O(1)
-// vars: k = 눈금 수(열 수 이하), g = 구간 수
-// basis: estimate
-/**
- * 눈금자 격자(`unit=`)의 눈금 숫자, 단위 이름, 오른쪽 구간 괄호와 이름. 눈금 숫자는 칸 위 한 줄에 열 가운데마다 놓고, 숫자가 이웃과 붙으면 2, 4, 8열마다 건너뛴다(ruler.step).
- * 괄호는 구간이 차지한 행의 칸 묶음 오른쪽에 세로로 놓고, 이름은 괄호 오른쪽의 세로 가운데다.
- * @returns { texts, braces }. braces는 { x, y0, y1 }(격자 왼쪽 위가 원점) 목록이다
- */
-function rulerParts(node, { ruler, unit, rulerTop, rulerH }) {
-  const center = rulerTop + rulerH / 2 - GRID.cellPadY / 4;
-  const texts = [];
-  for (let col = 0; col < node.cols; col += ruler.step) texts.push(textAt('item gap', String(col), STYLE.item, { x: unit.x + (col + 0.5) * unit.w, center, anchor: 'middle' }));
-  texts.push(textAt('item gap', node.rulerUnit, STYLE.item, { x: unit.x - GRID.cellPadX, center, anchor: 'end' }));
-  const right = unit.x + node.cols * unit.w;
-  const braces = node.regions.map((region, k) => {
-    const top = unit.y + region.row * (unit.h + unit.gutter);
-    const bottom = top + region.rows * unit.h + (region.rows - 1) * unit.gutter;
-    return { x: right + GRID.cellPadX, y0: top, y1: bottom, lines: ruler.regionLines[k] };
-  });
-  for (const brace of braces) texts.push(...stackTexts(brace.lines.map((text) => ({ role: 'item', text, style: STYLE.item })), { x: brace.x + BRACE_W + GRID.cellPadX, top: brace.y0, height: brace.y1 - brace.y0, anchor: 'start' }));
-  return { texts, braces: braces.map(({ lines, ...brace }) => brace) };
-}
-
-/** 구간 괄호의 폭(괄호 선이 칸 묶음에서 바깥으로 나오는 길이) */
-export const BRACE_W = SPACE["3"];
-
-// 같은 격자의 줄 나눔을 크기 계산과 예산 세기가 다시 하지 않도록 담아 둔다. 칸 목록이 키다.
-const gridLinesMemo = new WeakMap();
-
-// cost: time O(c·n²), heap O(c·l), stack O(1)
-// vars: c = 칸 수, n = 칸 글자 수, l = 칸 글 줄 수
-// basis: estimate
-/**
- * 칸 격자의 제목과 칸 글 줄 나눔. 칸 단위 너비는 모든 칸이 글을 넣을 수 있는 가장 작은 너비다. 크기를 정하는 쪽과 예산이 쓰는 요소 수가 같은 줄 수를 본다.
- * @returns { titleLines, titleW, unitW, keyWidth, lined }. lined는 칸마다 본문 lines와 바깥 식별자 keyLines를 더한 목록이다
- */
-export function gridLines(node, valueTexts = new Map()) {
-  const dynamic = node.cells.some((c) => c.valueId);
-  if (!dynamic && gridLinesMemo.has(node.cells)) return gridLinesMemo.get(node.cells);
-  const titleLines = wrap(node.label, GRID.textMax, STYLE.label);
-  const titleW = Math.max(...titleLines.map((l) => measure(l, STYLE.label.size, STYLE.label.face)));
-  const isRuler = node.rulerUnit !== undefined;
-  const shown = node.cells.map((cell) => ({
-    ...cell,
-    keyLines: cell.key ? wrap(cell.key, GRID.textMax, STYLE.item) : isRuler && cell.col === 0 ? [String(cell.row * node.cols)] : [],
-    text: cell.kind === 'gap' ? `${cell.label} ×${cell.count}` : cell.label,
-    detailText: cell.detail ?? (isRuler && cell.kind === 'item' ? rulerDetail(cell, node) : undefined),
-    ...(cell.valueId ? { valueTexts: [...(valueTexts.get(cell.valueId) ?? [''])] } : {}),
-  }));
-  const fieldStrip = node.rows === 1 && shown.every((cell) => cell.cols > 1) && shown.reduce((sum, cell) => sum + cell.cols, 0) === node.cols;
-  const titleRoom = titleW + PAD.x * 2 - GRID.pad * 2;
-  const widest = (lines) => lines.reduce((width, line) => Math.max(width, measure(line, STYLE.item.size, STYLE.item.face)), 0);
-  const keyTextWidth = Math.max(shown.reduce((width, cell) => Math.max(width, widest(cell.keyLines)), 0), isRuler ? widest([node.rulerUnit]) : 0);
-  const keyWidth = keyTextWidth ? keyTextWidth + GRID.cellPadX + PAD.x - GRID.pad : 0;
-  const regionLines = isRuler ? node.regions.map((region) => wrap(region.label, GRID.textMax, STYLE.item)) : [];
-  const regionW = regionLines.length ? BRACE_W + GRID.cellPadX * 2 + widest(regionLines.flat()) + PAD.x - GRID.pad : 0;
-  // 바이트 배치는 오프셋 칸과 구간 괄호를 뺀 캔버스 내용 폭을 칸 묶음이 다 쓴다.
-  const unitW = isRuler ? Math.max(titleRoom, RULER_WIDTH - GRID.pad * 2 - keyWidth - regionW) / node.cols : gridUnitWidth(shown, { cols: node.cols, titleRoom, fieldStrip });
-  const lined = shown.map((cell) => {
-    const width = cell.cols * unitW - GRID.cellPadX * 2;
-    return {
-      ...cell,
-      lines: cell.valueId ? [] : wrap(cell.text, width, STYLE.item),
-      detailLines: cell.detailText === undefined ? [] : wrap(cell.detailText, width, STYLE.item),
-      ...(cell.valueId ? { variants: cell.valueTexts.map((text) => ({ text, lines: wrap(text, width, STYLE.value) })) } : {}),
-    };
-  });
-  const ruler = isRuler ? { step: rulerStep(node.cols, unitW) } : undefined;
-  const result = { titleLines, titleW, unitW, keyWidth, lined, ruler: isRuler ? { ...ruler, regionLines } : undefined, regionW };
-  if (!dynamic) gridLinesMemo.set(node.cells, result);
-  return result;
-}
-
-// 눈금자 격자 칸의 기본 보조 글. 값이 놓인 칸은 값 글이 칸 글을 대신하므로 필드 이름을, 나머지는 차지한 단위 수를 적는다. 길이가 정해지지 않은 칸은 크기를 적지 않는다.
-function rulerDetail(cell, node) {
-  if (cell.valueId) return cell.label;
-  return cell.isOpen ? undefined : `${cell.rows * cell.cols} ${node.rulerUnit}`;
-}
-
-/** 바이트 배치(오프셋 칸, 칸 묶음, 구간 괄호를 합친 격자)의 폭. 표준 캔버스에서 그림 둘레 여백을 뺀 내용 폭이라 배치가 문서 폭을 다 쓰고, 칸 폭은 단위 수에 비례한다. */
-const RULER_WIDTH = CANVAS - FIGURE_PAD * 2;
-
-// cost: time O(log c), heap O(1), stack O(1)
-// vars: c = 열 수
-// basis: estimate
-// 눈금 숫자가 이웃 숫자와 붙지 않는 가장 작은 간격(1, 2, 4, 8, ... 열). 가장 긴 숫자(열 수 - 1)의 폭에 칸 안쪽 간격을 더해 잰다.
-function rulerStep(cols, unitW) {
-  const need = measure(String(cols - 1), STYLE.item.size, STYLE.item.face) + GRID.cellPadX;
-  let step = 1;
-  while (step < cols && step * unitW < need) step *= 2;
-  return step;
-}
-
-// cost: time O(c), heap O(c), stack O(1)
-// vars: c = 칸 수
-// basis: estimate
-// 최소 칸 폭과 제목을 지키며 선호 폭에서 글을 줄 나눈다. 병합 필드만 있는 한 줄은 보이는 필드 기준으로 최소 폭을 정한다.
-function gridUnitWidth(cells, { cols, titleRoom, fieldStrip }) {
-  const need = cells.map((cell) => {
-    const width = cell.valueId
-      ? maxOf(cell.valueTexts.map((text) => measure(text, STYLE.value.size, STYLE.value.face)))
-      : measure(cell.text, STYLE.item.size, STYLE.item.face);
-    return (Math.min(width, GRID.textMax) + GRID.cellPadX * 2) / cell.cols;
-  });
-  const minimum = fieldStrip ? SIZE.grid.cell / cells.reduce((smallest, cell) => Math.min(smallest, cell.cols), Infinity) : SIZE.grid.cell;
-  const natural = need.reduce((widest, width) => Math.max(widest, width), Math.max(minimum, titleRoom / cols));
-  const preferred = Math.max(minimum, titleRoom / cols, (SIZE.node['max-width'] - GRID.pad * 2) / cols);
-  const width = Math.min(natural, preferred);
-  return fieldStrip ? width : Math.ceil(width);
-}
-
 
 // cost: time O(g·n), heap O(1), stack O(1)
 // vars: g = 그룹 제목 글자 수, n = 1

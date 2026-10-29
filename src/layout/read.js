@@ -3,7 +3,6 @@ import { endMarks } from './end-marks.js';
 import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { LayoutError } from './error.js';
-import { withLeads } from './cell-ports.js';
 import { ALONG_SPOTS, settleLabels } from './labels.js';
 import { placeTitles } from './titles.js';
 import { CROWD, ROOT, SAME_POINT, decorOf } from './model.js';
@@ -20,9 +19,9 @@ export function readElk(laid, model) {
   const { items, groups, offsets } = readNodes(laid, model);
   const { sections, labels } = readEdges(laid, model, offsets);
   const rects = new Map(items.map((it) => [it.id, it]));
-  // 선 번호는 원본에 적은 선의 번호다. 시간표와 그리기가 같은 번호로 선을 찾으므로, 처음 점과 끝 겹원의 선(모델 순서에서는 앞뒤에 놓인다)은 맨 뒤에 둔다.
-  const declared = [...model.edges.filter((edge) => !edge.isMark), ...model.edges.filter((edge) => edge.isMark)];
-  const joined = declared.map((edge) => withLeads(model.pieces.get(edge.index).map((_, k) => routeOf(sections, edge, k)).flatMap((p, k) => (k === 0 ? p : p.slice(1))), edge, { model, rects }));
+  // 선 번호는 원본에 적은 선의 번호다. 시간표와 그리기가 같은 번호로 선을 찾는다.
+  const declared = model.edges;
+  const joined = declared.map((edge) => model.pieces.get(edge.index).map((_, k) => routeOf(sections, edge, k)).flatMap((p, k) => (k === 0 ? p : p.slice(1))));
   const crowd = endsByNode(declared, joined);
   const edges = declared.map((edge, i) => {
     const near = (end) => (other) => other.at !== `${edge.index}:${end}`;
@@ -75,7 +74,7 @@ function laneOf(a, b, sweep, edge) {
 // 제목이 비킬 라벨 사각형: 선 위 알약(라벨과 번호)과 끝 라벨. 그림 검사 2번이 제목과 견주는 것과 같다(check/figure.js).
 function labelBoxes(edges) {
   return edges.flatMap((e) => [
-    ...(!e.isMark && hasPill(e) && e.labelAt ? [labelBox({ ...e.labelAt, ...sizePill(e.label, e.no) })] : []),
+    ...(hasPill(e) && e.labelAt ? [labelBox({ ...e.labelAt, ...sizePill(e.label, e.no) })] : []),
     ...(e.endpointLabels ?? []).map(labelBox),
   ]);
 }

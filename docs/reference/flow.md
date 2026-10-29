@@ -27,7 +27,7 @@ server -> db "SELECT"
 
 ## 문법
 
-줄 종류, 선택 사항, 값 목록은 [그림 문법](../design/figure-syntax.md#문법-표)의 문법 표가 정본이다. 카드 선언은 [카드 선언](../design/figure-syntax.md#카드-선언), 칸 격자는 [칸 격자](../design/grid.md), 아이콘과 배치는 [배치](../design/layout.md)에 있다. 구성도는 [구성도](architecture.md)를 본다.
+줄 종류, 선택 사항, 값 목록은 [그림 문법](../design/figure-syntax.md#문법-표)의 문법 표가 정본이다. 카드 선언은 [카드 선언](../design/figure-syntax.md#카드-선언), 아이콘과 배치는 [배치](../design/layout.md)에 있다. 구성도는 [구성도](architecture.md)를 본다.
 
 ## 장면과 움직임
 
@@ -44,11 +44,6 @@ box app "앱"
 box api "주문 API" {
   text "접수한 주문을 저장소에 보냅니다"
   value pending "처리 중"
-  chart traffic "처리량" bar "예시 데이터. 처리 중인 주문 수" {
-    x "주문 수(건)"
-    series orders "진행 중"
-    row "현재" orders=pending
-  }
 }
 store db "재고 DB"
 
@@ -81,9 +76,9 @@ scene "동시 주문" mode=loop for=6s
 | 같은 이름 두 번 | `the name "a" is already used (line 2)` | `syntax` | 이름을 하나로 줄인다 |
 | 같은 방향 선 두 개 | `there is already an edge a -> b (line 4). Merge the labels into one` | `syntax` | 선을 하나로 합치고 라벨을 한 글에 적는다 |
 | 선언하지 않은 선으로 이동 | `there is no edge between "a" and "b". Declare "a -> b" first` | `syntax` | 선을 먼저 선언한다 |
-| 내용 없는 `once`, `loop` 장면 | `scene "s" has no lines. Add a move, show, light, reveal, or wait, or write mode=static for a still composition` | `syntax` | 박자나 `track`을 적거나, 정지 모습이면 `mode=static`을 쓴다 |
+| 내용 없는 `once`, `loop` 장면 | `scene "s" has no lines. Add a move, show, light, or wait, or write mode=static for a still composition` | `syntax` | 박자나 `track`을 적거나, 정지 모습이면 `mode=static`을 쓴다 |
 | 지원하지 않는 낱말(`step`, `say`) | `unknown statement "step"` | `syntax` | `scene "이름"`처럼 문법 표에 있는 낱말을 쓴다 |
-| 이름을 쓴 보기 | `a view is one of graph, sequence, plot, time. Found "main". A view has no name: write view graph ...` | `syntax` | 보기 방식부터 적는다(`view graph down`) |
+| 이름을 쓴 보기 | `a view is one of graph, sequence. Found "main". A view has no name: write view graph ...` | `syntax` | 보기 방식부터 적는다(`view graph down`) |
 | 숫자로만 된 장면 이름 | `scene "2" is only digits, which --scene reads as a scene number. Add a word to the name, such as "step 2"` | `syntax` | 이름에 글자를 더한다 |
 | 장면 이름 뒤 글 | `write a scene as: scene "name" [mode=...] ...` | `syntax` | 장면에는 이름 하나만 적고 설명은 문서 본문에 적는다 |
 | 쓸 수 없는 색 이름 | `tone is one of blue, orange, gray, silver` | `syntax` | 목록의 이름을 고른다 |

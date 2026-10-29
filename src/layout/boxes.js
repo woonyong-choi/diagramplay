@@ -82,7 +82,6 @@ function decorBoxes(scene) {
 // 도형이 그려진 테두리 사각형(isFrame). 원통은 위아래 뚜껑까지 넓힌다. 글 상자는 보이는 동안 이 사각형 안의 글자를 가리지 않고, 윤곽은 자리가 모자랄 때만 덮는다.
 function shapeBoxes(scene) {
   return scene.items.flatMap((it) => {
-    if (it.shape === 'grid') return [];
     const name = plainText(it.label ?? it.id);
     const cap = it.shape === 'store' ? it.marginTop : 0;
     return [{ x: it.x, y: it.y - cap, w: it.w, h: it.h + cap * 2, name, isFrame: true }];

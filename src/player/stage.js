@@ -26,7 +26,6 @@ function createStage(root, data) {
     metrics: data.metrics,
     edgePanels: data.edgePanels,
     trackPanels: data.trackPanels,
-    chartMeta: data.chartMeta,
     cardCounts: data.cardCounts,
     packetLayers: all('.fl-packets'),
     nodes: data.itemIds.map((_, i) => find(`#n-${i}`)),
@@ -43,26 +42,12 @@ function createStage(root, data) {
     parts: all('.fl-part'),
     sceneEls: all('[data-si]'),
     statusEls: all('.fl-status'),
-    timingClips: all('.fl-timing-clip'),
-    timingHeads: all('.fl-timing-head'),
-    charts: createChartEls(view, data),
     packets: [],
     // 마지막으로 그린 박자와 요소별 값. 같은 값을 다시 쓰지 않으려고 둔다(그린 결과는 모습만으로 정해진다).
-    painted: { key: '', si: undefined, cards: {}, chartFrames: {}, marks: new Set(), lights: {} },
+    painted: { key: '', si: undefined, cards: {} },
     written: new WeakMap(),
     overlays: [],
   };
-}
-
-// 차트 카드마다 그려진 곳(같은 차트가 여러 판에 있으면 모두)의 계열(cs-번호) 요소, 행(cr-번호) 요소, 행 이름 요소. 요소는 그 차트의 data-chart 안에서만 찾아 다른 차트에 번지지 않는다.
-function createChartEls(view, data) {
-  return Object.fromEntries(
-    Object.entries(data.chartMeta ?? {}).map(([cardId, meta]) => {
-      const roots = [...view.querySelectorAll(`[data-chart="${CSS.escape(cardId)}"]`)];
-      const within = (selector) => roots.flatMap((chart) => [...chart.querySelectorAll(selector)]);
-      return [cardId, { series: meta.series.map((_, s) => within(`.cs-${s}`)), rows: meta.rowKeys.map((_, k) => within(`.cr-${k}`)) }];
-    }),
-  );
 }
 
 // 요소 el의 속성 name을 value로 쓴다. 지금 값과 같으면 쓰지 않는다.
@@ -91,7 +76,7 @@ function writeStyle(stage, el, name, value) {
 // ---- 그리기 ----
 
 /**
- * 모습(frame)을 그린다. 박자가 바뀌었을 때만 박자 전체 상태(상태 알약, 차트 계열, 점)를 새로 맞추고, 나머지는 프레임마다 모습의 값만 쓴다.
+ * 모습(frame)을 그린다. 박자가 바뀌었을 때만 박자 전체 상태(상태 알약, 점)를 새로 맞추고, 나머지는 프레임마다 모습의 값만 쓴다.
  * @param frame sampleScene이 돌려준 모습
  */
 function paintFrame(stage, data, frame) {
@@ -104,11 +89,8 @@ function paintFrame(stage, data, frame) {
   paintHeld(stage, frame.held);
   paintEdges(stage, frame);
   paintValues(stage, frame);
-  paintChartFrames(stage, data, frame.charts);
   paintPulses(stage, frame.pulses);
-  paintTimings(stage, data, frame);
   stage.packets.forEach((packet) => packet.move(frame.elapsed));
-  driveChartMotion(stage, frame);
 }
 
 // 순서 보기의 메시지, 메모, 구획, 활성 막대는 자기 장면(`data-si`)이 보일 때만 보인다. 장면이 바뀔 때 한 번 맞춘다. 장면에 들어서는 때와 다시 들어서는 때, 마지막 모습은 모두 같은 장면 번호의 요소만 보인다.
@@ -118,29 +100,9 @@ function paintScene(stage, si) {
   for (const el of stage.sceneEls) el.classList.toggle('fl-off', Number(el.dataset.si) !== si);
 }
 
-// 타이밍 보기의 드러냄 창과 재생 막대. 창 폭은 장면 처음부터 지금 시각까지의 비율이고(data-t0, data-t1은 그 장면 축의 시간표 시각), 마지막 모습은 다 드러나고 막대가 숨는다.
-// 시각은 표본 추출기가 정한 박자와 박자 안 시각에서 읽기만 한다. 다른 장면의 창은 장면 표시(fl-off)가 숨긴다.
-function paintTimings(stage, data, frame) {
-  // 축은 장면의 표시 길이까지라 표시 시각(d)을 논리 시각으로 옮겨 읽는다. 장면의 처음 시각은 data-t0이다.
-  const shown = frame.d * data.steps[frame.si].speed;
-  const isFinal = frame.phase === 'final';
-  const progress = (el) => (isFinal ? 1 : Math.min(1, Math.max(0, shown / Math.max(1, Number(el.dataset.t1) - Number(el.dataset.t0)))));
-  for (const el of stage.timingClips) {
-    if (Number(el.closest('[data-si]').dataset.si) !== frame.si) continue;
-    const from = Number(el.dataset.from);
-    writeAttr(stage, el, 'width', String(from + (Number(el.dataset.w) - from) * progress(el)));
-  }
-  for (const el of stage.timingHeads) {
-    if (Number(el.closest('[data-si]').dataset.si) !== frame.si) continue;
-    writeAttr(stage, el, 'visibility', isFinal ? 'hidden' : 'visible');
-    writeAttr(stage, el, 'transform', `translate(${Number(el.dataset.w) * progress(el)} 0)`);
-  }
-}
-
-// 박자 전체에서 변하지 않는 상태. 상태 알약, 차트 계열(보임과 자람), 점. 마지막 모습(phase가 final)이면 계열이 다 자란 채이고 점이 없다.
+// 박자 전체에서 변하지 않는 상태. 상태 알약과 점. 마지막 모습(phase가 final)이면 점이 없다.
 function paintSegment(stage, seg, frame) {
   stage.statusEls.forEach((el) => showVariant(stage, el, Boolean(seg.status?.includes(el.dataset.st))));
-  drawChartState(stage, seg, frame.phase === 'play');
   stage.packets.forEach((packet) => packet.remove());
   stage.packets = frame.phase === 'play' ? seg.hops.map((hop) => createPacket(hop, stage)) : [];
   stage.painted.cards = {};
@@ -161,25 +123,13 @@ function showCard(stage, i, shown) {
   stage.nodes[i].querySelector('.fl-card')?.classList.toggle('filled', shown !== undefined);
 }
 
-// 켜진 도형, 그룹(논리 id)과 시간 보기의 부분, 차트 밝히기를 모습의 값대로 맞춘다.
+// 켜진 도형, 그룹(논리 id)과 표·API의 부분을 모습의 값대로 맞춘다.
 function paintHeld(stage, held) {
   const lit = new Set(held.lit);
   const parts = new Set(held.parts);
   for (const [id, indices] of stage.nodesById) for (const i of indices) stage.nodes[i].classList.toggle('on', lit.has(id));
   for (const [id, indices] of stage.groupsById) for (const j of indices) stage.groups[j].classList.toggle('on', lit.has(id));
   stage.parts.forEach((part) => part.classList.toggle('on', parts.has(part.dataset.part)));
-  paintLights(stage, held.lights);
-}
-
-// 밝힌 행이 있는 차트는 나머지 행을 흐린다. 밝힌 행이 없으면 흐리지 않는다. 차트마다 따로다.
-function paintLights(stage, lights) {
-  for (const [cardId, els] of Object.entries(stage.charts)) {
-    const lit = lights[cardId] ?? [];
-    const key = lit.join('\u0001');
-    if (stage.painted.lights[cardId] === key) continue;
-    stage.painted.lights[cardId] = key;
-    stage.chartMeta[cardId].rowKeys.forEach((name, k) => els.rows[k].forEach((el) => el.classList.toggle('dim', lit.length > 0 && !lit.includes(name))));
-  }
 }
 
 /**
@@ -197,38 +147,6 @@ function paintEdges(stage, frame) {
     // 알약 색은 라벨 묶음과 선 묶음(관계 끝 글 `edgelabel`이 안에 있다)이 같은 세기를 읽는다.
     for (const el of [line, label]) if (el) writeStyle(stage, el, '--pill-tint', String(tint));
   });
-}
-
-// ---- 차트 계열 ----
-
-// 차트마다 따로: 드러낸 계열을 보이고, 이 박자에 드러내는 계열은 자라는 움직임을 다시 건다(mayGrow가 거짓이면 걸지 않고 다 자란 채 둔다). 시간표에 이 차트의 상태가 없으면 모든 계열이 보인다.
-function drawChartState(stage, seg, mayGrow) {
-  for (const [cardId, els] of Object.entries(stage.charts)) {
-    const state = seg.charts[cardId];
-    const names = stage.chartMeta[cardId].series;
-    els.series.forEach((list, s) => {
-      const isGrowing = mayGrow && state?.growing.includes(names[s]);
-      for (const el of list) {
-        el.classList.toggle('hidden', state !== undefined && !state.series.includes(names[s]));
-        el.classList.remove('play');
-        if (isGrowing) {
-          el.getBoundingClientRect();
-          el.classList.add('play');
-        }
-      }
-    });
-  }
-}
-
-// 차트 움직임(막대, 선, 값 글자, 점의 CSS 애니메이션)을 박자 안 논리 시각에 둔다. 브라우저 시계를 따로 따르지 않게 늘 멈춰 두고 currentTime을 모습의 시각으로 쓴다.
-// 마지막 모습은 끝까지 감는다. 시간이 거꾸로 가거나 건너뛰어도 같은 결과다.
-function driveChartMotion(stage, frame) {
-  for (const animation of stage.view.getAnimations({ subtree: true })) {
-    if (!animation.animationName?.startsWith('chart-')) continue;
-    animation.pause();
-    if (frame.phase === 'final') animation.finish();
-    else animation.currentTime = frame.elapsed;
-  }
 }
 
 // ---- 점과 글 상자 ----

@@ -1,18 +1,15 @@
 // 이름 있는 생성 예산. 그림 하나를 만드는 동안 실제로 늘어나는 양(그리는 요소 수, 경로 명령 수 같은 단위)마다 기본 한도가 있고, 사용자가 `--budget 이름=값`(Action은 `budget` 입력)으로 올릴 수 있다.
-// 초과는 조용히 줄이지 않고 필요한 양, 지금 한도, 올리는 방법을 알리는 `budget-exceeded` 진단이고, 큰 할당 전에 검사해 파일을 쓰기 전에 끝난다(docs/design/grid.md 예산).
+// 초과는 조용히 줄이지 않고 필요한 양, 지금 한도, 올리는 방법을 알리는 `budget-exceeded` 진단이고, 큰 할당 전에 검사해 파일을 쓰기 전에 끝난다(docs/design/playback.md 생성 예산).
 import { FigureError, makeDiagnostic } from '../source/problems.js';
 
 /**
  * 예산 이름 → { limit, unit }. limit은 기본 한도이고 unit은 진단 글이 세는 단위다. 새 예산은 여기에 이름과 기본 한도를 더하고, 기본 한도는 측정으로 정해 근거를 문서에 적는다.
- * 격자의 두 예산은 docs/design/grid.md 예산 절의 측정에서 정했다.
  */
 const BUDGETS =Object.freeze({
-  'grid-elements': { limit: 500_000, unit: 'SVG elements drawn by grids' },
-  'grid-path-commands': { limit: 1_000_000, unit: 'path commands in the empty-area paths of grids' },
   // 흐름 조건과 대기를 계산하는 이벤트(docs/design/playback.md 이벤트 예산). 기본 한도는 같은 문서의 측정에서 정했다.
   events: { limit: 300_000, unit: 'events (departures, arrivals, value updates, wait evaluations and releases)' },
   chain: { limit: 5_000, unit: 'events at one moment' },
-  // 이동 글 상자 계획 하나의 공간 색인(docs/design/grid.md 예산). 기본 한도는 같은 문서의 측정에서 정했다.
+  // 이동 글 상자 계획 하나의 공간 색인(docs/design/playback.md 생성 예산). 기본 한도는 같은 문서의 측정에서 정했다.
   'chip-index': { limit: 2_000_000, unit: 'entries in the spatial index of one moving-text plan' },
 });
 
@@ -67,40 +64,6 @@ export function resolveBudget(overrides = {}) {
     limits[name] = value;
   }
   return limits;
-}
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-/**
- * 사용량을 모으는 그릇. add로 도형(격자)마다 양을 더하고, verify가 합계가 한도를 넘은 예산마다 `budget-exceeded` 오류를 하나씩 던진다.
- * @param limits resolveBudget이 돌려준 한도 표
- */
-export function createMeter(limits) {
-  const used = new Map();
-  return {
-    add(name, amount, { line, what }) {
-      const entry = used.get(name) ?? { total: 0 };
-      entry.total += amount;
-      entry.over ??= entry.total > limits[name] ? { line, what } : undefined;
-      used.set(name, entry);
-    },
-    // cost: time O(n), heap O(n), stack O(1)
-    // vars: n = 예산 수
-    // basis: estimate
-    verify() {
-      const over = [...used].filter(([name, entry]) => entry.total > limits[name]);
-      if (over.length) throw new FigureError(over.map(([name, entry]) => diagnose(name, entry, limits[name])));
-    },
-  };
-}
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-// 초과 진단 하나. 합계가 처음 한도를 넘은 도형의 줄에 붙고, 필요한 양과 한도, 올리는 방법을 적는다.
-function diagnose(name, { total, over }, limit) {
-  const { unit } = BUDGETS[name];
-  const message = `this figure needs ${total} ${unit}, over the budget ${name}=${limit}, and ${over.what} is where the total passes it. Raise it with --budget ${name}=${total} (the Action input budget: ${name}=${total}), or shrink the grids`;
-  return makeDiagnostic({ severity: 'error', line: over.line, message }, { code: 'budget-exceeded' });
 }
 
 // cost: time O(1), heap O(1), stack O(1)

@@ -8,7 +8,6 @@ import { CORNER, rectOpen } from './surface.js';
 import { pillFace } from './pill.js';
 import { drawTexts } from './texts.js';
 import { hiddenAttr } from './visible.js';
-import { drawChartBody } from './chart.js';
 
 const RADIUS = values.radius;
 const contentLook = (layout) => layout.rows.map(({ row }) => faceOf(row)).find(({ tone }) => tone !== undefined) ?? faceOf({});
@@ -66,7 +65,6 @@ function drawFace(layout, box) {
 // 줄마다 태그 알약(있으면), 관계 그래프의 선과 알약(있으면), 그 줄의 글. 글(태그, 표시, 본문, 그래프 이름)은 모두 측정이 놓은 text다.
 function drawRows(layout, box, { toneOf, glyphs }) {
   return layout.rows.map((laid) => {
-    if (laid.chart) return drawChartBody(laid.chart, { id: laid.id, x: box.x + (box.w - laid.chart.width) / 2, y: box.y + laid.top }, glyphs);
     return `${laid.tag ? drawTag(laid, box, toneOf(laid.row)) : ''}${laid.graph ? drawMiniGraph(laid.graph, box) : ''}${drawTexts(laid.texts, box, glyphs)}`;
   }).join('');
 }

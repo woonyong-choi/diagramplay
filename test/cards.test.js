@@ -1,4 +1,4 @@
-// 한 문서의 카드 모형: 연결점(표 열, API 칸, 격자 칸, 추적 구간), 카드가 여러 보기에 함께 놓이는 일, 보기 규칙.
+// 한 문서의 카드 모형: 연결점(표 열, API 칸), 카드가 여러 보기에 함께 놓이는 일, 보기 규칙.
 // 시험 이름 첫 낱말(S1~S11)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -23,7 +23,7 @@ function rowY(dom, label) {
 
 const nearest = (y, rows) => Object.entries(rows).sort(([, a], [, b]) => Math.abs(a - y) - Math.abs(b - y))[0][0];
 
-test('S1 one document holds people, API fields, table columns, values and a chart, and every edge ends on its own row', async () => {
+test('S1 one document holds people, API fields, table columns and values, and every edge ends on its own row', async () => {
   const source = diagramplay(`
     person user "User"
     table orders "orders" {
@@ -35,12 +35,6 @@ test('S1 one document holds people, API fields, table columns, values and a char
       created "201 Order"
     }
     value depth "depth" on=user from=3
-    chart lag "Lag" bar {
-      x "ms(ms)"
-      series v "v"
-      row "p50" v=40
-      row "now" v=depth
-    }
     user -> orders.status
     user -> orders.id
     user -> create.created
@@ -54,56 +48,22 @@ test('S1 one document holds people, API fields, table columns, values and a char
   assert.equal(nearest(ends['p-2'].to[1], { body: rows.body, created: rows.created }), 'created');
   assert.equal(nearest(ends['p-3'].from[1], { body: rows.body, created: rows.created }), 'body');
   assert.equal(nearest(ends['p-3'].to[1], { id: rows.id, status: rows.status }), 'id');
-  assert.ok(textsOf(dom).includes('User') && textsOf(dom).includes('Lag'));
+  assert.ok(textsOf(dom).includes('User') && textsOf(dom).includes('depth'));
 });
 
-test('S2 a grid is addressed by its items; a trace by its spans; a class by nothing but the card itself', async () => {
-  const ok = diagramplay(`
-    grid g "G" cols=4 {
-      item left "L" cols=3
-      item right "R" col=3
-    }
-    box b "B"
-    trace t "T" unit=ms {
-      span s1 "one" lane=b at=0 dur=100
-      span s2 "two" lane=b at=100 dur=300
-    }
-    b -> g.left
-    g.left -> g.right
-    scene "s" mode=static
-      light g.right t.s2
-  `);
-  await build(ok);
+test('S2 a table or API is addressed by its columns; a class or a plain box by nothing but the card itself', async () => {
+  await build(diagramplay('table t "T" {\n  id bigint pk\n}\nbox b "B"\nb -> t.id\nscene "s" mode=static\n  light t.id\n'));
   for (const [bad, message] of [
-    ['b -> g.nope\n', /nope/],
-    ['g.left -> g.left\n', /./],
-    ['b -> g.left.x\n', /card\.part/],
+    ['b -> t.nope\n', /nope/],
+    ['b -> t.id.x\n', /card\.part/],
+    ['b -> c.n\n', /not ports/],
+    ['b.part -> t\n', /no parts/],
   ]) {
-    const source = diagramplay(`grid g "G" cols=4 {\n  item left "L" cols=3\n}\nbox b "B"\n${bad}`);
+    const source = diagramplay(`table t "T" {\n  id bigint pk\n}\nclass c "C" {\n  field n "int"\n}\nbox b "B"\n${bad}`);
     assert.ok((await reject(source)).some((p) => message.test(p.message)), bad);
   }
-  const light = diagramplay(`box b "B"\ntrace t "T" {\n  span s1 "one" lane=b at=0 dur=100\n}\nscene "s" mode=static\n  light t.zz\n`);
+  const light = diagramplay('table t "T" {\n  id bigint pk\n}\nscene "s" mode=static\n  light t.zz\n');
   assert.ok((await reject(light)).some((p) => p.line === lineOf(light, 'light t.zz')));
-});
-
-test('S3 grid cells are as wide and tall as the units they cover, empty places stay empty, and cells may not overlap', async () => {
-  const dom = await stillDom(diagramplay(`
-    grid g "G" rows=2 cols=10 {
-      item wide "WIDE" cols=6
-      item narrow "NARROW" col=6 cols=4
-      item low "LOW" row=1 cols=10
-    }
-  `));
-  // 칸 글자는 칸 가운데에 놓인다. 가운데가 6칸 칸은 3, 4칸 칸은 8, 10칸 칸은 5 단위 자리이므로 세 가운데는 한 단위 폭으로 늘어선다.
-  const center = (label) => num(visibleTexts(dom).find((n) => textContent(n).trim() === label), 'x');
-  const [wide, narrow, low] = ['WIDE', 'NARROW', 'LOW'].map(center);
-  const unit = (narrow - wide) / (8 - 3);
-  assert.ok(unit > 10, `unit ${unit}`);
-  assert.ok(Math.abs(low - (wide + 2 * unit)) < 0.5, `centers ${wide} ${narrow} ${low}`);
-  const clash = diagramplay(`grid g "G" cols=4 {\n  item a "A" cols=3\n  item b "B" col=2 cols=2\n}\n`);
-  assert.ok((await reject(clash)).length);
-  const outside = diagramplay(`grid g "G" cols=4 {\n  item a "A" col=4\n}\n`);
-  assert.ok((await reject(outside)).some((p) => p.line === lineOf(outside, 'item a')));
 });
 
 test('S4 a table foreign key becomes an edge between the two columns, to a key column only, and a column cannot reference itself', async () => {
@@ -270,7 +230,7 @@ test('S9 every card must be shown by some view, views take only fitting members,
     ['box a "A"\nview sequence {\n  a\n  zz\n}\n', 'zz'],
     ['group g "G" {\n  box a "A"\n}\nview graph {\n  a\n}\n', 'list group'],
     ['box a "A"\nbox b "B"\na -> b\nview graph {\n  a\n}\nview graph {\n  b\n}\n', 'is not drawn'],
-    ['box a "A"\nbox b "B"\nview plot {\n  a\n}\nview graph {\n  b\n}\n', 'chart'],
+    ['decision d "D"\nbox b "B"\nview sequence {\n  d\n  b\n}\n', 'cannot be a sequence participant'],
   ];
   for (const [body, message] of cases) {
     const problems = await reject(diagramplay(body));
@@ -279,7 +239,7 @@ test('S9 every card must be shown by some view, views take only fitting members,
 });
 
 test('S9 a view names its kind first and has no id of its own: the old "view id kind" form is a plain syntax error', async () => {
-  for (const line of ['view main graph', 'view calls sequence {', 'view p plot {', 'view t time {']) {
+  for (const line of ['view main graph', 'view calls sequence {']) {
     const source = diagramplay(`box a "A"\n${line}\n${line.endsWith('{') ? '  a\n}\n' : ''}`);
     const problems = await reject(source);
     assert.ok(problems.some((p) => p.line === lineOf(source, line) && p.code === 'syntax'), line);
@@ -287,14 +247,14 @@ test('S9 a view names its kind first and has no id of its own: the old "view id 
   }
 });
 
-test('S10 a default view appears when none is declared: a graph holding every card, plus one time view per trace', async () => {
-  const source = diagramplay(`box a "A"\ntrace t "T" {\n  span s1 "one" lane=a at=0 dur=10\n}\n`);
+test('S10 a default view appears when none is declared: one graph holding every card', async () => {
+  const source = diagramplay('box a "A"\nbox b "B"\na -> b\n');
   const html = parseMarkup(await toHtml(await build(source), 'x'), { html: true });
   const variants = findAll(html, (n) => n.attrs.class?.split(' ').includes('dp-panels'));
   assert.ok(variants.length);
   for (const variant of variants) {
     const strategies = findAll(variant, (n) => n.tag === 'section' && n.attrs['data-strategy']).map((n) => n.attrs['data-strategy']);
-    assert.deepEqual(strategies, ['graph', 'time'], 'every responsive layout preserves the default view roles');
+    assert.deepEqual(strategies, ['graph'], 'every responsive layout preserves the default view roles');
   }
 });
 

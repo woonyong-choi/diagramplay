@@ -21,12 +21,12 @@ function merge(ranges) {
   }, []);
 }
 
-// cost: time O(b·(e + n + p + c)), heap O(m), stack O(1)
-// vars: b = 구간 수, e = 켜진 선 수, n = 켜진 도형 수, p = 밝은 부분 수, c = 밝힌 차트 행 수, m = 구간 수의 합
+// cost: time O(b·(e + n + p)), heap O(m), stack O(1)
+// vars: b = 구간 수, e = 켜진 선 수, n = 켜진 도형 수, p = 밝은 부분 수, m = 구간 수의 합
 // basis: estimate
 /**
  * 시간표가 정한 켜진 구간(논리 ms). 지금은 조용한 선이 보이는 구간뿐이다: 키 `quiet:번호`.
- * 켜 둔 도형, 부분, 차트 행은 구간 자신이 가진다(seg.nodesOn, seg.partsOn, seg.charts[id].lights는 그 장면에서 지금까지 `light`가 명시한 대상이다). 길이 0인 구간(`light`만 있는 장면의 박자)도 같은 규칙으로 읽히도록 시각 구간으로 옮기지 않는다.
+ * 켜 둔 도형과 부분은 구간 자신이 가진다(seg.nodesOn, seg.partsOn은 그 장면에서 지금까지 `light`가 명시한 대상이다). 길이 0인 구간(`light`만 있는 장면의 박자)도 같은 규칙으로 읽히도록 시각 구간으로 옮기지 않는다.
  * 점이 지나간 선은 켜 두지 않는다: 선이 활성인 구간은 이동의 길 계획(hop.legEdges, hop.gaps, hop.cut)이 정하고 재생기와 움직이는 SVG가 같은 규칙(hopLegs)으로 읽는다.
  * 조용한 선(`quiet`)은 활성과 별개로 그 선을 처음 지나는 때(점이 선에 들어서는 시각)부터 그 장면 끝까지 보인다. 보임일 뿐 활성이 아니라 알약의 활성 색은 붙들지 않는다.
  * 정지 장면(`mode=static`)은 재생하지 않아 드러낼 때가 없으므로 조용한 선이 장면 내내 평소 모습으로 보인다. 그림의 관계가 정지 화면에서 사라지지 않게 하기 위해서다.
@@ -73,18 +73,16 @@ function firstPasses(timeline, quiet) {
   return out;
 }
 
-// cost: time O(v·c + f), heap O(p), stack O(1)
-// vars: v = 값 줄 수, c = 값이 바뀌는 횟수, f = 차트 프레임 구간 수, p = 펄스 수
+// cost: time O(v·c + r), heap O(p), stack O(1)
+// vars: v = 값 줄 수, c = 값이 바뀌는 횟수, r = 카드 글 줄 펄스 수, p = 펄스 수
 // basis: estimate
 /**
- * 갱신 펄스 시각. 값이 바뀐 시각마다 하나(키 `value:값 줄 번호`)이고, 차트 프레임이 바뀐 표식마다 하나(키 `차트:차트 id:표식 id`)다.
- * 같은 시각에 이어 쓴 값이 한 시각을 지나고 처음 글로 돌아오면 바뀐 것이 아니라 펄스가 없다. 프레임도 그 시각의 마지막 프레임이 앞 구간과 같으면 바뀐 표식이 없어 펄스가 없다.
- * 키는 `value:값 줄 번호`, `chart:차트 id:표식 id`, `row:도형 id:카드 줄 번호`(보이는 글이 바뀐 카드 글 줄, timeline/rows.js)다.
+ * 갱신 펄스 시각. 값이 바뀐 시각마다 하나(키 `value:값 줄 번호`)이고, 보이는 글이 바뀐 카드 글 줄마다 하나(키 `row:도형 id:카드 줄 번호`, timeline/rows.js)다.
+ * 같은 시각에 이어 쓴 값이 한 시각을 지나고 처음 글로 돌아오면 바뀐 것이 아니라 펄스가 없다.
  * 펄스는 시각이 아니라 출처 장면(`si`)에 속한다: 장면 끝 시각에 일어난 변화도 그 장면의 펄스다.
- * @param charts 차트 카드 id → { rows }(chart/card-frames.js)
  * @returns { key, at, si }[] 시각 순
  */
-export function pulsesOf(timeline, charts) {
+export function pulsesOf(timeline) {
   const pulses = [];
   (timeline.values ?? []).forEach((row, vi) => {
     let before = row.initial;
@@ -96,9 +94,6 @@ export function pulsesOf(timeline, charts) {
       before = last;
     }
   });
-  for (const [id, chart] of Object.entries(charts)) {
-    for (const row of chart.rows) for (const [from, , , changed] of row.periods) for (const mark of changed) pulses.push({ key: `chart:${id}:${mark}`, at: from, si: row.si });
-  }
   // 카드 글 줄: 실제로 보이는 글이 바뀐 줄(timeline/rows.js)
   for (const pulse of timeline.rowPulses ?? []) pulses.push(pulse);
   return pulses.sort((a, b) => a.at - b.at || (a.key < b.key ? -1 : Number(a.key > b.key)));
@@ -111,7 +106,7 @@ export function pulsesOf(timeline, charts) {
  * 장면마다 표시 길이(화면 ms). 논리 시각과 표시 시각은 따로다. 논리 시각(ms, 재생 속도 1)에는 효과 시간이 없고, 표시 시각은 논리 시각을 장면 재생 속도 `s`로 나눈 값에 효과 꼬리를 더한다:
  * `D = max((T - t0) / s, (마지막 펄스 - t0) / s + PULSE_MS, (마지막 선 이탈 - t0) / s + PULSE_MS)`
  * PULSE_MS(400)는 표시 ms라 `s`로 나누지 않는다. 마지막 선 이탈은 점이 그 선을 떠나는 시각이고 장면 끝 `T`를 넘지 않는다(끝에 선에 있던 점은 `T`에 떠난다).
- * 펄스는 값이나 차트 표식이 실제로 바뀐 것, 점이 도형에 닿은 것, 선에서 점이 떠난 것뿐이다. 켜기(`light`), 보이기(`show`), 지우기(`clear`), 드러내기(`reveal`)는 상태라 꼬리를 더하지 않는다.
+ * 펄스는 값이나 카드 글이 실제로 바뀐 것, 점이 도형에 닿은 것, 선에서 점이 떠난 것뿐이다. 켜기(`light`), 보이기(`show`), 지우기(`clear`)는 상태라 꼬리를 더하지 않는다.
  * 사건 없는 장면(길이 0, 펄스 없음)은 0이다.
  * @returns number[] 장면 번호 순서
  */

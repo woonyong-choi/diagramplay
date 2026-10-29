@@ -2,7 +2,6 @@
 // 부품 모양(색, 두께)은 components.test.js 한 곳에서 보고, 여기서는 글이 어떻게 읽히고 어디에 놓이는지만 본다. 모두 공개 진입점(buildFigure, toSvg)과 코드가 실제로 쓰는 부품 함수로 본다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PAD, WIDTH } from '../src/chart/metrics.js';
 import { checkFits } from '../src/check/fit.js';
 import { CONTENT } from '../src/measure/content.js';
 import { measure, wrap } from '../src/measure/fonts.js';
@@ -275,71 +274,3 @@ test('T9 a word without spaces breaks after path and identifier separators befor
 });
 
 // ---- 제목 줄 ----
-
-// 차트·시간 그림의 제목은 그림·그룹 제목 역할(frame, 작은 글 15/600)이고 부제는 카드 부제(sub)와 같은 역할이다.
-test('T10 a chart title is the figure title role and its subtitle is the card subtitle: same line heights, aligned left with the plot', async () => {
-  const { dom } = await rendered(diagramplay(`
-    box a "Card title" "Card subtitle"
-    chart c "Chart title" bar "Chart subtitle" {
-      x "x(u)"
-      series v "v"
-      row "A" v=40
-      row "B" v=20
-    }
-  `));
-  const cardTitle = textsWith(dom, 'label').find((n) => textContent(n) === 'Card title');
-  const chartTitle = textsWith(dom, 'frame').find((n) => textContent(n) === 'Chart title');
-  const sub = textsWith(dom, 'sub');
-  const [cardSub, chartSub] = ['Card subtitle', 'Chart subtitle'].map((name) => sub.find((n) => textContent(n) === name));
-  assert.ok(cardTitle && chartTitle && cardSub && chartSub, 'the card name is a label, the chart title is a figure title, and both subtitles share one role');
-  assert.equal(chartTitle.attrs['text-anchor'], undefined, 'left aligned');
-  // 제목 줄 가운데에서 부제 줄 가운데까지는 두 줄 높이의 절반씩이다. 카드가 같은 두 줄을 쌓는 간격과 같다.
-  const centers = (titleNode, subNode, titleStyle) => [centerBaseline(0, titleStyle.size), centerBaseline(0, STYLE.sub.size)].map((base, k) => num([titleNode, subNode][k], 'y') - base);
-  const [chartTitleCenter, chartSubCenter] = centers(chartTitle, chartSub, STYLE.group);
-  const [cardTitleCenter, cardSubCenter] = centers(cardTitle, cardSub, STYLE.label);
-  assert.ok(Math.abs(chartSubCenter - chartTitleCenter - (STYLE.group.line + STYLE.sub.line) / 2) < EPS, 'the chart stacks the title and the subtitle by their line heights');
-  assert.ok(Math.abs(cardSubCenter - cardTitleCenter - (STYLE.label.line + STYLE.sub.line) / 2) < EPS, 'the card stacks them the same way');
-  assert.equal(findAll(dom, (n) => /chart-(title|sub)\b/.test(n.attrs.class ?? '')).length, 0, 'no chart-only header roles');
-});
-
-test('T11 a long chart or trace title wraps at the default width: it keeps every character and no header line passes the figure width', async () => {
-  const titles = [
-    'Quarterly revenue by region and channel with a deliberately long title that needs more than one line at the default width',
-    'GET /v1/orders/{id}/payments/authorizations/capture-and-settle-with-an-unusually-long-trace-name that also has several words',
-  ];
-  const { dom } = await rendered(diagramplay(`
-    box a "A"
-    chart c "${titles[0]}" bar "Short subtitle" {
-      x "x(u)"
-      series v "v"
-      row "A" v=40
-    }
-    trace t "${titles[1]}" unit=ms {
-      span s "S" lane=a at=0 dur=10
-    }
-    view graph down "graph"
-    view time "time" {
-      t
-    }
-  `));
-  // 제목은 왼쪽 여백(PAD)에서 시작하는 frame 글이다. 카드 이름 "A"는 가운데 맞춤이라 빠진다. 차트 머리가 앞, 시간 머리가 뒤다.
-  // 보기 이름("graph", "time")도 같은 그림 제목 역할이라 뺀다.
-  const headers = textsWith(dom, 'frame').filter((n) => num(n, 'x') === PAD && n.attrs['text-anchor'] === undefined && !['graph', 'time'].includes(textContent(n)));
-  const squash = (text) => text.replace(/\s/g, '');
-  let from = 0;
-  for (const title of titles) {
-    let joined = '';
-    const own = [];
-    while (joined.length < squash(title).length && from < headers.length) {
-      own.push(headers[from]);
-      joined += squash(textContent(headers[from++]));
-    }
-    assert.equal(joined, squash(title), 'every character is kept, in order');
-    assert.ok(own.length > 1, `"${title.slice(0, 20)}" is split into lines`);
-  }
-  assert.equal(from, headers.length, 'no other title line');
-  for (const node of headers) {
-    const right = PAD + measure(textContent(node), STYLE.group.size, STYLE.group.face);
-    assert.ok(right <= WIDTH - PAD + EPS, `"${textContent(node).slice(0, 20)}" ends at ${right}, inside the figure width ${WIDTH}`);
-  }
-});

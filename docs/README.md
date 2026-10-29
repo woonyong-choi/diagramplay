@@ -11,9 +11,7 @@ DiagramPlay의 사용법과 설계 문서다. 문서는 한국어로 쓴다. 처
 ## 설계
 
 - [그림 문법](design/figure-syntax.md): 원본 문장, 선택 사항, 진단
-  - [카드와 보기](design/figure-kinds.md): 순서·타이밍 보기와 상태·테이블·클래스 카드
-  - [칸 격자](design/grid.md): 비트 필드, 배열, 스택, 행렬
-  - [차트](design/charts.md): 차트 종류, 축, 값 묶음
+  - [카드와 보기](design/figure-kinds.md): 그래프·순서 보기와 테이블·클래스 카드
   - [배치](design/layout.md): 도형 좌표, 선 경로, 좁은 화면 배치
   - [재생](design/playback.md): 시간표, 장면 재생, 재생기 조작
   - [그림 검사](design/figure-check.md): 겹침, 넘침, 선 끝 검사 항목
@@ -28,11 +26,7 @@ DiagramPlay의 사용법과 설계 문서다. 문서는 한국어로 쓴다. 처
 - [구조 그림](reference/flow.md): 카드와 선, 그래프 보기
   - [구성도](reference/architecture.md): 그룹, 아이콘, 번호 선, 배지
   - [순서 그림](reference/sequence.md): 참여자 사이 메시지 순서
-  - [상태 그림](reference/state.md): 상태 카드와 전이
   - [데이터 관계 그림](reference/data.md): 테이블 열과 외래 키
-  - [칸 격자](reference/grid.md): 칸 단위 자료 그림
-  - [타이밍 그림](reference/timing.md): 시간축 위 값의 상태
-  - [차트](reference/charts.md): 차트 카드와 `plot` 보기
 
 ## 기록
 

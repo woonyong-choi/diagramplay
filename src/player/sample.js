@@ -3,7 +3,7 @@
 // 같은 (모델, 시각)은 앞서 어떤 시각을 샘플했든 같은 모습이다. 이전 프레임, 웹 애니메이션 끝 알림, 요소 충돌에서 사건을 읽지 않는다.
 // 시각은 두 가지다. 논리 시각은 시간표의 ms이고 speed가 이동 시간만 배로 바꾼다(표시 시각 d의 논리 시각 = 장면 시작 + d·speed).
 // 후광, 알약 줄어듦, 반복 꼬리는 사람이 보는 표시 시각으로 재서 speed와 상관없다.
-// 켜진 선, 도형, 부분, 차트 밝히기, 값과 차트 틀이 바뀌는 시각의 후광은 시간표가 정한 값(marks, pulses, values, charts)을 읽기만 한다. 같은 논리 사건은 판이 여럿이어도 하나다.
+// 켜진 선, 도형, 부분, 값이 바뀌는 시각의 후광은 시간표가 정한 값(marks, pulses, values)을 읽기만 한다. 같은 논리 사건은 판이 여럿이어도 하나다.
 
 const SCENE_MODES = ['static', 'once', 'loop'];
 const STEP_KEYS = ['label', 'mode', 'speed'];
@@ -13,7 +13,7 @@ const RUN_JOIN_EPSILON_MS = 1e-5;
 
 /**
  * 장면마다 사건 모델을 만든다. 단계 값이 { label, mode, speed } 정본이 아니면 오류다(글이나 빠진 값을 기본값으로 받지 않는다).
- * @param data { steps, segs, marks?, pulses?, values?, charts?, chartFrames?, metrics: { move, pulse: { riseMs, holdMs, decayMs, fadeMs } } }
+ * @param data { steps, segs, marks?, pulses?, values?, metrics: { move, pulse: { riseMs, holdMs, decayMs, fadeMs } } }
  */
 function buildScenes(data) {
   const timing = checkTiming(data.metrics.pulse);
@@ -78,7 +78,7 @@ function mergeRuns(list) {
 
 /**
  * 장면과 겹치는 조용한 선의 보이는 구간 목록 { kind: 'edge', key, ranges }(`quiet:번호`, data.marks). 알 수 없는 키는 오류다.
- * 켜 둔 도형, 부분, 차트 행(`light`)은 구간이 그 장면에서 지금까지 켠 목록(nodesOn, partsOn, charts[id].lights)으로 갖는다(heldAt). 길이 0인 구간도 같은 규칙으로 읽힌다.
+ * 켜 둔 도형과 부분(`light`)은 구간이 그 장면에서 지금까지 켠 목록(nodesOn, partsOn)으로 갖는다(heldAt). 길이 0인 구간도 같은 규칙으로 읽힌다.
  * 점이 지나간 선은 켜 두지 않는다: 옛 `edge:` 키는 더 이상 없고 오류다. 점이 지나는 동안의 선은 이동 목록에서 따로 구한 선 사용 구간(edgeRuns)이 맡는다.
  */
 function heldRangesOf(data, scene) {
@@ -102,8 +102,8 @@ function isCovered(ranges, x, end) {
 // ---- 후광 시작 시각 ----
 
 /**
- * 후광 키마다 시작하는 논리 시각 오름차순 목록. 키는 `node:도형 논리 id`, `value:값 줄 번호`, `chart:차트 id:표 id`다.
- * 점이 도착한 도형(통과하지 못하고 사라진 점은 시간표가 넣지 않는다)은 구간의 pulses이고, 값이 실제로 바뀐 시각과 차트 표가 실제로 달라진 시각은 시간표의 pulses(같은 틱 안에서 제자리로 돌아온 변화는 시간표가 이미 뺐다)다.
+ * 후광 키마다 시작하는 논리 시각 오름차순 목록. 키는 `node:도형 논리 id`, `value:값 줄 번호`, `row:도형 id:카드 줄 번호`다.
+ * 점이 도착한 도형(통과하지 못하고 사라진 점은 시간표가 넣지 않는다)은 구간의 pulses이고, 값이나 카드 글이 실제로 바뀐 시각은 시간표의 pulses(같은 틱 안에서 제자리로 돌아온 변화는 시간표가 이미 뺐다)다.
  * 후광은 시각이 아니라 출처 장면에 속한다(`si`). 그래서 장면 끝 시각에 닿은 점의 후광도 그 장면의 꼬리까지 보인다.
  */
 function pulseOnsetsOf(data, scene) {
@@ -132,10 +132,10 @@ function clockOf(scene, elapsed, isSettled) {
 
 /**
  * 시각 elapsed에서 장면의 모습. 앞서 어떤 시각을 샘플했는지에 기대지 않는다. isSettled가 참이면 방식과 시각에 상관없이 마지막 모습이다(clockOf).
- * @returns { phase, d, seg, elapsed, cards, edges, held, pulses, values, charts }
+ * @returns { phase, d, seg, elapsed, cards, edges, held, pulses, values }
  * seg는 전체 박자 번호, elapsed는 그 박자 안 논리 ms, cards는 도형 논리 id별 보일 카드 번호, edges는 { 선 번호: { active, pill } }(pill은 0~1),
- * held는 { edges, lit, parts, lights }(켜진 선 번호, 켜진 도형·그룹 논리 id, 켜진 부분, { 차트 id: 밝힌 행 이름[] }),
- * pulses는 { 키: 0~1 }(0보다 큰 것만), values는 값 줄별 보일 글(이 장면 줄이 아니면 없다), charts는 { 차트 id: 보일 틀 번호 }다.
+ * held는 { edges, lit, parts }(켜진 선 번호, 켜진 도형·그룹 논리 id, 켜진 부분),
+ * pulses는 { 키: 0~1 }(0보다 큰 것만), values는 값 줄별 보일 글(이 장면 줄이 아니면 없다)이다.
  */
 function sampleScene(scene, data, elapsed, isSettled = false) {
   const { phase, d } = clockOf(scene, elapsed, isSettled);
@@ -157,7 +157,6 @@ function sampleScene(scene, data, elapsed, isSettled = false) {
     held: heldAt(scene, held, seg),
     pulses: isFinal ? {} : pulsesAt(scene, d),
     values: valuesAt(data, scene.si, held),
-    charts: chartsAt(data, scene.si, held),
   };
 }
 
@@ -168,10 +167,9 @@ function cardsAt(seg, elapsed) {
   return cards;
 }
 
-// 논리 시각 at(구간 seg 안)에 보이는 조용한 선과 켜진 도형·그룹, 부분, 차트 밝히기. 켜 둔 것은 구간이 그 장면에서 지금까지 `light`로 켠 대상이다.
+// 논리 시각 at(구간 seg 안)에 보이는 조용한 선과 켜진 도형·그룹, 부분. 켜 둔 것은 구간이 그 장면에서 지금까지 `light`로 켠 대상이다.
 function heldAt(scene, at, seg) {
-  const out = { edges: [], lit: [...seg.nodesOn], parts: [...seg.partsOn], lights: {} };
-  for (const [id, chart] of Object.entries(seg.charts ?? {})) if (chart.lights.length) out.lights[id] = [...chart.lights];
+  const out = { edges: [], lit: [...seg.nodesOn], parts: [...seg.partsOn] };
   for (const entry of scene.held) if (isCovered(entry.ranges, at, scene.t1)) out.edges.push(entry.key);
   return out;
 }
@@ -228,14 +226,4 @@ function envelope(x, { riseMs, holdMs, decayMs }) {
 // 논리 시각 at에 값 줄마다 보일 글. 이 장면의 줄이 아니면 없다. 시각이 든 기간의 글이고, 어느 기간에도 들지 않으면(같은 시각의 중간 기록 뒤, 끝 이후) 마지막 기록이다.
 function valuesAt(data, si, at) {
   return (data.values ?? []).map((row) => (row.si === si ? (row.periods.find(([from, to]) => at >= from && at < to) ?? row.periods.at(-1))[2] : undefined));
-}
-
-// 차트 카드마다 보일 틀 번호. 이 장면에 시간표 행이 있으면 그 기간의 틀이고(기간에 들지 않으면 마지막 기간), 행이 없으면 처음 틀(0번, 값이 시작할 때의 그림)이다.
-function chartsAt(data, si, at) {
-  return Object.fromEntries(
-    Object.keys(data.chartFrames ?? {}).map((cardId) => {
-      const periods = data.charts?.[cardId]?.rows.find((row) => row.si === si)?.periods;
-      return [cardId, periods?.length ? (periods.find(([from, to]) => at >= from && at < to) ?? periods.at(-1))[2] : 0];
-    }),
-  );
 }

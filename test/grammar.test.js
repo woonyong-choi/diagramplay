@@ -2,7 +2,7 @@
 // 시험 이름 첫 낱말(V1~V7)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { build, finalValue, findOne, panelStrategies, diagramplay, reject, stillDom, textsOf, valueOf } from './support.js';
+import { build, finalValue, findOne, diagramplay, reject, stillDom, textsOf, valueOf } from './support.js';
 
 const CARD = 'box a "A"\n';
 
@@ -51,6 +51,32 @@ test('V2 no legacy adapter: old names and removed statements are plain syntax er
   // 글이 둘인 장면 줄은 설명 글을 받지 않는다.
   const scene = await reject(diagramplay(`${CARD}scene "name" "description"\n  a -> a\n`));
   assert.ok(scene.some((p) => p.line === 3 && p.code === 'syntax'));
+});
+
+// #423: 통계 차트, 분석 플롯, 측정 보기, 비트·메모리 격자, 독립 상태도의 문법은 일반 오류다. 옮기는 안내나 별칭을 두지 않는다.
+test('V2 removed chart, plot, trace, timing, grid and state statements are plain syntax errors', async () => {
+  const base = 'box a "A"\nbox b "B"\na -> b\n';
+  const cases = [
+    ['chart c "C" bar {\n  series v "v"\n  row "r" v=1\n}\n', 5],
+    ['trace t "T" unit=ms {\n  span s "S" lane=a at=0 dur=1\n}\n', 5],
+    ['grid g "G" rows=1 cols=2 {\n  item x "x"\n}\n', 5],
+    ['state s "S"\n', 5],
+    ['start a\n', 5],
+    ['final a\n', 5],
+    ['view plot {\n  a\n}\n', 5],
+    ['view time {\n  a\n}\n', 5],
+    ['view timing {\n  a\n}\n', 5],
+    ['scene "s"\n  reveal a\n', 6],
+    ['box c "C" {\n  chart k "K" bar {\n  }\n}\n', 6],
+  ];
+  for (const [body, line] of cases) {
+    const problems = await reject(diagramplay(`${base}${body}`));
+    const hit = problems.find((p) => p.line === line);
+    assert.ok(hit, `${body} -> ${JSON.stringify(problems)}`);
+    assert.equal(hit.code, 'syntax', body);
+    assert.match(hit.message, /unknown statement|a view is one of graph, sequence|a card body takes/, body);
+    for (const problem of problems) assert.doesNotMatch(problem.message, /migrat|convert|upgrade|renam|removed/i, body);
+  }
 });
 
 test('V3 words are separated by spaces: "->" and "=" need the documented spacing, and options cannot repeat', async () => {
@@ -145,7 +171,6 @@ test('V6 a malformed block header or a rejected name is one error: its inner lin
   const cases = [
     'unknown g {\n}\n',
     'class Bad "T" {\n  nonsense\n}\n',
-    'grid Bad "T" {\n  nonsense\n}\n',
     'table t "T" broken= {\n  id int\n}\n',
     'table users {\n  id int pk\n}\n',
     'table Bad "T" {\n  id int\n  pk (id)\n}\n',
@@ -154,22 +179,18 @@ test('V6 a malformed block header or a rejected name is one error: its inner lin
     'table users {\n  id int\n  pk (id)\n}\n',
     'api a {\n  id int\n}\n',
     'class k {\n  field n "int"\n}\n',
-    'group g "G" {\n  grid Bad "x" {\n  }\n}\nbox a "A"\n',
   ];
   for (const body of cases) assert.equal((await reject(diagramplay(body))).length, 1, body);
 });
 
 test('V6 each rejection names its real cause and counts what the limit counts', async () => {
-  const decimals = (value) => `chart c "T" bar {\n  x "x(u)"\n  decimals ${value}\n  series v "v"\n  row "A" v=1\n}\n`;
-  await build(diagramplay(decimals('2')));
   const cases = [
     ['class k "K" abstract=yes {\n  field x "int"\n}\n', 2, /abstract takes no value/],
     ['class k "K" {\n  field x "int" static=yes\n}\n', 3, /static takes no value/],
-    ['box a "A"\nscene "s" mode=once\n  light a "x"\n', 4, /"a" is a box, not a chart/],
-    ['state s "S"\nvalue v "V" on=s\n', 3, /Put a value on box, external, store, person, table, api/],
+    ['box a "A"\nscene "s" mode=once\n  light a "x"\n', 4, /light takes names\. Found "x"/],
+    ['decision s "S"\nvalue v "V" on=s\n', 3, /Put a value on box, external, store, person, table, api/],
     [`box a "A" badge="${'😀'.repeat(9)}"\n`, 2, /at most 8 characters\. Found 9/],
     ['box a "A"\nvalue v "V" on=a from=1000000000000000000000\n', 3, /under 1e15/],
-    ...['0x2', '1e0', '2.0', '7'].map((value) => [decimals(value), 4, /whole number from 0 to 6/]),
   ];
   for (const [body, line, message] of cases) {
     const problems = await reject(diagramplay(body));
@@ -199,33 +220,10 @@ test('V6 앞선 문법 오류가 keep과 set 진단을 숨기지 않는다', asy
   for (const name of ['bogus', 'missing', 'absent']) assert.ok(problems.some(p => p.message.includes(name)), name);
 });
 
-test('원인 하나가 잘못된 reveal 순서와 else 진단으로 번지지 않는다', async () => {
-  const missing = await reject(diagramplay(`chart c "Chart" stacked {
-    x "Value(count)"
-    series a "A"
-    series b "B"
-    row "row" a=1 b=2
-  }
-  scene "s" mode=once
-    reveal c.missing
-    reveal c.a
-    reveal c.b`));
-  assert.equal(missing.length, 1);
-  assert.match(missing[0].message, /unknown series/);
+test('원인 하나가 else 진단으로 번지지 않는다', async () => {
   const orphan = await reject(diagramplay(`box a "A"\nbox b "B"\na -> b\nscene "s" mode=once\n a -> b else=a`));
   assert.equal(orphan.length, 1);
   assert.match(orphan[0].message, /else/);
-});
-
-test('계단과 누적 분포의 값 축 단위를 검사하고 음수 원형 값은 한 번 진단한다', async () => {
-  for (const [kind, rows, axis] of [['step', 'series v "v"\npoint x=0 v=2', 'y'], ['ecdf', 'sample 2', 'x']]) {
-    const errors = await reject(diagramplay(`chart c "Chart" ${kind} {\n${rows}\n}`));
-    assert.equal(errors.length, 1);
-    assert.match(errors[0].message, new RegExp(`${axis} "latency`));
-  }
-  const negative = await reject(diagramplay('chart c "Chart" pie {\nrow "A" value=-1\n}'));
-  assert.equal(negative.length, 1);
-  assert.match(negative[0].message, /negative/);
 });
 
 // 문법 점검(docs/decisions/2026-10-16-one-form-per-meaning.md): 모르는 낱말의 제안과 다른 도구의 습관은 틀린 낱말 자리의 진단 하나로 알린다.
@@ -247,11 +245,6 @@ test('V6 an unknown statement, key, value, unit, or column names the closest wor
     ['scene "s"\n  shw web "x"\n', 6, 3, 'show'],
     ['table t "T" {\n  id bigint pkk\n}\n', 6, 13, 'pk'],
     ['table t "T" {\n  user_id bigint pk\n}\nscene "s"\n  light t.userid\n', 9, 3, 'user_id'],
-    ['chart c "C" baar {\n  series v "v"\n  row "a" v=1\n}\n', 5, 13, 'bar'],
-    ['chart c "C" bar {\n  decimal 2\n  series v "v"\n  row "a" v=1\n}\n', 6, 3, 'decimals'],
-    ['chart c "C" line {\n  zero of\n  series v "v"\n  point x=1 v=1\n}\n', 6, 8, 'off'],
-    ['chart c "C" bar {\n  series v "v" role=mian\n  row "a" v=1\n}\n', 6, 21, 'main'],
-    ['grid g "G" rws=2 {\n  item a "a"\n}\n', 5, 12, 'rows'],
   ];
   for (const [body, line, column, word, whole] of cases) {
     const problems = await reject(diagramplay(whole ?? `${base}${body}`));
@@ -303,17 +296,4 @@ test('V5 a group border is dashed like an edge, and an on line may come before i
   const frame = findOne(dom, (n) => n.tag === 'rect' && /\bframe-box\b/.test(n.attrs.class ?? ''), 'group frame');
   assert.match(frame.attrs.class, /\bdashed\b/);
   assert.equal(await finalValue(diagramplay('box a "A"\nbox b "B"\na -> b\non b n+1\nvalue n "n" on=b from=0\nscene "s"\n  a -> b\n'), 'n'), '1');
-});
-
-test('V5 a trace lane is a card or a quoted lane name, and a lane-name trace draws only its time view', async () => {
-  const trace = 'trace t "T" {\n  span a "A" lane="Gateway" at=0 dur=10\n  span b "B" lane="DB" at=2 dur=5\n}\n';
-  assert.deepEqual(await panelStrategies(diagramplay(trace)), ['time']);
-  assert.deepEqual(textsOf(await stillDom(diagramplay(trace))).filter((t) => t === 'Gateway' || t === 'DB'), ['Gateway', 'DB']);
-  const clash = await reject(diagramplay(`box gw "GW"\n${trace.replace('"Gateway"', '"gw"')}`));
-  assert.ok(clash.some((p) => /lane "gw" is quoted/.test(p.message)), JSON.stringify(clash));
-});
-
-// 퍼징이 찾은 내부 오류의 최소 입력: 눈금 class를 쓰는 히트맵 열 이름이 "Infinity"였다.
-test('V6 user text that reads like a number is not mistaken for a broken coordinate', async () => {
-  await build(diagramplay('chart c "C" heatmap {\n  cell "Infinity" "NaN" 3\n  cell "a" "Infinity~0시" 2\n}\n'));
 });

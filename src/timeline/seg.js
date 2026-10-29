@@ -7,7 +7,7 @@ import { TIME_LIMIT_MS } from '../source/values.js';
 /**
  * 구간을 만들고 시각 run.t를 그 길이만큼 앞으로 보낸다. 필드 순서는 시간표 JSON이 그대로 따른다.
  * @param run 시간표를 지나며 이어지는 값 { t }
- * @param fields { line, si, bi, length, move, hops, nodesOn, partsOn, card, charts, status?, extra }. card는 { before, after, at }이고 charts는 차트 카드 id → { series, growing, lights }(차트 카드가 없으면 빈 객체), status는 장면의 도형 상태 `{ node, kind }` 목록(없거나 비면 필드를 쓰지 않는다), extra는 구간 끝에 더하는 필드다
+ * @param fields { line, si, bi, length, move, hops, nodesOn, partsOn, card, status?, extra }. card는 { before, after, at }이고 status는 장면의 도형 상태 `{ node, kind }` 목록(없거나 비면 필드를 쓰지 않는다), extra는 구간 끝에 더하는 필드다
  */
 export function createSeg(run, fields) {
   const { si, bi, length, card } = fields;
@@ -24,7 +24,6 @@ export function createSeg(run, fields) {
     cards: card.after,
     cardsBefore: card.before,
     cardsAt: card.at,
-    ...(Object.keys(fields.charts ?? {}).length ? { charts: fields.charts } : {}),
     ...(fields.status?.length ? { status: fields.status } : {}),
     ...fields.extra,
   };

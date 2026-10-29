@@ -105,35 +105,6 @@ test('IM2 participants are listed in the order they first send, which DiagramPla
   assert.deepEqual(warningsAt(warnings, 1), ['import-change: participants are listed in the order they first send: app, db']);
 });
 
-const STATE = `stateDiagram-v2
-  [*] --> Idle
-  Idle --> Running : start
-  Running --> Idle : stop
-  Running --> Failed : error
-  Failed --> Idle
-  state Check <<choice>>
-  Failed --> Check
-  Check --> Idle : retry
-  state Active {
-    [*] --> Warm
-    Warm --> Hot : load
-  }
-  Idle --> Active : warm up
-  Running --> [*]
-  note right of Idle : waiting
-`;
-
-test('IM3 a Mermaid state diagram keeps start and final states, events, composite states as groups, and choices as decisions', async () => {
-  const { source, warnings, lines } = await roundTrip('mermaid', STATE);
-  for (const line of ['state idle "Idle"', 'decision check "Check"', 'start idle', 'final running', 'idle -> running "start"', 'failed -> check', 'warm -> hot "load"', 'view graph down']) assert.ok(lines.includes(line), line);
-  assert.match(source, /group active "Active" direction=down \{\n {2}state warm "Warm"\n {2}state hot "Hot"\n\}/);
-  assert.ok(lines.includes('failed -> idle "…"'), 'a transition without an event gets the empty mark');
-  assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'Failed --> Idle')), ['import-change: a transition needs an event label, so "…" is written. Write the event in place of it']);
-  assert.ok(lines.includes('idle -> warm "warm up"'));
-  assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'Idle --> Active')), ['import-change: the transition into "Active" goes to its start state "Warm"']);
-  assert.deepEqual(warningsAt(warnings, lineOf(STATE, 'note right')), ['import-skip: the note is not imported. A DiagramPlay state has no notes']);
-});
-
 const ER = `erDiagram
   CUSTOMER ||--o{ ORDER : places
   ORDER ||--|{ LINE-ITEM : contains
@@ -165,13 +136,6 @@ test('IM4 a Mermaid ER diagram becomes tables with keys and relations with both 
   ]);
   assert.deepEqual(warningsAt(warnings, lineOf(ER, 'login name')), ['import-skip: the comment on "email" is not imported. A column has no comment']);
   assert.match(warningsAt(warnings, lineOf(ER, 'customer_id FK'))[0], /^import-skip: the FK mark on "customer_id" is not imported/);
-});
-
-test('IM5 a Mermaid pie becomes a pie chart card; a slice that is not above 0 is reported and left out', async () => {
-  const text = 'pie showData title Storage by service\n  "Images" : 42\n  "Logs" : 31.5\n  "Empty" : 0\n';
-  const { source, warnings } = await roundTrip('mermaid', text);
-  assert.equal(source, 'diagramplay\n\nchart storage-by-service "Storage by service" pie {\n  row "Images" value=42\n  row "Logs" value=31.5\n}\n');
-  assert.deepEqual(warningsAt(warnings, 4), ['import-skip: the slice value "0" is not imported. A pie slice is a number above 0']);
 });
 
 const CLASSES = `classDiagram
@@ -228,7 +192,7 @@ test('IM11 a Mermaid class diagram keeps classes, interfaces, members, generics,
 });
 
 test('IM6 an unsupported Mermaid diagram is an import error on its line; an unknown statement is a warning on its line, never dropped silently', async () => {
-  for (const [text, line] of [['%% notes\ngantt\n  title A\n', 2], ['', 1]]) {
+  for (const [text, line] of [['%% notes\ngantt\n  title A\n', 2], ['', 1], ['stateDiagram-v2\n  [*] --> A\n', 1], ['pie title P\n  "a" : 1\n', 1]]) {
     assert.throws(() => importDiagram('mermaid', text), (error) => {
       assert.ok(error instanceof FigureError);
       assert.equal(error.problems[0].code, 'import');
@@ -426,10 +390,6 @@ test('IM6 #397 a long Mermaid line takes time in proportion to its length: paddi
     'sequence note': `sequenceDiagram\n  Note right of a${pad(' ')}x\n`,
     'sequence participant': `sequenceDiagram\n  participant a${pad(' ')}x\n`,
     'sequence note over': `sequenceDiagram\n  Note over a${pad(' ')},b: x\n`,
-    'state transition': `stateDiagram-v2\n  a-->b${pad(' ')}x\n`,
-    'state before arrow': `stateDiagram-v2\n  a${pad(' ')}-->\n`,
-    'state description': `stateDiagram-v2\n  a${pad(' ')}:x\n`,
-    'state declaration': `stateDiagram-v2\n  state${pad(' ')}a {\n`,
     'class declaration': `classDiagram\n  class A${pad(' ')}x\n`,
     'class generic': `classDiagram\n  class A${pad(' ')}~T~\n`,
     'class member': `classDiagram\n  A : +i${pad(' ')}nt x\n`,

@@ -11,13 +11,13 @@ const LEADING = values.leading.normal;
 /** 글자 크기에 줄 높이 비율을 곱해 반올림한 줄 높이 */
 export const lineHeight = (size, leading) => Math.round(size * leading);
 
-// 글 위계는 본문 단계에 묶인 둘이다: 그룹 제목과 보기 이름(작은 글 text.small 15, semibold)과 그 밖의 모든 글(설명 text.caption 13: 상자 이름, 문장, 이름표, 번호, 태그, 표식). CSS(styles/diagram/figure.css, chart.css, status.css)가 같은 토큰으로 같은 크기와 굵기를 그린다. 굵기는 regular와 semibold 둘이다.
+// 글 위계는 본문 단계에 묶인 둘이다: 그룹 제목과 보기 이름(작은 글 text.small 15, semibold)과 그 밖의 모든 글(설명 text.caption 13: 상자 이름, 문장, 이름표, 번호, 태그, 표식). CSS(styles/diagram/figure.css, status.css)가 같은 토큰으로 같은 크기와 굵기를 그린다. 굵기는 regular와 semibold 둘이다.
 const TITLE = values.text.small;
 const FIELD = values.text.caption;
 
 /**
- * 글 모양. 크기, 글꼴, 줄 높이. 역할 하나가 크기 하나를 쓴다. 차트 제목과 부제도 label과 sub를 쓴다(chart/labels.js).
- * 제목(15): group 그룹 제목과 보기 이름(semibold). 설명(13): label 카드 이름(regular), sub 부제, row·mono·cell·item·value 카드 줄, meta 메모와 구획 제목, pill 선 라벨, chip 이동 글, mini 관계 그래프 이름, type 열 형식,
+ * 글 모양. 크기, 글꼴, 줄 높이. 역할 하나가 크기 하나를 쓴다.
+ * 제목(15): group 그룹 제목과 보기 이름(semibold). 설명(13): label 카드 이름(regular), sub 부제, row·mono·cell·value 카드 줄, meta 메모와 구획 제목, pill 선 라벨, chip 이동 글, mini 관계 그래프 이름, type 열 형식,
  * tag·key·mark(번호, 태그, 표식, 열 키, semibold). CSS가 같은 역할에 같은 크기와 굵기를 그리므로 여기서 잰 폭이 그린 폭이다. 글자 사이 간격도 CSS와 같게 `tracking.text` 하나만 쓴다(fonts.js measure).
  * value는 사용자 자료라 글자 그대로 읽는 굵은 글꼴이다(format/text.js isLiteralFace). 바뀐 값의 초점이라 굵게 둔다.
  */
@@ -35,7 +35,6 @@ export const STYLE = Object.freeze({
   group: { size: TITLE, face: 'semibold', line: lineHeight(TITLE, LEADING) },
   chip: { size: FIELD, face: 'regular', line: lineHeight(FIELD, values.leading.snug) },
   cell: { size: FIELD, face: 'regular' },
-  item: { size: FIELD, face: 'regular', line: lineHeight(FIELD, LEADING) },
   mini: { size: FIELD, face: 'regular' },
   type: { size: FIELD, face: 'mono', line: lineHeight(FIELD, LEADING) },
 });

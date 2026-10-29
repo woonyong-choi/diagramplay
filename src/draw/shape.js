@@ -1,7 +1,6 @@
-// 도형 하나의 윤곽을 그린다. 원통, 갈림길(둥근 마름모), 원, 상태 점은 모양 자체가 뜻이라 여기서 따로 그리고, 나머지는 모두 카드(draw/card.js)다.
+// 도형 하나의 윤곽을 그린다. 원통, 갈림길(둥근 마름모), 원은 모양 자체가 뜻이라 여기서 따로 그리고, 나머지는 모두 카드(draw/card.js)다.
 // 이름과 내용은 draw/figure.js가 그린다.
 import { roundCoord as r } from '../format/text.js';
-import { tokens } from '@woonyong-choi/design-tokens/tokens.js';
 import { drawCard } from './card.js';
 import { CORNER, surfaceOutline } from './surface.js';
 
@@ -61,8 +60,7 @@ export function outlineOf(it) {
 // vars: c = 부분 수, out = 만든 SVG 글자 수
 // basis: estimate
 export function drawShape(it, stroke, paint) {
-  const { x, y, w, h } = it;
-  const cx = x + w / 2;
+  const { x, y, w } = it;
   switch (it.shape) {
     case 'store':
       return `${geometry.store(it)} ${stroke}/><path d="M${r(x)} ${r(y)} a ${r(w / 2)} ${it.marginTop} 0 0 0 ${r(w)} 0" fill="none" ${stroke}/>`;
@@ -70,10 +68,6 @@ export function drawShape(it, stroke, paint) {
       return `${geometry.decision(it)} ${stroke}/>`;
     case 'circle':
       return `${geometry.circle(it)} ${stroke}/>`;
-    case 'start':
-      return `<circle cx="${r(cx)}" cy="${r(y + h / 2)}" r="${r(w / 2)}" fill="${tokens.color.ink}" ${stroke}/>`;
-    case 'final':
-      return `<circle cx="${r(cx)}" cy="${r(y + h / 2)}" r="${r(w / 2)}" fill="none" ${stroke}/><circle cx="${r(cx)}" cy="${r(y + h / 2)}" r="${r(w / 4)}" fill="${tokens.color.ink}"/>`;
     default:
       return drawCard(it, stroke, paint);
   }

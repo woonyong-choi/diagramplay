@@ -2,8 +2,7 @@
 // 시험 이름 첫 낱말(E1~E18)이 요구사항 번호이고, 번호와 계약의 대응은 docs/design/expression-coverage.md의 시험 번호 표에 있다.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { toHtml, toSvg } from 'diagramplay';
-import { build, diagramplay, finalValue, lineOf, reject, stillDom, textsOf, parseMarkup, findAll, textContent } from './support.js';
+import { build, diagramplay, finalValue, lineOf, reject } from './support.js';
 
 const BASE = `
   box a "A"
@@ -373,70 +372,3 @@ test('E18 a document without scenes shows the declared start values', async () =
 });
 
 
-test('buildFigure_grid_cell_value_changes_the_cell_content', async () => {
-  const source = diagramplay(`
-    box a "A"
-    grid g "Grid" {
-      item cell "placeholder"
-    }
-    value n "Cell value" on=g.cell from=empty
-    a -> g.cell
-    scene "update" mode=static
-      a -> g.cell set="n=loaded"
-  `);
-  const texts = textsOf(await stillDom(source));
-  assert.ok(texts.includes('loaded'));
-  assert.ok(!texts.includes('placeholder'));
-  assert.ok(!texts.includes('empty'));
-});
-
-
-test('buildFigure_grid_cell_values_validate_targets_and_keep_reference_states', async () => {
-  const grid = `grid g "Grid" rows=2 {
-    item cell "unused"
-    gap omitted "Rest" row=1 count=3
-  }`;
-  for (const target of ['g', 'g.missing', 'g.omitted', 'g.cell.extra']) {
-    const source = diagramplay(`${grid}\nvalue n "Cell" on=${target} from=0`);
-    assert.ok(atLine(await reject(source), source, 'value n'), target);
-  }
-  const duplicate = diagramplay(`${grid}\nvalue first "First" on=g.cell\nvalue second "Second" on=g.cell`);
-  assert.ok(atLine(await reject(duplicate), duplicate, 'value second'));
-  const source = diagramplay(`${grid}
-    box a "A"
-    value n "State" from=0
-    value mirror "Current state" on=g.cell ref=n
-    a -> g.cell
-    scene "first" mode=once
-      a -> g.cell set="n+1"
-    scene "carry" mode=static keep="n"
-      a -> g.cell set="n+1"
-  `);
-  assert.ok(textsOf(await stillDom(source, 1)).includes('2'));
-  const result = await build(source);
-  for (const [markup, html] of [[await toSvg(result), false], [await toHtml(result, 'grid-value'), true]]) {
-    const dom = parseMarkup(markup, { html });
-    const variants = findAll(dom, (node) => node.attrs?.['data-t'] !== undefined);
-    for (const text of ['0', '1']) assert.ok(variants.some((node) => node.attrs['data-t'] === text && textContent(node).includes(text)));
-  }
-});
-
-test('buildFigure_grid_cell_values_measure_all_wrapped_states_and_initial_only_documents', async () => {
-  const long = 'a'.repeat(180);
-  const declaration = (from) => diagramplay(`grid g "Grid" {\n item cell "unused"\n}\nvalue n "Cell" on=g.cell from=${from}`);
-  assert.ok(textsOf(await stillDom(declaration('ready'))).includes('ready'));
-  const source = `${declaration('ready')}value incoming "Incoming" from=${long}\nbox a "A"\na -> g.cell\nscene "changed" mode=static\n  a -> g.cell set="n:=incoming"\n`;
-  const dom = await stillDom(source);
-  const shown = textsOf(dom);
-  assert.equal(shown.filter((text) => /^a+$/.test(text)).join(''), long);
-  assert.ok(shown.filter((text) => /^a+$/.test(text)).length > 1);
-  const errors = await reject(source, { budget: { 'grid-elements': 3 } });
-  assert.ok(errors.some((problem) => problem.code === 'budget-exceeded'));
-});
-
-test('buildFigure_grid_cell_budget_counts_each_scene_value_group', async () => {
-  const source = diagramplay(`grid g "Grid" {\n item cell "unused"\n}\nvalue n "Cell" on=g.cell from=0\n${Array.from({ length: 20 }, (_, i) => `scene "Scene ${i}" mode=static`).join('\n')}`);
-  const problems = await reject(source, { budget: { 'grid-elements': 10 } });
-  assert.ok(problems.some(problem => problem.code === 'budget-exceeded' && /84 SVG elements/.test(problem.message)), JSON.stringify(problems));
-  await build(source, { budget: { 'grid-elements': 84 } });
-});

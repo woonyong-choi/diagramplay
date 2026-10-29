@@ -17,8 +17,6 @@ import { drawSequenceLife } from './sequence-life.js';
 import { drawShape } from './shape.js';
 import { CORNER } from './surface.js';
 import { drawText, drawTexts } from './texts.js';
-import { drawPlot, drawTime } from './time.js';
-import { drawTiming } from './timing.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 // 메모 종이의 접힌 모서리 크기
@@ -43,9 +41,6 @@ export function drawScene(scene, decorate, glyphs) {
   scene.items.forEach((it, i) => parts.push(drawItem(it, i, paint)));
   scene.edges.forEach((e, j) => parts.push(drawEdge(e, j, paint)));
   for (const note of scene.notes ?? []) parts.push(drawNote(note, glyphs, scene.shownSi));
-  for (const plot of scene.plots ?? []) parts.push(drawPlot(plot, glyphs));
-  for (const time of scene.times ?? []) parts.push(drawTime(time, paint));
-  for (const timing of scene.timings ?? []) parts.push(drawTiming(timing, paint));
   for (const panel of scene.panels ?? []) if (panel.label) parts.push(drawPanelLabel(panel, glyphs));
   const pills = scene.edges.flatMap((e, j) => drawEdgeLabel(e, j, paint) ?? []);
   return { body: parts.join('\n'), pills: pills.length ? `<g class="fl-pills">${pills.join('')}</g>` : '' };

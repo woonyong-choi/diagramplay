@@ -5,7 +5,6 @@ import { CONTENT, valueText } from '../measure/content.js';
 import { filledSlots, queueSlots } from '../measure/queue.js';
 import { escapeXml, roundCoord as r } from '../format/text.js';
 import { drawSlot } from './card.js';
-import { drawCellFlash } from './grid.js';
 import { contentBox, rowSpan } from '../measure/content.js';
 import { outlineOf } from './shape.js';
 import { CORNER } from './surface.js';
@@ -17,17 +16,12 @@ import { hiddenAttr } from './visible.js';
 // 이 글이 값 줄의 마지막 기간의 글인지. 마지막 글만 장면 끝(과 효과 꼬리)까지 보이고, 장면 끝에서 다음 글로 바뀐 앞 글은 그 시각에 꺼진다.
 const isLastText = (row, text) => row.periods.at(-1)[2] === text;
 
-// cost: time O(i·c), heap O(i), stack O(1)
-// vars: i = 도형 수, c = 도형의 칸 수
+// cost: time O(i), heap O(i), stack O(1)
+// vars: i = 도형 수
 // basis: estimate
-// 값 줄이 놓인 카드·큐 또는 격자 칸. 같은 논리 값이 여러 보기에 있으면 모든 도형을 찾는다.
+// 값 줄이 놓인 카드나 큐. 같은 논리 값이 여러 보기에 있으면 모든 도형을 찾는다.
 function instancesOf(scene, row) {
-  const [node, part] = row.node?.split('.') ?? [];
-  return scene.items.flatMap((item, index) => {
-    if (item.id !== node) return [];
-    const cell = part === undefined ? undefined : item.cells?.find((cell) => cell.id === part);
-    return cell || row.slots !== undefined || item.content ? [{ item, index, cell }] : [];
-  });
+  return scene.items.flatMap((item, index) => (item.id === row.node && (row.slots !== undefined || item.content) ? [{ item, index }] : []));
 }
 
 // cost: time O(v), heap O(v), stack O(1)
@@ -45,11 +39,7 @@ export function drawFlashes(scene, timeline, { pulse, row }) {
   addRowFlashes(flashes, scene, timeline, row);
   (timeline.values ?? []).forEach((row, vi) => {
     const anim = pulse?.(vi) ?? '';
-    for (const { item, index, cell } of instancesOf(scene, row)) {
-      if (cell) {
-        flashes.shape.set(index, `${flashes.shape.get(index) ?? ''}${drawCellFlash(item, cell, `data-vf="${vi}"`, anim)}`);
-        continue;
-      }
+    for (const { item, index } of instancesOf(scene, row)) {
       if (row.slots !== undefined) {
         flashes.shape.set(index, `${flashes.shape.get(index) ?? ''}${outlineOf(item)} class="fl-flash fl-flash-face" opacity="0" data-vf="${vi}">${anim}</rect>`);
         continue;
@@ -76,8 +66,7 @@ export function drawFlashes(scene, timeline, { pulse, row }) {
 export function drawValues(scene, timeline, { glyphs, windows, isStatic = false }) {
   const shown = isStatic ? 1 : 0;
   return (timeline.values ?? [])
-    .flatMap((row, vi) => instancesOf(scene, row).map(({ item, cell }) => {
-      if (cell) return drawCellValue(row, { item, cell, vi, shown, glyphs }, windows);
+    .flatMap((row, vi) => instancesOf(scene, row).map(({ item }) => {
       if (row.slots !== undefined) return drawQueueValue(row, { item, vi, shown }, windows);
       const box = contentBox(item);
       const layout = item.content.layouts[row.card];
@@ -153,19 +142,6 @@ function filledRects(item, count) {
     .slice(0, count)
     .map(drawSlot)
     .join('');
-}
-
-
-// cost: time O(c·l), heap O(out), stack O(1)
-// vars: c = 값 상태 수, l = 줄 수, out = 만든 SVG 길이
-// basis: estimate
-// 셀의 모든 상태는 측정한 자리를 공유하고 카드 값과 같은 기간·표식으로 바뀐다.
-function drawCellValue(row, { item, cell, vi, shown, glyphs }, windows) {
-  return `<g class="fl-value">${[...new Set(row.periods.map(([, , text]) => text))].map((text) => {
-    const variant = cell.variants.find((variant) => variant.text === text);
-    const spans = row.periods.filter(([, , t]) => t === text).map(([start, end]) => [start, end]);
-    return `<g opacity="${shown}"${hiddenAttr(shown)} data-v="${vi}" data-t="${escapeXml(text)}">${variant.texts.map((t) => drawText(t, item, glyphs)).join('')}${windows(spans, { holdEnd: isLastText(row, text) })}</g>`;
-  }).join('')}</g>`;
 }
 
 function drawIndicator(indicator, text, box) {

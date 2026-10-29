@@ -44,7 +44,7 @@ function numberBadgeWidth(no) {
  * 번호만 있는 알약(라벨 없음)을 배치에 자리를 요구하지 않고 선 위에 얹는 선인가. 격자 칸에 이은 선은 끝 구간이 격자 안이라 얹을 자리를 고를 수 없어 배치가 자리를 준다.
  * quiet 선은 선 옆에 두는 자리(besideLabel)를 쓴다.
  */
-export const isOnLinePill = (edge) => edge.no !== undefined && edge.label === undefined && !edge.quiet && !edge.fromCell && !edge.toCell;
+export const isOnLinePill = (edge) => edge.no !== undefined && edge.label === undefined && !edge.quiet;
 
 /** 라벨이나 번호가 있어 알약을 그리는 선인가 */
 export const hasPill = (edge) => edge.label !== undefined || edge.no !== undefined;

@@ -61,13 +61,8 @@ function compactOrders(children, links) {
 export function orderByFlow(model) {
   const arcs = new Map([...model.containers.keys()].map((k) => [k, []]));
   for (const list of model.pieces.values()) for (const p of list) arcs.get(p.container).push([ownerOf(p.from), ownerOf(p.to)]);
-  // 그룹을 도형보다 앞에 모아 두었으므로 먼저 원본 줄 순서로 되돌린다. 줄이 없는 처음 점은 맨 앞, 끝 겹원은 맨 뒤다.
-  const lineOf = (id) => {
-    const node = model.nodes.get(id);
-    if (node?.shape === 'start') return -1;
-    if (node?.shape === 'final') return Number.MAX_SAFE_INTEGER;
-    return node?.line ?? model.containers.get(id).line;
-  };
+  // 그룹을 도형보다 앞에 모아 두었으므로 먼저 원본 줄 순서로 되돌린다.
+  const lineOf = (id) => model.nodes.get(id)?.line ?? model.containers.get(id).line;
   for (const c of model.containers.values()) {
     const { order, hasBack } = flowOrder([...c.children].sort((a, b) => lineOf(a) - lineOf(b)), arcs.get(c.id));
     c.children = order;

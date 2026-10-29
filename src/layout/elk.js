@@ -4,7 +4,6 @@ import { endMarks } from './end-marks.js';
 import { groupTitleWidth } from '../measure/sizes.js';
 import { hasPill, isOnLinePill, sizePill } from '../measure/pills.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
-import { isInnerEdge } from './cell-ports.js';
 import { ROOT } from './model.js';
 import { isBodyShape, outerBox, spreadBodyPorts } from './ports.js';
 
@@ -19,12 +18,12 @@ const ELK_DIRECTION = { right: 'RIGHT', down: 'DOWN' };
 const SINGLE_LAYER_OPTIONS = Object.freeze({ 'elk.layered.layering.strategy': 'COFFMAN_GRAHAM', 'elk.layered.layering.coffmanGraham.layerBound': '1', 'elk.layered.nodePlacement.strategy': 'SIMPLE', 'elk.partitioning.activate': 'true' });
 // 라벨 자리. 라벨마다 주는 elkjs 선택 사항이다.
 // 흐름 방향으로 나가는 선의 라벨은 선이 나가는 끝(꼬리) 옆에 둔다. 가운데 라벨은 elkjs가 라벨만 담은 층을 하나 더 세워 층 간격이 두 배가 되고 라벨이 출발 도형에서 멀어지지만, 꼬리 라벨은 기존 층 사이 간격 안에 자리를 잡는다.
-// 옆면 연결점(테이블 열, 격자 칸)에서 나가는 선은 꼬리 라벨이 층 사이가 아닌 도형 옆을 넓히므로 가운데 라벨을 쓴다.
+// 옆면 연결점(테이블 열)에서 나가는 선은 꼬리 라벨이 층 사이가 아닌 도형 옆을 넓히므로 가운데 라벨을 쓴다.
 const TAIL_LABEL = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement': 'TAIL' };
 const CENTER_LABEL = { 'elk.edgeLabels.inline': 'true', 'elk.edgeLabels.placement': 'CENTER' };
 const FLOW_SIDE = { right: 'EAST', down: 'SOUTH' };
-// 칸·열에 선 끝이 닿는 도형. 칸마다 연결점이 따로라 꼬리 라벨이 칸 옆에 쌓여 칸 열의 정렬을 흐트러뜨린다.
-const CELL_SHAPES = new Set(['table', 'api', 'grid']);
+// 열에 선 끝이 닿는 도형. 열마다 연결점이 따로라 꼬리 라벨이 열 옆에 쌓여 열의 정렬을 흐트러뜨린다.
+const CELL_SHAPES = new Set(['table', 'api']);
 
 // 글 상자 간격 요구(chipRoom)를 elkjs에 알리는 보이지 않는 라벨. 선 끝 쪽에 선 옆으로 두는 라벨은 층 사이 간격을 (기본 간격 + 라벨 크기 + 라벨 간격)으로 만든다.
 const ROOM_OPTIONS = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placement': 'HEAD' };
@@ -35,7 +34,7 @@ const ROOM_OPTIONS = { 'elk.edgeLabels.inline': 'false', 'elk.edgeLabels.placeme
 /** 모형을 elkjs 그래프로 바꾼다. 그룹이 안쪽 그래프이고 선 조각은 그룹마다 모인다. */
 export function toElk(model, figure) {
   const byContainer = edgesByContainer(model, figure);
-  const selfLoops = new Set(model.edges.filter((e) => e.from === e.to && !isInnerEdge(e)).map((e) => e.from));
+  const selfLoops = new Set(model.edges.filter((e) => e.from === e.to).map((e) => e.from));
   const ctx = { model, figure, byContainer, selfLoops, alignRight: figure.aspect !== undefined && figure.groups.length > 0, isSafe: figure.safeLayout === true };
   return containerToElk(model.containers.get(ROOT), ctx);
 }
@@ -163,7 +162,7 @@ function containerOptions(c, ctx) {
     'elk.randomSeed': '1',
     'elk.layered.considerModelOrder.strategy': ctx.isSafe ? 'NONE' : 'NODES_AND_EDGES',
     // 순환이 있으면 자식 순서(order.js)를 거스르는 선, 곧 순환을 끊는 선만 거꾸로 놓아 먼저 적은 도형이 앞(왼쪽, 위)에 오게 한다.
-    // 순환이 없는 그룹은 MODEL_ORDER로 바꾸면 선 높이가 달라지는 그림이 있어(memory 예제) 처음 설정을 지킨다.
+    // 순환이 없는 그룹은 MODEL_ORDER로 바꾸면 선 높이가 달라지는 그림이 있어 처음 설정을 지킨다.
     // 안전 배치(처음 배치가 실패한 뒤의 두 번째 시도)는 모델 순서를 쓰지 않는 기본 순환 처리로 한다.
     'elk.layered.cycleBreaking.strategy': cycleStrategy(c, ctx),
     'elk.spacing.nodeNode': String(SPACE["8"]),
@@ -182,7 +181,7 @@ function containerOptions(c, ctx) {
     'elk.portAlignment.east': 'CENTER',
     'elk.portAlignment.west': 'CENTER',
     ...crossingOptions(ctx),
-    ...(c.id === ROOT ? rootOptions(c, ctx) : groupOptions(c, ctx)),
+    ...(c.id === ROOT ? rootOptions(ctx) : groupOptions(c, ctx)),
   };
 }
 
@@ -197,13 +196,10 @@ function cycleStrategy(c, ctx) {
   return c.hasBack ? 'MODEL_ORDER' : 'GREEDY_MODEL_ORDER';
 }
 
-function rootOptions(c, { figure, model, isSafe }) {
+function rootOptions({ figure }) {
   const pad = FIGURE_PAD;
-  const gridsOnly = c.children.length > 0 && c.children.every((id) => model.nodes.get(id)?.shape === 'grid');
   return {
     'elk.padding': `[top=${pad},left=${pad},bottom=${pad},right=${pad}]`,
-    // 격자끼리의 대응 관계는 선 높이보다 열의 중심을 맞춘다. 혼합 도형과 안전 배치는 기존 전략을 유지한다.
-    ...(!isSafe && gridsOnly ? { 'elk.layered.nodePlacement.strategy': 'SIMPLE' } : {}),
     ...(figure.aspect !== undefined ? wrapOptions(figure.aspect) : {}),
     // 한 층에 하나씩 놓는 후보는 이어지지 않은 도형도 같은 줄에 쌓는다. 덩어리를 따로 나란히 놓으면 좁은 목표 폭에 드는 후보가 될 수 없다.
     ...(figure.oneNodePerLayer ? { ...SINGLE_LAYER_OPTIONS, 'elk.separateConnectedComponents': 'false' } : {}),

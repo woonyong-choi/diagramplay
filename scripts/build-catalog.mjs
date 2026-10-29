@@ -6,16 +6,14 @@ import { dirname, resolve } from 'node:path';
 
 import { buildFigure } from '../src/compile/figure.js';
 import { toHtml } from '../src/html/output.js';
-import { VALUES } from '../src/source/grammar.js';
 import { toSvg } from '../src/svg/output.js';
 import { catalogCoverage } from './lib/catalog-coverage.mjs';
 import { galleryPage } from './lib/catalog-page.mjs';
 import { supportFiles } from './lib/catalog-support.mjs';
 
 const EXAMPLES = 'examples';
-// 목록에 나오는 순서. 차트 종류는 문법 표의 차트 종류와 하나씩 맞고, 나머지는 개발 문서에서 자주 그리는 그림이다.
-const CHART_EXAMPLES = ['bar', 'stacked', 'percent', 'dumbbell', 'difference', 'line', 'step', 'area', 'scatter', 'histogram', 'box', 'ecdf', 'heatmap', 'donut', 'pie', 'waterfall'];
-const DEVELOPMENT_EXAMPLES = ['architecture', 'flow', 'state', 'schema', 'class', 'api', 'sequence', 'trace', 'metric', 'memory', 'memory-address', 'memory-fault', 'tcp-header', 'ipv4-header', 'struct-layout', 'sql-join', 'stack', 'queue', 'value-indicators', 'pointer', 'timing', 'handshake', 'integration'];
+// 목록에 나오는 순서. 개발 문서에서 자주 그리는 다섯 표현(아키텍처, 카드 흐름, 시퀀스, ERD·API, 클래스)과 그 안의 큐·값 표시다.
+const DEVELOPMENT_EXAMPLES = ['architecture', 'flow', 'schema', 'class', 'api', 'sequence', 'queue', 'value-indicators'];
 const output = resolve(process.argv[2] ?? '.local/examples');
 
 // cost: time O(n·build), heap O(out), stack O(1), io O(n)
@@ -23,8 +21,7 @@ const output = resolve(process.argv[2] ?? '.local/examples');
 // basis: estimate
 async function main() {
   const sources = readdirSync(EXAMPLES).filter((name) => name.endsWith('.diagramplay')).map((name) => name.replace(/\.diagramplay$/, ''));
-  assert.deepEqual([...sources].sort(), [...CHART_EXAMPLES, ...DEVELOPMENT_EXAMPLES].sort(), 'examples/ holds exactly the listed demos');
-  assert.deepEqual([...CHART_EXAMPLES].sort(), Object.keys(VALUES.chartType.items).sort(), 'one chart demo per chart type in the grammar table');
+  assert.deepEqual([...sources].sort(), [...DEVELOPMENT_EXAMPLES].sort(), 'examples/ holds exactly the listed demos');
   // 이전에 이 도구가 만든 폴더(review.json이 있다)만 비우고 다시 만든다. 낡은 목록과 그림이 남지 않게 하려는 것이고, 모르는 폴더는 지우지 않는다.
   if (existsSync(output)) {
     const present = readdirSync(output);
@@ -36,20 +33,20 @@ async function main() {
   writeFileSync(resolve(output, 'review.json'), '[]');
   const entries = [];
   const review = [];
-  for (const id of [...CHART_EXAMPLES, ...DEVELOPMENT_EXAMPLES]) {
+  for (const id of DEVELOPMENT_EXAMPLES) {
     const source = readFileSync(`${EXAMPLES}/${id}.diagramplay`, 'utf8');
     const result = await buildFigure(source, { baseDir: EXAMPLES, strict: true });
     const scenes = result.timeline.steps;
     writeFileSync(resolve(output, `${id}.diagramplay`), source);
     writeFileSync(resolve(output, `${id}.svg`), await toSvg(result, { name: id }));
     writeFileSync(resolve(output, `${id}.html`), await toHtml(result, id));
-    // 원본이 상대 경로로 읽는 자료(사용자 아이콘, JSON 값)는 원본 사본과 같은 상대 경로에 놓고, 목록이 파일마다 링크한다.
+    // 원본이 상대 경로로 읽는 자료(사용자 아이콘)는 원본 사본과 같은 상대 경로에 놓고, 목록이 파일마다 링크한다.
     const support = supportFiles(source, EXAMPLES);
     for (const file of support) {
       mkdirSync(dirname(resolve(output, file)), { recursive: true });
       copyFileSync(resolve(EXAMPLES, file), resolve(output, file));
     }
-    entries.push({ id, group: CHART_EXAMPLES.includes(id) ? '차트' : '개발 그림', title: result.figure.title, subtitle: result.figure.subtitle, scenes, source, support });
+    entries.push({ id, group: '개발 그림', title: result.figure.title, subtitle: result.figure.subtitle, scenes, source, support });
     review.push({ id, scenes, warnings: result.warnings, durationMs: result.timeline.total, support, coverage: Object.keys(catalogCoverage(source)) });
     console.log(`${id}: ${scenes.map((scene) => `${scene.label}(${scene.mode})`).join(' · ')}`);
   }
