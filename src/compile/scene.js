@@ -149,9 +149,6 @@ async function attemptScene(figure, inputs, variant) {
   attachCharts(figure, { scene, timeline, charts }, local);
   // 타이밍 판의 장면 모양은 시간표의 값 변화, 이동 시각과 장면 표시 길이(presentation)를 읽는다. 판 크기는 시간표와 상관없어 배치를 다시 하지 않는다.
   for (const timing of scene.timings) timing.scenes = timingScenes(timing, { timeline, scene });
-  // 태그 색은 원본에 처음 나온 순서로 정한다(docs/design/figure-syntax.md 카드 줄).
-  const rows = [...figure.nodes.flatMap((node) => node.content ?? []), ...figure.steps.flatMap((s) => s.beats.flatMap((b) => b.ops.map((o) => o.row)))];
-  scene.tagOrder = rows.filter((row) => row?.tag && !row.tone).map((row) => row.tag);
   const { hiddenChipWarnings } = checkFigure({ figure, scene, timeline }, local);
   for (const chart of sceneCharts(scene).values()) checkChartFigure(chart, local);
   return { scene, timeline, local, hiddenChipWarnings };

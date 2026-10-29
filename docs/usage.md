@@ -453,7 +453,7 @@ scene "구조"
 
 scene "접수가 더 빠를 때" mode=loop for=8s
   track producer -> jobs at=0s every=1s time=700ms wait="jobs<4" timeout=1s else=retry reserve="jobs+1"
-  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1" tone=blue
+  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1"
 ```
 
 ![접수와 처리가 독립적으로 진행되는 큐](usage-queue.svg)<!-- diagramplay -->

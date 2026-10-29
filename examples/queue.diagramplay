@@ -31,8 +31,8 @@ scene "가득 찬 큐" set="jobs=8"
   prod -> jobs "다시 접수" when="jobs<8" reserve="jobs+1"
 
 scene "생산이 더 빠를 때" mode=loop for=8s
-  track prod -> jobs at=0s every=1s wait="jobs<8" timeout=1500ms else=dlq reserve="jobs+1" tone=orange
-  track jobs -> worker at=500ms every=2s wait="jobs>0" reserve="jobs-1" tone=blue
+  track prod -> jobs at=0s every=1s wait="jobs<8" timeout=1500ms else=dlq reserve="jobs+1"
+  track jobs -> worker at=500ms every=2s wait="jobs>0" reserve="jobs-1"
 
 scene "처리 결과 전달" keep="done"
   jobs -> worker "처리" set="jobs-1"

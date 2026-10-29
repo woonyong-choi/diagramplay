@@ -48,8 +48,8 @@ scene "주문 한 건"
   api -> jobs "알림"
 
 scene "트래픽 유입" mode=loop for=6s
-  track user -> cdn -> lb -> web -> api at=0s every=1500ms time=3s tone=orange
-  track api -> jobs -> worker at=500ms every=2s time=2s legs="500ms, -" tone=gray set="jobs+1"
+  track user -> cdn -> lb -> web -> api at=0s every=1500ms time=3s
+  track api -> jobs -> worker at=500ms every=2s time=2s legs="500ms, -" set="jobs+1"
 
 scene "주 DB 장애" status="db=fail, replica=ok"
   web -> api "GET /orders"
