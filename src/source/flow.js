@@ -1,5 +1,4 @@
 // 흐름 장면 문장(`scene ... for=시간`, `track a -> b -> c ...`)을 읽는다. 선이 있는지와 시간이 맞는지는 flow-check.js가 확인한다.
-import { autoTone } from '../color/tone.js';
 import { readMoveOptions, readTime } from './move-options.js';
 import { readOptions } from './options.js';
 import { valueNames } from './grammar.js';
@@ -110,7 +109,7 @@ export function readTrack({ tokens, line }, ctx) {
     // 출발 시각을 적지 않으면 출발지가 every 안에서 고르게 엇갈려 출발한다.
     const start = atMs ?? ((everyMs ?? 0) * i) / sources.length;
     const atPhase = atMs === undefined && everyMs !== undefined ? { index: i, count: sources.length } : undefined;
-    ctx.step.tracks.push({ path: [source, ...path], source, data: texts[0]?.value, atMs: start, ...(atPhase ? { atPhase } : {}), everyMs, timeMs, tone: tone ?? toneOfSource(source, ctx), sets, lost, legTimes, ...(condition ? { condition } : {}), line });
+    ctx.step.tracks.push({ path: [source, ...path], source, data: texts[0]?.value, atMs: start, ...(atPhase ? { atPhase } : {}), everyMs, timeMs, ...(tone ? { tone } : {}), sets, lost, legTimes, ...(condition ? { condition } : {}), line });
   });
 }
 
@@ -157,15 +156,6 @@ function checkLegSum(times, { timeMs, line, ctx }) {
   else if (timeMs !== undefined && !hasUnset && Math.abs(sum - timeMs) > LEG_EPSILON_MS) ctx.problems.error(line, `legs add up to ${show(sum)}, but time= is ${show(timeMs)}. Make them equal or mark a line with -`, { code: 'leg-time' });
   else return true;
   return false;
-}
-
-// cost: time O(1), heap O(1), stack O(1)
-// basis: estimate
-// tone을 적지 않은 흐름의 색. 그림 전체에서 출발지 이름마다 범주 색 순서(color/tone.js autoTone)로 받고, 같은 이름은 늘 같은 색이다.
-function toneOfSource(source, ctx) {
-  ctx.sourceTones ??= new Map();
-  if (!ctx.sourceTones.has(source)) ctx.sourceTones.set(source, autoTone(ctx.sourceTones.size));
-  return ctx.sourceTones.get(source);
 }
 
 // cost: time O(t), heap O(t), stack O(1)

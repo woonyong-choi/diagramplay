@@ -61,4 +61,4 @@ scene "주문 한 건"
   light t.s2
 
 scene "결제가 몰릴 때" mode=loop keep="p95" for=6s
-  track user -> gw -> pay at=0s every=1500ms time=2s set="pending+1, p95=240" tone=blue
+  track user -> gw -> pay at=0s every=1500ms time=2s set="pending+1, p95=240"
