@@ -14,7 +14,7 @@ import { PAD, SPACE, TEXT } from './metrics.js';
 /** 행 이름 글자. 세로 가운데 cy에 맞추고, right가 있으면 그 x에 오른쪽을 맞춰 값 축 바로 앞에 두며 없으면 왼쪽 여백에서 시작한다. */
 export function labelText(label, cy, className, right) {
   const x = right === undefined ? `x="${PAD}"` : `x="${r(right)}" text-anchor="end"`;
-  return `<text ${x} y="${r(centerBaseline(cy, TEXT['13']))}" class="${className}">${renderRich(label)}</text>`;
+  return `<text ${x} y="${r(centerBaseline(cy, TEXT))}" class="${className}">${renderRich(label)}</text>`;
 }
 
 // cost: time O(1), heap O(1), stack O(1)
@@ -37,7 +37,7 @@ export function inkGroup(k, inner, i) {
  * 값이 바뀐 효과는 글자 뒤 바탕 면이 받는다: 원자료와 계열 칠(paint)은 바탕 면에만 붙고, 글자는 바뀐 값을 그대로 보인다.
  */
 export function valueText({ x, cy }, text, className, mark) {
-  const size = TEXT['11'];
+  const size = TEXT;
   const width = measure(plainText(text), size, /ours|second/.test(className) ? 'numSemibold' : 'num');
   // 바탕 면은 한 줄 글 여백(TEXT_BACK_PAD.line)이다. 값 글자는 표식에서 spacing.1-5 떨어져 놓이므로 바탕 면이 표식을 덮지 않는다.
   const left = x - (className.includes('end') ? width : 0);
@@ -54,7 +54,7 @@ export function valueText({ x, cy }, text, className, mark) {
  * 누적 막대 조각이 쓴다.
  */
 export function insideText(chart, { text, x, cy, paint, fits, id }) {
-  return `<text x="${r(x)}" y="${r(centerBaseline(cy, TEXT['11']))}" text-anchor="middle" fill="${paint.on}" class="chart-seg-key late"${fits ? '' : ' visibility="hidden"'}${markAttrs(chart, id, { isText: true })}>${escapeXml(text)}</text>`;
+  return `<text x="${r(x)}" y="${r(centerBaseline(cy, TEXT))}" text-anchor="middle" fill="${paint.on}" class="chart-seg-key late"${fits ? '' : ' visibility="hidden"'}${markAttrs(chart, id, { isText: true })}>${escapeXml(text)}</text>`;
 }
 
 // cost: time O(s·n), heap O(out), stack O(1)
@@ -82,5 +82,5 @@ export function drawHeader(figure) {
 // basis: estimate
 /** 넓은 배치는 행 옆, 좁은 배치는 행 위에 이름을 둔다. */
 export function rowName(label, { layout, k, top, cy, className = 'chart-label' }) {
-  return layout.lines ? layout.lines[k].map((line, i) => labelText(line, top + TEXT['13'] / 2 + i * layout.lineHeight, className)).join('') : labelText(label, cy, className, layout.right);
+  return layout.lines ? layout.lines[k].map((line, i) => labelText(line, top + TEXT / 2 + i * layout.lineHeight, className)).join('') : labelText(label, cy, className, layout.right);
 }

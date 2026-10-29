@@ -44,7 +44,7 @@ function differenceScale(chart, format) {
   const [min, max] = high === low ? [-FLAT_SPAN, FLAT_SPAN] : [low === 0 ? -margin : low, high === 0 ? margin : high];
   // 값 글자는 max(점 오른쪽 끝, 구간 끝) 뒤에 놓인다(differenceRow). 그 최댓값은 점과 구간 끝 가운데 하나라, 닿는 거리를 둘로 나누어 각각 잰다: 점은 반지름만큼 더 나가고 구간 끝은 나가지 않는다.
   const reaches = () => chart.rows.flatMap((row) => {
-    const text = SPACE["1-5"] + measure(format(row.values[id]), TEXT['11'], 'numSemibold');
+    const text = SPACE["1-5"] + measure(format(row.values[id]), TEXT, 'numSemibold');
     const high = row.values[`${id}.high`];
     return chart.layout ? [{ value: Math.max(row.values[id], high ?? row.values[id]), extra: DOT }] : [{ value: row.values[id], extra: DOT + text }, ...(high === undefined ? [] : [{ value: high, extra: text }])];
   });

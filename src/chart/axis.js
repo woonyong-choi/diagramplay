@@ -25,7 +25,7 @@ export function fitLength(unit, items, { start, right = RIGHT }) {
 // basis: estimate
 // 값 축 눈금 글자는 눈금 가운데에 놓여 양쪽으로 절반씩 나온다.
 export function tickReach(unit) {
-  return unit.ticks.map((value, i) => ({ value, extra: measure(unit.labels[i], TEXT['11'], 'num') / 2 }));
+  return unit.ticks.map((value, i) => ({ value, extra: measure(unit.labels[i], TEXT, 'num') / 2 }));
 }
 
 // cost: time O(r), heap O(r), stack O(1)
@@ -33,12 +33,12 @@ export function tickReach(unit) {
 // basis: estimate
 // 기준선 라벨은 기준선 오른쪽에서 시작한다.
 function ruleReach(rules) {
-  return rules.map((rule) => ({ value: rule.value, extra: SPACE["1"] + measure(rule.label, TEXT['11']) }));
+  return rules.map((rule) => ({ value: rule.value, extra: SPACE["1"] + measure(rule.label, TEXT) }));
 }
 
 // 눈금 글자 기준선은 축선에서 글자 높이 더하기 한 칸, 축 제목 기준선은 그 아래 글자 한 줄과 한 칸이다.
-const TICK_BASE = TEXT['11'] + SPACE["1-5"];
-const TITLE_BASE = TEXT['11'] * 2 + SPACE["3"];
+const TICK_BASE = TEXT + SPACE["1-5"];
+const TITLE_BASE = TEXT * 2 + SPACE["3"];
 // 마지막 글자 줄의 먹이 기준선 아래로 내려오는 몫. 위쪽은 제목 글자 줄 윗면이 PAD 아래에서 시작해 먹이 그만큼 내려와 있어, 아래도 같게 둬 위아래 여백이 같아 보이게 한다.
 const LINE_DROP = SPACE["0-75"];
 
@@ -85,8 +85,8 @@ function drawValueAxis(chart, scale, y) {
 // basis: estimate
 // 가로 기준선 라벨 자리. 오른쪽 끝이 기본이고, 데이터가 더 많이 가리면 왼쪽 끝에 둔다. 가린 수가 같으면 오른쪽이다.
 function ruleLabelSide(rule, at, { from, to, occupied }) {
-  const width = measure(rule.label, TEXT['11']);
-  const [top, bottom] = [at - SPACE["1"] - TEXT['11'], at - SPACE["1"]];
+  const width = measure(rule.label, TEXT);
+  const [top, bottom] = [at - SPACE["1"] - TEXT, at - SPACE["1"]];
   const hits = (x0, x1) => occupied.filter((o) => o.x1 > x0 && o.x0 < x1 && o.y1 > top && o.y0 < bottom).length;
   return hits(to - width, to) <= hits(from, from + width) ? 'end' : 'start';
 }
@@ -122,7 +122,7 @@ export function rowValueScale(chart, { kind, min: low, max: high, reaches }) {
   // 값에 묶인 차트는 모든 프레임이 같은 축을 쓰도록 값 범위(extent)를 넓히고 그림 영역 길이(plotWidth)를 고정한다. probe는 프레임마다 정해지는 길이를 모으는 그릇이다.
   const [min, max] = [Math.min(low, chart.extent?.min ?? low), Math.max(high, chart.extent?.max ?? high)];
   const unit = makeScale(kind, { min, max, start: 0, length: 1 });
-  const plotX = chart.layout ? PAD + measure(unit.labels[0], TEXT['11'], 'num') / 2 : labelColumn(chart.rows.map((row) => row.label)) + PAD;
+  const plotX = chart.layout ? PAD + measure(unit.labels[0], TEXT, 'num') / 2 : labelColumn(chart.rows.map((row) => row.label)) + PAD;
   const fitted = fitLength(unit, [...reaches(unit), ...tickReach(unit), ...(chart.layout ? [] : ruleReach(chart.rules))], { start: plotX, right: chart.layout ? chart.layout.width - PAD : RIGHT });
   chart.probe?.push(fitted);
   const plotW = chart.plotWidth ?? fitted;

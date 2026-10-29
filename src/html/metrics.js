@@ -12,7 +12,7 @@ const PULSE_TIMING = Object.freeze({ riseMs: PULSE.rise, holdMs: PULSE.hold, dec
 
 // 점과 글 상자, 아이콘, 후광을 그릴 때 쓰는 값.
 export const PLAYER_METRICS = Object.freeze({
-  readableText: values.text["figure-meta"],
+  readableText: values.text.caption,
   active: tokens.color.state.active,
   chipFill: tokens.color.state['active-fill'],
   chipInk: tokens.color.state['on-active'],

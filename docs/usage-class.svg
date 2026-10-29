@@ -8,78 +8,68 @@
   --color-gray-0: #ffffff;
   --color-gray-59: #f0f0f0;
   --color-gray-212: #c9c9c9;
-  --color-gray-282: #b7b7b7;
-  --color-gray-467: #888888;
   --color-gray-529: #787878;
   --color-gray-910: #171717;
   --color-gray-933: #111111;
-  --color-group-title: var(--color-help-title-color);
   --color-outline: var(--color-gray-529);
-  --color-line: var(--color-gray-282);
-  --color-state-active: var(--color-category-blue-light-border);
-  --color-state-active-text: var(--color-category-blue-light-ink);
+  --color-line: var(--color-category-gray-line);
+  --color-state-active: var(--color-main-light-border);
+  --color-state-active-text: var(--color-main-light-ink);
   --color-ui-focus: var(--color-action-link);
   --color-data-grid: var(--color-gray-212);
-  --color-data-category-1: var(--color-category-blue-solid);
-  --color-figure-icon: var(--color-category-blue-light-border);
+  --color-data-category-1: var(--color-category-blue-fill);
+  --color-figure-icon: var(--color-category-gray-ink);
   --color-figure-queue-empty: var(--color-gray-59);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
-  --color-figure-outline: var(--color-gray-467);
-  --color-figure-selection-fill: var(--color-category-blue-light-tint-3);
-  --color-figure-canvas: var(--color-soft);
+  --color-figure-outline: var(--color-category-gray-line);
+  --color-figure-selection-fill: var(--color-main-light-tint-3);
+  --color-figure-canvas: var(--color-ui-card);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
+  --color-body: var(--primitive-body-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
-  --color-soft: var(--primitive-soft);
-  --color-help-title-color: var(--primitive-help-title-color);
-  --color-action-link: var(--primitive-link);
-  --color-category-blue-anchor: #1e6bd6;
-  --color-category-blue-fill: var(--color-category-blue-anchor);
-  --color-category-blue-light-border: #1e6bd6;
-  --color-category-blue-light-ink: #1161cb;
-  --color-category-blue-light-tint-3: #d5e4fa;
-  --color-category-blue-dark-border: #3a85f2;
-  --color-category-blue-dark-ink: #6da8ff;
-  --color-category-blue-dark-tint-3: #303d54;
-  --color-category-blue-solid: var(--color-category-blue-fill);
+  --color-action-link: var(--color-main-light-ink);
+  --color-category-blue-fill: #72a3fe;
+  --color-category-gray-line: #8b8f95;
+  --color-category-gray-ink: #62666c;
+  --color-main-light-border: #1e6bd6;
+  --color-main-light-ink: #1e6bd6;
+  --color-main-light-tint-3: #d5e4fa;
+  --color-main-dark-border: #7daafd;
+  --color-main-dark-ink: #7daafd;
+  --color-main-dark-tint-3: #303d54;
   --font-figure-sans: FigSans, FigSansSym, FigSansMath, ui-sans-serif, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
   --font-figure-mono: FigMono, FigSans, FigSansSym, FigSansMath, ui-monospace, SFMono-Regular, Menlo, monospace;
-  --radius-card-radius: var(--primitive-card-radius);
-  --text-small-text: var(--primitive-small-text);
-  --text-tiny-text: var(--primitive-tiny-text);
-  --text-figure-meta: 11px;
+  --radius-prose-block-radius: var(--radius-xl);
+  --radius-xl: 12px;
+  --text-small: 15px;
+  --text-caption: 13px;
   --tracking-text: -0.3px;
   --font-weight-semibold: 600;
   --primitive-ink: #303336;
   --primitive-muted: #55606e;
   --primitive-line: #dfe3e8;
-  --primitive-link: #2576eb;
-  --primitive-soft: #e9edf2;
-  --primitive-small-text: 15px;
-  --primitive-tiny-text: 13px;
   --primitive-search-hover: #d9e6ff;
   --primitive-help-hover: #ebf1ff;
-  --primitive-help-title-color: #3d4856;
-  --primitive-figure-dark-bg: #26272b;
   --primitive-figure-dark-node: #303136;
   --primitive-figure-dark-edge: #50535b;
   --primitive-figure-dark-separator: #454850;
   --primitive-figure-dark-hover: #343e50;
   --primitive-figure-dark-selection: #274174;
   --primitive-figure-dark-muted: #a9adb6;
-  --primitive-figure-dark-line: #7f8793;
   --primitive-figure-dark-outline: #868686;
   --primitive-figure-number-fill: #303336;
   --primitive-figure-number-ink: #ffffff;
-  --primitive-card-radius: 18px;
+  --primitive-body-ink: #595c5e;
+  --primitive-body-ink-dark: #cacacb;
   --border-width-thin: 1px;
   --border-width-hair: 0.75px;
   --border-width-lifeline: 1.25px;
-  --border-width-edge: 1.75px;
+  --border-width-edge: 1.5px;
   --opacity-range: 0.4;
   --dash-line: 5;
   --dash-gap: 4;
@@ -90,97 +80,97 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='dark']) {
   --color-outline: var(--primitive-figure-dark-outline);
-  --color-line: var(--primitive-figure-dark-line);
-  --color-state-active: var(--color-category-blue-dark-border);
-  --color-state-active-text: var(--color-category-blue-dark-ink);
+  --color-state-active: var(--color-main-dark-border);
+  --color-state-active-text: var(--color-main-dark-ink);
   --color-data-grid: var(--primitive-figure-dark-edge);
-  --color-figure-icon: var(--color-category-blue-dark-border);
   --color-figure-queue-empty: var(--color-gray-910);
   --color-figure-number-fill: var(--color-gray-59);
   --color-figure-number-ink: var(--color-gray-933);
-  --color-figure-outline: var(--color-line);
-  --color-figure-selection-fill: var(--color-category-blue-dark-tint-3);
-  --color-figure-canvas: var(--primitive-figure-dark-bg);
+  --color-figure-selection-fill: var(--color-main-dark-tint-3);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
+  --color-body: var(--primitive-body-ink-dark);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
-  --color-help-title-color: var(--color-ink);
+  --color-action-link: var(--color-main-dark-ink);
+  --color-category-blue-fill: #81a9fd;
+  --color-category-gray-line: #a0a2a7;
+  --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
   }
 }
 [data-theme='dark'] {
   --color-outline: var(--primitive-figure-dark-outline);
-  --color-line: var(--primitive-figure-dark-line);
-  --color-state-active: var(--color-category-blue-dark-border);
-  --color-state-active-text: var(--color-category-blue-dark-ink);
+  --color-state-active: var(--color-main-dark-border);
+  --color-state-active-text: var(--color-main-dark-ink);
   --color-data-grid: var(--primitive-figure-dark-edge);
-  --color-figure-icon: var(--color-category-blue-dark-border);
   --color-figure-queue-empty: var(--color-gray-910);
   --color-figure-number-fill: var(--color-gray-59);
   --color-figure-number-ink: var(--color-gray-933);
-  --color-figure-outline: var(--color-line);
-  --color-figure-selection-fill: var(--color-category-blue-dark-tint-3);
-  --color-figure-canvas: var(--primitive-figure-dark-bg);
+  --color-figure-selection-fill: var(--color-main-dark-tint-3);
   --color-figure-flash: var(--primitive-figure-dark-selection);
   --color-figure-active-surface: var(--primitive-figure-dark-hover);
   --color-ui-card: var(--primitive-figure-dark-node);
   --color-ink: var(--color-gray-59);
+  --color-body: var(--primitive-body-ink-dark);
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
-  --color-help-title-color: var(--color-ink);
+  --color-action-link: var(--color-main-dark-ink);
+  --color-category-blue-fill: #81a9fd;
+  --color-category-gray-line: #a0a2a7;
+  --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
 }
 [data-theme='light'] {
   --color-outline: var(--color-gray-529);
-  --color-line: var(--color-gray-282);
-  --color-state-active: var(--color-category-blue-light-border);
-  --color-state-active-text: var(--color-category-blue-light-ink);
+  --color-state-active: var(--color-main-light-border);
+  --color-state-active-text: var(--color-main-light-ink);
   --color-data-grid: var(--color-gray-212);
-  --color-figure-icon: var(--color-category-blue-light-border);
   --color-figure-queue-empty: var(--color-gray-59);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
-  --color-figure-outline: var(--color-gray-467);
-  --color-figure-selection-fill: var(--color-category-blue-light-tint-3);
-  --color-figure-canvas: var(--color-soft);
+  --color-figure-selection-fill: var(--color-main-light-tint-3);
   --color-figure-flash: var(--primitive-search-hover);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
+  --color-body: var(--primitive-body-ink);
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
-  --color-help-title-color: var(--primitive-help-title-color);
+  --color-action-link: var(--color-main-light-ink);
+  --color-category-blue-fill: #72a3fe;
+  --color-category-gray-line: #8b8f95;
+  --color-category-gray-ink: #62666c;
   color-scheme: light;
 }
 /* 그림 안 글자와 모양. HTML 재생기와 움직이는 SVG가 같이 쓴다. */
 /* 카드 안 글(label, sub, meta, cell, item, row)의 기준 점(text-anchor)은 글이 정한다(measure/texts.js의 anchor). 여기서는 글꼴과 색만 정한다. */
-/* 글 위계는 셋이다: 제목(공통 디자인.label-size 15: 카드 제목은 regular, 그룹 제목은 semibold), 문장과 이름표(detail-size 13: 부제, 선 라벨, 메모, 이동 글, 카드 줄, 제약, 형식), 작은 표시(micro-size 11: 번호, 태그, 표식, 키, 눈금, 단위). 크기와 굵기는 measure/texts.js의 STYLE이 같은 토큰으로 잰다. */
+/* 글 위계는 본문 단계에 묶인 둘이다: 그림·그룹 제목(작은 글 text.small 15, semibold)과 그 밖의 모든 글(설명 text.caption 13: 상자 이름, 부제, 선 라벨, 메모, 이동 글, 카드 줄, 번호, 태그, 표식, 키, 배지, 눈금). 크기와 굵기는 DiagramPlay measure/texts.js의 STYLE이 같은 토큰으로 잰다. */
 .fl text {
   font-family: var(--font-figure-sans);
   letter-spacing: var(--tracking-text);
 }
 
 .fl .label {
-  font-size: var(--text-small-text);
+  font-size: var(--text-caption);
   fill: var(--color-ink);
 }
 
 .fl .sub {
-  font-size: var(--text-tiny-text);
-  fill: var(--color-ui-muted);
+  font-size: var(--text-caption);
+  fill: var(--color-body);
 }
 
 .fl .frame {
-  font-size: var(--text-small-text);
+  font-size: var(--text-small);
   font-weight: var(--font-weight-semibold);
-  fill: var(--color-group-title);
+  fill: var(--color-ink);
 }
 
 .fl .edgelabel {
-  font-size: var(--text-tiny-text);
+  font-size: var(--text-caption);
   text-anchor: middle;
   fill: var(--fx-ink-rest);
 }
@@ -191,8 +181,8 @@
 .fl .mini,
 .fl .cell,
 .fl .item {
-  font-size: var(--text-tiny-text);
-  fill: var(--color-ink);
+  font-size: var(--text-caption);
+  fill: var(--color-body);
 }
 
 .fl .row.mono {
@@ -211,26 +201,26 @@
 }
 
 .fl .tag {
-  font-size: var(--text-figure-meta);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   fill: var(--color-ink);
 }
 
 .fl .mark {
-  font-size: var(--text-figure-meta);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   fill: var(--color-state-active-text);
 }
 
 /* 값 카드 줄의 값 글자. 줄의 이름(row)은 카드 층이 그리고 값은 오른쪽 끝에 얹힌다. 이름과 같은 크기이고 굵기만 다르다. */
 .fl .value {
-  font-size: var(--text-tiny-text);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   fill: var(--color-ink);
 }
 
 .fl .chip {
-  font-size: var(--text-tiny-text);
+  font-size: var(--text-caption);
   text-anchor: middle;
 }
 
@@ -262,7 +252,7 @@
 
 /* 열 키(PK, FK, UNQ)는 작은 표시이고 글자색이다. 파랑은 켜진 상태에만 쓴다. */
 .fl .cell .key {
-  font-size: var(--text-figure-meta);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   fill: var(--color-ink);
 }
@@ -394,7 +384,7 @@
 
 /* 도형 윗줄과 그룹 제목 줄의 장식: 글자 배지, 아이콘 */
 .fl .badge {
-  font-size: var(--text-figure-meta);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   text-anchor: middle;
   fill: var(--color-ink);
@@ -414,7 +404,7 @@
 }
 
 .fl .number {
-  font-size: var(--text-figure-meta);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
   text-anchor: middle;
   fill: var(--color-figure-number-ink);
@@ -453,13 +443,13 @@
 .fl {
   --paint-fill: var(--color-ui-card);
   --paint-outline: var(--color-figure-outline);
-  --paint-ink: var(--color-group-title);
+  --paint-ink: var(--color-ink);
   --fx-edge: var(--color-state-active);
   --fx-ink: var(--color-state-active-text);
   --fx-row: var(--color-figure-selection-fill);
   --fx-flash: var(--color-figure-flash);
   --fx-edge-rest: var(--color-figure-outline);
-  --fx-ink-rest: var(--color-ui-muted);
+  --fx-ink-rest: var(--color-body);
   --fx-line-rest: var(--color-outline);
 }
 
@@ -599,7 +589,7 @@
 }
 
 /* 독립 SVG도 재생 판과 같은 바탕과 움직임 줄이기 규칙을 쓴다. */
-.fl .fl-canvas-surface { fill: var(--color-figure-canvas); rx: var(--radius-card-radius); }
+.fl .fl-canvas-surface { fill: var(--color-figure-canvas); rx: var(--radius-prose-block-radius); }
 .fl .fl-still { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .fl .fl-motion { display: none; }
@@ -612,8 +602,8 @@
 <rect x="0.5" y="0.5" width="269.8" height="323" class="fl-canvas-surface"/>
 <g transform="translate(0 0)">
 
-<g id="n-0" class="fl-node fl-shape-classifier" tabindex="0" role="img" aria-label="SqlRepository; - table: string; + save(order: Order): void" data-id="sql-repository"><rect x="16" y="16" width="238.8" height="116" rx="8" class="fl-stroke a0"/><line x1="16" x2="254.8" y1="44" y2="44" class="col-line"/><line x1="16" x2="254.8" y1="88" y2="88" class="col-line"/><text x="135.4" y="35.4" class="label" text-anchor="middle">SqlRepository</text><text x="34" y="70.7" class="row mono">- table: string</text><text x="34" y="114.7" class="row mono">+ save(order: Order): void</text></g>
-<g id="n-1" class="fl-node fl-shape-classifier" tabindex="0" role="img" aria-label="Repository; «interface»; + save(order: Order): void" data-id="repository"><rect x="16" y="172" width="238.8" height="136" rx="8" class="fl-stroke a0"/><line x1="16" x2="254.8" y1="220" y2="220" class="col-line"/><line x1="16" x2="254.8" y1="264" y2="264" class="col-line"/><text x="135.4" y="211.4" class="label" text-anchor="middle">Repository</text><text x="135.4" y="186.7" class="meta" text-anchor="middle">«interface»</text><text x="34" y="290.7" class="row mono">+ save(order: Order): void</text></g>
+<g id="n-0" class="fl-node fl-shape-classifier" tabindex="0" role="img" aria-label="SqlRepository; - table: string; + save(order: Order): void" data-id="sql-repository"><rect x="16" y="16" width="238.8" height="116" rx="8" class="fl-stroke a0"/><line x1="16" x2="254.8" y1="44" y2="44" class="col-line"/><line x1="16" x2="254.8" y1="88" y2="88" class="col-line"/><text x="135.4" y="34.7" class="label" text-anchor="middle">SqlRepository</text><text x="34" y="70.7" class="row mono">- table: string</text><text x="34" y="114.7" class="row mono">+ save(order: Order): void</text></g>
+<g id="n-1" class="fl-node fl-shape-classifier" tabindex="0" role="img" aria-label="Repository; «interface»; + save(order: Order): void" data-id="repository"><rect x="16" y="172" width="238.8" height="136" rx="8" class="fl-stroke a0"/><line x1="16" x2="254.8" y1="220" y2="220" class="col-line"/><line x1="16" x2="254.8" y1="264" y2="264" class="col-line"/><text x="135.4" y="210.7" class="label" text-anchor="middle">Repository</text><text x="135.4" y="186.7" class="meta" text-anchor="middle">«interface»</text><text x="34" y="290.7" class="row mono">+ save(order: Order): void</text></g>
 <g id="e-0" class="fl-edge " role="img" aria-label="sql-repository realization repository"><defs><marker id="fl-triangle-0" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path d="M 4 2.5 L 1.1 0.25 L 1.1 4.75 Z" fill="var(--color-figure-canvas)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></marker></defs><path id="p-0" d="M 135.4 132 L 135.4 172" class="fl-path dashed" marker-end="url(#fl-triangle-0)"/></g>
 
 

@@ -10,7 +10,7 @@ import { definedRuns, isValue, lengthFractions, linePath, spanFractions, stepVer
 import { endLabelBoxes, endLabelHeight, endLabelMarks, endLabelRoom, endLabelX, hasEndLabels, placeEndLabels } from './end-labels.js';
 import { dotAttrs } from './legend.js';
 import { markAttrs, markId, seriesPath } from './marks.js';
-import { CAP, DOT, SPACE, isReference, seriesColor, seriesFill, seriesPaint } from './metrics.js';
+import { CAP, DOT, SPACE, isReference, seriesColor, seriesDashClass, seriesFill, seriesPaint } from './metrics.js';
 import { noDataNote, plotFrame } from './plot-frame.js';
 import { markShape } from './shape.js';
 
@@ -138,7 +138,8 @@ function seriesLayer(ctx, i) {
   const id = chart.series[i].id;
   const runs = definedRuns(points, id).map((run) => run.map((p) => ({ p, x: sx.at(p.values.x), y: sy.at(p.values[id]) })));
   const lists = isStep ? runs.map(stepVertices) : runs;
-  const isWipe = isReference(chart, i) || runs.length > 1;
+  // 점선은 길이 비율로 그려 나가는 선(pathLength 1의 dashoffset)과 함께 쓸 수 없어 기대값 계열처럼 왼쪽부터 드러낸다.
+  const isWipe = seriesDashClass(chart, i) !== '' || runs.length > 1;
   const fractions = isWipe ? spanFractions(lists) : lengthFractions(lists);
   const ats = new Map();
   runs.forEach((run, n) => run.forEach((v, k) => ats.set(v.p, arrival(fractions[n][isStep && k ? 2 * k : k]))));

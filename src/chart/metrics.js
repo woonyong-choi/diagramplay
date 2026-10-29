@@ -5,8 +5,8 @@ import { tokens, values } from '@woonyong-choi/design-tokens/tokens.js';
 
 export const SPACE = values.spacing;
 export const SIZE = values.spacing.figure;
-// 차트 글자 크기. 그림 안 글 위계의 작은 표시(11)와 문장(13)이고, 카드 안 글(measure/texts.js STYLE)과 chart.css가 읽는 공통 역할 토큰 한 벌이다.
-export const TEXT = Object.freeze({ 11: values.text["figure-meta"], 13: values.text["tiny-text"] });
+// 차트 글자 크기. 축, 눈금, 범례, 값, 이름이 모두 본문의 설명 단계(text.caption 13) 하나이고, 카드 안 글(measure/texts.js STYLE)과 chart.css가 같은 토큰을 읽는다.
+export const TEXT = values.text.caption;
 export const WIDTH = SIZE.chart.width;
 export const BAR = SIZE.chart.bar;
 export const ROW = SIZE.chart.row;
@@ -44,6 +44,18 @@ export function seriesPaint(chart, i) {
 // basis: estimate
 /** 계획, 목표처럼 x마다 기대값을 갖는 계열인가. 공통 중립색과 점선으로 실제값과 구분한다. */
 export const isReference = (chart, i) => chart.series[i]?.role === 'reference';
+
+// cost: time O(1), heap O(1), stack O(1)
+// basis: estimate
+/**
+ * 선과 범례 선분의 선 모양 class. 기대값 계열과 선 모양이 점선인 계열(3번 진한 회색)은 `chart-dashed`, 점점선인 계열(4번 연한 회색)은 `chart-dotted`, 실선은 빈 글이다.
+ * 회색 둘은 색만으로 구분하지 않도록 선 모양과 직접 라벨을 함께 쓴다(토큰 `color.data.category-dash`).
+ */
+export function seriesDashClass(chart, i) {
+  if (isReference(chart, i)) return 'chart-dashed';
+  const { dash } = seriesPaint(chart, i);
+  return { dashed: 'chart-dashed', dotted: 'chart-dotted' }[dash] ?? '';
+}
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate

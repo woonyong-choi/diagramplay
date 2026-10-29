@@ -12,7 +12,7 @@ import { values } from '@woonyong-choi/design-tokens/tokens.js';
 
 // 가장 작은 글 토큰과, 그림의 가장 작은 글 역할이 그 크기가 되는 배율(design-tokens player.css의 하한)
 const SMALLEST = Math.min(...Object.values(values.text.figure));
-const MINIMUM_SCALE = SMALLEST / values.text['figure-meta'];
+const MINIMUM_SCALE = SMALLEST / values.text.caption;
 
 // 설치된 Chrome을 먼저 쓰고, 없으면 Playwright가 내려받은 Chromium으로 같은 검사를 돈다. 둘 다 없으면 첫 오류를 알린다.
 async function launchBrowser() {

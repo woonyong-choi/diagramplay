@@ -16,7 +16,7 @@ function fits(list) {
 // vars: t = 눈금 수, d = t-1의 약수 수(t 이하), n = 축 제목 글자 수
 // basis: estimate
 export function compactAxis(scale, y, title) {
-  const size = TEXT['11'];
+  const size = TEXT;
   const tickGap = size + SPACE["3"];
   const ticks = scale.ticks.map((value, i) => ({ x: scale.at(value), label: scale.labels[i], width: measure(scale.labels[i], size, 'num') }));
   const first = ticks[0], last = ticks.at(-1);

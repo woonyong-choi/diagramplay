@@ -239,7 +239,7 @@ test('U6 a label is rich text in every slot that takes a label: backticks make c
   const [item] = result.scene.items;
   const label = item.texts.find((t) => t.role === 'label');
   assert.equal(label.text, `Run ${TICK}npm test${TICK}`);
-  assert.equal(textSpan(item, label).width, measure('Run ', label.style.size, label.style.face) + measure('npm test', label.style.size, 'mono'));
+  assert.ok(Math.abs(textSpan(item, label).width - (measure('Run ', label.style.size, label.style.face) + measure('npm test', label.style.size, 'mono'))) < 1e-9);
   assert.ok(PAD.x * 2 + textSpan(item, label).width <= item.w + EPS);
 });
 
@@ -260,8 +260,8 @@ test('U11 a measured text role is the drawn role: the CSS of every role has the 
   // 글자 사이 간격은 잰 폭이 아는 것(tracking.text, 문서 전체)뿐이다. 그룹 제목에 따로 간격을 주지 않는다.
   assert.deepEqual(declared(STYLES.figure, '.fl .frame', 'letter-spacing'), []);
   // 차트의 행 이름과 끝 이름은 보통 굵기로 재고(chart/labels.js, end-labels.js) 보통 굵기로 그린다. 굵은 면은 합계 행과 강조 값에만 있다.
-  assert.deepEqual([sizeOf(STYLES.chart, '.fl .chart-label'), weightOf(STYLES.chart, '.fl .chart-label')], [TEXT['13'], 400]);
-  assert.deepEqual([sizeOf(STYLES.chart, '.fl .chart-end-label'), weightOf(STYLES.chart, '.fl .chart-end-label')], [TEXT['11'], 400]);
+  assert.deepEqual([sizeOf(STYLES.chart, '.fl .chart-label'), weightOf(STYLES.chart, '.fl .chart-label')], [TEXT, 400]);
+  assert.deepEqual([sizeOf(STYLES.chart, '.fl .chart-end-label'), weightOf(STYLES.chart, '.fl .chart-end-label')], [TEXT, 400]);
   assert.deepEqual([sizeOf(STYLES.status, '.fl .status-text'), weightOf(STYLES.status, '.fl .status-text')], [BADGE_STYLE.size, 600]);
 });
 

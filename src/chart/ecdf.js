@@ -7,7 +7,7 @@ import { drawRules } from './axis.js';
 import { ecdfGroups, ecdfVertices, hvPath, lengthFractions, spanFractions } from './data.js';
 import { dotAttrs } from './legend.js';
 import { markAttrs, markId, seriesPath } from './marks.js';
-import { DOT, isReference, seriesPaint } from './metrics.js';
+import { DOT, isReference, seriesDashClass, seriesPaint } from './metrics.js';
 import { noDataNote, plotFrame } from './plot-frame.js';
 import { markShape } from './shape.js';
 
@@ -54,7 +54,7 @@ function layerOf(ctx, group, index) {
   const { chart, sx, sy } = ctx;
   const i = chart.series.length ? index : 0;
   const vertices = ecdfVertices(group.points, { left: sx.at(sx.ticks[0]), right: sx.at(sx.ticks.at(-1)), x: sx.at, y: sy.at });
-  const isWipe = isReference(chart, i);
+  const isWipe = seriesDashClass(chart, i) !== '';
   const [fractions] = vertices.length ? (isWipe ? spanFractions([vertices]) : lengthFractions([vertices])) : [[]];
   const ats = new Map(group.points.map((point, k) => [point.value, arrival(fractions[2 * k + 2])]));
   return { i, group, vertices, isWipe, d: hvPath(vertices), ats };

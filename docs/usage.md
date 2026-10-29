@@ -105,7 +105,7 @@ node src/cli.js render request.diagramplay --html
 
 생성 HTML은 README의 라이트·다크 로고를 줄인 PNG를 탭 아이콘으로 내장하므로, 아이콘을 읽는 데 네트워크 연결이 필요 없다.
 
-도표의 막대·범례·트래픽 표식은 같은 Things 기준 범주 팔레트를 사용하며 그림 종류나 면적에 따라 색을 따로 지정하지 않는다.
+도표의 막대·범례·트래픽 표식은 같은 구분색 넷(파랑, 주황, 진한 회색, 연한 회색)의 범주 팔레트를 사용하며 그림 종류나 면적에 따라 색을 따로 지정하지 않는다. 회색 둘은 선 모양(점선, 점점선)과 직접 라벨을 함께 쓴다.
 
 장면 탭은 클릭 또는 방향키·Home·End로 고른다. 선택한 탭만 Tab 순서에 들어간다. 장면이 없거나 하나뿐이면 탭 줄이 없다. 코드 블록과 같은 조작부가 그림 면 안쪽에 놓인다. 복사는 원본 문법을 복사하고 다운로드는 모든 장면을 담은 HTML을 저장한다. 다운로드한 파일은 현재 시각이나 확대 배율을 저장한 화면 캡처가 아니다.
 
@@ -160,7 +160,7 @@ group backend "주문 시스템" direction=down {
 }
 ```
 
-전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `tone=blue`는 색 역할이다. 기본 중성 카드로 충분하면 생략한다. 사람과 서비스 브랜드 외의 기술 역할은 카드 이름으로 구분한다. `appearance=filled|outline`에 `tone`을 생략하면 무채색 `gray` 계열을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
+전체 방향은 `view graph down`, 그룹 안 방향은 `direction=down`으로 정한다. 좌표를 직접 배치하지 않는다. `tone=blue`는 색 역할이다. 기본 중성 카드로 충분하면 생략한다. 사람과 서비스 브랜드 외의 기술 역할은 카드 이름으로 구분한다. `appearance=filled|outline`에 `tone`을 생략하면 진한 회색 `gray` 계열을 쓴다. 색 이름은 `blue`, `orange`, `gray`, `silver` 넷이고, 구조 그림은 회색을 기본으로 경로 역할에만 파랑·주황을 쓴다. 지원되는 색은 문법 표를 따르며 임의의 HEX 색을 원본에 쓰지 않는다.
 
 [구성도 레퍼런스](reference/architecture.md)는 그룹, 아이콘과 번호 선을 설명한다. 내장 아이콘과 파일 기반 사용자 아이콘을 고르는 규칙은 [번호, 배지, 아이콘, 복제 개수](design/figure-syntax.md#번호-배지-아이콘-복제-개수)에 있다.
 
@@ -453,7 +453,7 @@ scene "구조"
 
 scene "접수가 더 빠를 때" mode=loop for=8s
   track producer -> jobs at=0s every=1s time=700ms wait="jobs<4" timeout=1s else=retry reserve="jobs+1"
-  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1" tone=green
+  track jobs -> worker at=500ms every=2s time=700ms wait="jobs>0" reserve="jobs-1" tone=orange
 ```
 
 ![접수와 처리가 독립적으로 진행되는 큐](usage-queue.svg)<!-- diagramplay -->

@@ -55,7 +55,7 @@ function heatCell(grid, c, k) {
   const raw = c.values.value;
   return (
     `<g class="cr-${k} chart-heat-cell"><rect x="${r(face.x)}" y="${r(face.y)}" width="${r(face.w)}" height="${r(face.h)}" rx="${face.radius}" class="chart-heat" style="--s:${strength}" fill="${fill}"${markAttrs(chart, markId(chart, 0, k), { raw, paint: HEAT_PAINT })}/></g>` +
-    `<text x="${r(x + cellW / 2)}" y="${r(centerBaseline(y + cellH / 2, TEXT['11']))}" class="cr-${k} ink chart-cell${isOn ? ' on' : ''}"${markAttrs(chart, markId(chart, 0, k, '.t'), { raw, isText: true, paint: HEAT_PAINT })}>${format(c.values.value)}</text>`
+    `<text x="${r(x + cellW / 2)}" y="${r(centerBaseline(y + cellH / 2, TEXT))}" class="cr-${k} ink chart-cell${isOn ? ' on' : ''}"${markAttrs(chart, markId(chart, 0, k, '.t'), { raw, isText: true, paint: HEAT_PAINT })}>${format(c.values.value)}</text>`
   );
 }
 
@@ -67,12 +67,12 @@ function headerFits(chart, grid) {
   if (grid.names) {
     const fits = (names, { room, size, face, what, lineAt }) => names.flatMap((lines, index) => lines.map((text) => ({ text, width: measure(text, size, face), room, line: lineAt(index), what })));
     return [
-      ...fits(grid.names.cols, { room: columnRoom(grid.cellW), size: TEXT['11'], face: 'num', what: 'column name', lineAt: index => chart.rows.find(cell => cell.col === grid.cols[index]).line }),
-      ...fits(grid.names.rows, { room: grid.plotX - PAD - SPACE["3"], size: TEXT['13'], face: 'regular', what: 'item name', lineAt: index => chart.rows.find(cell => cell.row === grid.rows[index]).line }),
-      ...chart.rows.map((c) => ({ text: grid.format(c.values.value), width: measure(grid.format(c.values.value), TEXT['11'], 'num'), room: grid.cellW - SPACE["0-5"] - SPACE["2"], line: c.line, what: 'cell value' })),
+      ...fits(grid.names.cols, { room: columnRoom(grid.cellW), size: TEXT, face: 'num', what: 'column name', lineAt: index => chart.rows.find(cell => cell.col === grid.cols[index]).line }),
+      ...fits(grid.names.rows, { room: grid.plotX - PAD - SPACE["3"], size: TEXT, face: 'regular', what: 'item name', lineAt: index => chart.rows.find(cell => cell.row === grid.rows[index]).line }),
+      ...chart.rows.map((c) => ({ text: grid.format(c.values.value), width: measure(grid.format(c.values.value), TEXT, 'num'), room: grid.cellW - SPACE["0-5"] - SPACE["2"], line: c.line, what: 'cell value' })),
     ];
   }
-  const colFits = grid.cols.map((c) => ({ text: c, width: measure(c, TEXT['11'], 'num'), room: columnRoom(grid.cellW), line: chart.rows.find((row) => row.col === c).line, what: 'column name' }));
+  const colFits = grid.cols.map((c) => ({ text: c, width: measure(c, TEXT, 'num'), room: columnRoom(grid.cellW), line: chart.rows.find((row) => row.col === c).line, what: 'column name' }));
   return [...colFits, ...grid.rows.map((row) => labelFit(row, chart.rows.find((c) => c.row === row).line))];
 }
 
@@ -85,21 +85,21 @@ export function drawHeatmap(figure, top) {
   const cols = [...new Set(chart.rows.map((c) => c.col))];
   const format = valueFormat(chart.rows.map((c) => c.values.value), chart.decimals);
   const available = (chart.layout?.width ?? RIGHT + PAD) - PAD * 2;
-  const valueRoom = maxOf(chart.rows.map((c) => measure(format(c.values.value), TEXT['11'], 'num'))) + SPACE["2"] + SPACE["0-5"];
+  const valueRoom = maxOf(chart.rows.map((c) => measure(format(c.values.value), TEXT, 'num'))) + SPACE["2"] + SPACE["0-5"];
   // 좁은 폭에서 행 이름 칸은 가장 긴 행 이름이 한 줄로 들어갈 만큼만(기본 최소 너비 없이) 얻고 남는 폭은 열이 가져간다. 이름이 길어도 열과 같은 몫을 넘지 않는다.
-  const rowNeed = maxOf(rows.map((row) => measure(row, TEXT['13'], 'regular'))) + SPACE["3"];
+  const rowNeed = maxOf(rows.map((row) => measure(row, TEXT, 'regular'))) + SPACE["3"];
   // 넓은 폭에서도 행 이름 칸은 이름 폭만큼만 쓴다. 다른 차트의 이름 칸 최소 너비(label)를 쓰면 짧은 이름(요일)에서 칸 앞이 비고 칸이 좁아진다.
-  const labelW = chart.layout ? Math.max(SPACE["3"] + TEXT['13'], Math.min(rowNeed, available / (cols.length + 1), available - cols.length * valueRoom)) : Math.min(labelColumn(rows), Math.max(SPACE["3"] + TEXT['13'], rowNeed));
+  const labelW = chart.layout ? Math.max(SPACE["3"] + TEXT, Math.min(rowNeed, available / (cols.length + 1), available - cols.length * valueRoom)) : Math.min(labelColumn(rows), Math.max(SPACE["3"] + TEXT, rowNeed));
   const plotX = labelW + PAD;
   const cellW = (available - labelW + SPACE["0-5"]) / cols.length;
-  const names = chart.layout ? { rows: rows.map((row) => wrap(row, labelW - SPACE["3"], { size: TEXT['13'], face: 'regular' })), cols: cols.map((col) => wrap(col, columnRoom(cellW), { size: TEXT['11'], face: 'num' })) } : undefined;
+  const names = chart.layout ? { rows: rows.map((row) => wrap(row, labelW - SPACE["3"], { size: TEXT, face: 'regular' })), cols: cols.map((col) => wrap(col, columnRoom(cellW), { size: TEXT, face: 'num' })) } : undefined;
   const leading = values.leading.normal;
-  const headerH = names ? maxOf(names.cols.map((lines) => lines.length)) * STYLE.meta.line : TEXT['11'];
+  const headerH = names ? maxOf(names.cols.map((lines) => lines.length)) * STYLE.meta.line : TEXT;
   // 넓은 폭의 칸 높이는 칸 너비의 1/3(가로 3:1)까지 키워 넓은 칸이 납작한 띠로 보이지 않게 한다. 토큰 높이(cell)가 하한, 그 1.5배가 상한이라 행이 많아도 그림이 지나치게 길어지지 않는다.
-  const cellH = names ? Math.max(SIZE.chart.cell, maxOf(names.rows.map((lines) => lines.length)) * TEXT['13'] * leading + SPACE["2"]) : Math.min(SIZE.chart.cell * 1.5, Math.max(SIZE.chart.cell, cellW / 3));
+  const cellH = names ? Math.max(SIZE.chart.cell, maxOf(names.rows.map((lines) => lines.length)) * TEXT * leading + SPACE["2"]) : Math.min(SIZE.chart.cell * 1.5, Math.max(SIZE.chart.cell, cellW / 3));
   const grid = { chart, rows, cols, plotX, cellW, cellH, names, top: top + headerH + SPACE["2"], max: maxOf(chart.rows.map((c) => c.values.value)), format };
-  const parts = cols.map((c, j) => names ? matrixLabel(names.cols[j], { x: plotX + j * cellW + cellW / 2, cy: top + headerH / 2, size: TEXT['11'], className: 'chart-tick' }) : `<text x="${r(plotX + j * cellW + cellW / 2)}" y="${r(top + TEXT['11'])}" class="chart-tick">${renderRich(c)}</text>`);
-  rows.forEach((row, i) => parts.push(names ? matrixLabel(names.rows[i], { x: PAD, cy: grid.top + i * cellH + cellH / 2, size: TEXT['13'], className: 'chart-label' }) : labelText(row, grid.top + i * cellH + cellH / 2, 'chart-label')));
+  const parts = cols.map((c, j) => names ? matrixLabel(names.cols[j], { x: plotX + j * cellW + cellW / 2, cy: top + headerH / 2, size: TEXT, className: 'chart-tick' }) : `<text x="${r(plotX + j * cellW + cellW / 2)}" y="${r(top + TEXT)}" class="chart-tick">${renderRich(c)}</text>`);
+  rows.forEach((row, i) => parts.push(names ? matrixLabel(names.rows[i], { x: PAD, cy: grid.top + i * cellH + cellH / 2, size: TEXT, className: 'chart-label' }) : labelText(row, grid.top + i * cellH + cellH / 2, 'chart-label')));
   chart.rows.forEach((c, k) => parts.push(heatCell(grid, c, k)));
   return { svg: parts.join('\n'), bottom: grid.top + rows.length * grid.cellH, rowKeys: chart.rows.map((c) => `${c.row}\u0000${c.col}`), fits: headerFits(chart, grid), dimsInkColor: true };
 }

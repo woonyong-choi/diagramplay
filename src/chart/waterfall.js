@@ -40,7 +40,7 @@ const knownEnds = (row) => [row.from, row.to].filter((value) => value !== null);
 function waterfallScale(chart, texts) {
   const endpoints = chart.ledger.flatMap(knownEnds);
   const ruled = [...endpoints, ...chart.rules.map((rule) => rule.value)];
-  const reaches = () => chart.layout ? [] : chart.ledger.map((row, i) => ({ value: Math.max(0, ...knownEnds(row)), extra: SPACE["1-5"] + measure(texts[i], TEXT['11'], row.total ? 'numSemibold' : 'num') }));
+  const reaches = () => chart.layout ? [] : chart.ledger.map((row, i) => ({ value: Math.max(0, ...knownEnds(row)), extra: SPACE["1-5"] + measure(texts[i], TEXT, row.total ? 'numSemibold' : 'num') }));
   return rowValueScale(chart, { kind: 'linear', min: minOf(ruled, 0), max: maxOf(ruled, 0), reaches });
 }
 
@@ -52,7 +52,7 @@ export function drawWaterfall(figure, top) {
   const texts = rowTexts(chart);
   const { scale } = waterfallScale(chart, texts);
   const names = rowLabelLayout(chart);
-  const lines = chart.layout ? texts.map((text, i) => wrap(text, chart.layout.width - PAD * 2, { size: TEXT['11'], face: chart.ledger[i].total ? 'numSemibold' : 'num' })) : undefined;
+  const lines = chart.layout ? texts.map((text, i) => wrap(text, chart.layout.width - PAD * 2, { size: TEXT, face: chart.ledger[i].total ? 'numSemibold' : 'num' })) : undefined;
   const lineHeight = STYLE.meta.line;
   const pitch = chart.layout ? names.space + BAR + SPACE["1-5"] + maxOf(lines.map((row) => row.length)) * lineHeight + SPACE["5-5"] : ROW;
   const bottom = top + chart.rows.length * pitch;
@@ -90,7 +90,7 @@ function waterfallRow(source, row, { chart, names, top, pitch, scale, index, cy,
   const connector = !next || !isKnown || next.to === null ? '' : `<line x1="${r(to)}" x2="${r(to)}" y1="${r(cy + BAR / 2)}" y2="${r(cy + pitch - BAR / 2)}" class="chart-rule chart-waterfall-connector"/>`;
   const className = `chart-value${row.total ? ' ours' : ''} late`;
   const textMark = (n) => ({ chart, id: markId(chart, 0, index, n ? `.${n}` : ''), raw, paint });
-  const summary = lines ? lines.map((line, i) => valueText({ x: PAD, cy: cy + BAR / 2 + SPACE["1-5"] + TEXT['11'] / 2 + i * lineHeight }, line, className, textMark(i))).join('') : valueText({ x: reach + SPACE["1-5"], cy }, text, className, textMark(0));
+  const summary = lines ? lines.map((line, i) => valueText({ x: PAD, cy: cy + BAR / 2 + SPACE["1-5"] + TEXT / 2 + i * lineHeight }, line, className, textMark(i))).join('') : valueText({ x: reach + SPACE["1-5"], cy }, text, className, textMark(0));
   // 좁은 배치는 이름 줄과 값 줄 뒤를 그림 폭 전체의 바탕 면으로 가려 격자가 글 사이를 지나지 않게 한다.
   const masks = lines ? [{ y: top, h: names.space - SPACE["1-5"] }, { y: cy + BAR / 2 + SPACE["1-5"], h: lines.length * lineHeight }].map(({ y, h }) => drawTextBack({ x: PAD, y, w: chart.layout.width - PAD * 2, h })).join('') : '';
   const guides = chart.layout ? drawRules(chart.rules, scale, { axis: 'x', from: face.y, to: face.y + BAR, labels: false }) : '';

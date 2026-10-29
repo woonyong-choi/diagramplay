@@ -59,7 +59,7 @@ test('V3 words are separated by spaces: "->" and "=" need the documented spacing
     ['box a "A" icon = server\n', 2],
     ['box a "A" icon=nginx icon=postgresql\n', 2],
     ['box a "A" badge=api\n', 2],
-    ['box a "A" badge="LB"tone=red\n', 2],
+    ['box a "A" badge="LB"tone=orange\n', 2],
     ['box a "A"\nbox b "B"\na -> b quiet=yes\n', 4],
     ['box a ""\n', 2],
     ['box a "   "\n', 2],
@@ -234,7 +234,7 @@ test('V6 an unknown statement, key, value, unit, or column names the closest wor
   const cases = [
     ['bx db "DB"\n', 5, 1, 'box'],
     ['scen "s"\n', 5, 1, null, `${base}scen "s"\n`],
-    ['box db "DB" tone=yelow\n', 5, 18, 'yellow'],
+    ['box db "DB" tone=orang\n', 5, 18, 'orange'],
     ['box db "DB" apperance=filled\n', 5, 13, 'appearance'],
     ['view graph dwon\n', 5, 12, 'down'],
     ['view graph TD\n', 5, 12, 'down'],

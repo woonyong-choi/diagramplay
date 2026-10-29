@@ -1,14 +1,12 @@
-// 이름 있는 색(`tone=`, `fill=`, `stroke=`)과 이름 없는 점과 태그가 받는 색의 순서. 이름은 범주 색 도우미(color/palette.js)의 계열과 무채색 `gray` 하나다.
-// 이름 없는 색의 순서도 같은 도우미(categoryPaint)가 정하고, 상태 색이라고 건너뛰는 자리는 없다.
+// 이름 있는 색(`tone=`, `fill=`, `stroke=`)과 이름 없는 점과 태그가 받는 색의 순서. 이름은 범주 색 도우미(color/palette.js)의 구분색 넷(blue, orange, gray, silver)뿐이다.
+// 이름 없는 색의 순서도 같은 도우미(categoryPaint)가 정한다. 상태(성공, 경고, 실패)는 색 이름이 아니라 상태 아이콘이 알린다.
 import { PALETTE, categoryPaint } from './palette.js';
-import { tokens } from '@woonyong-choi/design-tokens/tokens.js';
 
-/** 무채색 이름. 범주 계열이 아니라 명시했을 때만 쓴다. */
+/** 표현(appearance)만 고르고 색을 고르지 않은 요소의 색. 구조를 뜻하는 진한 회색 계열이다. */
 export const NEUTRAL = 'gray';
-/** 범주 계열 이름(도우미의 1판 순서) */
-const FAMILIES = Object.freeze(PALETTE.map(({ family }) => family));
-/** 색 이름 전부: 범주 계열과 무채색 */
-export const TONES = Object.freeze([...FAMILIES, NEUTRAL]);
+/** 색 이름 전부: 범주 계열(도우미의 1판 순서) */
+export const TONES = Object.freeze(PALETTE.map(({ family }) => family));
+if (!TONES.includes(NEUTRAL)) throw new RangeError(`the palette must include the ${NEUTRAL} family`);
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
@@ -18,11 +16,10 @@ export const autoTone = (n) => categoryPaint(n).family;
 // cost: time O(f), heap O(1), stack O(1)
 // vars: f = 계열 수
 // basis: estimate
-/** 색 이름의 { fill, ink, outline } 토큰 참조. 흐름 점과 태그의 면(fill), 그 위 글자(ink), 글 상자 윤곽(outline, 무채색은 없다). */
+/** 색 이름의 { fill, ink, outline } 토큰 참조. 흐름 점과 태그의 면(fill), 그 위 글자(ink), 글 상자 윤곽(outline). */
 export function toneColors(name) {
   const entry = PALETTE.find(({ family }) => family === name);
   if (entry) return { fill: entry.fill, ink: entry.on, outline: entry.border };
-  if (name === NEUTRAL) return { fill: tokens.color.flow.gray, ink: tokens.color['flow-ink'].gray, outline: undefined };
   throw new RangeError(`unknown tone: ${name}`);
 }
 

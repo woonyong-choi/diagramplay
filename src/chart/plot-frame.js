@@ -11,7 +11,7 @@ import { makeScale } from './scale.js';
 import { compactAxis } from './compact-axis.js';
 
 // 세로축 제목은 그림 영역 위 한 줄에 둔다. 맨 위 눈금 글자와 겹치지 않게 그만큼 내린다.
-const Y_TITLE_GAP = TEXT['11'] + SPACE["4"];
+const Y_TITLE_GAP = TEXT + SPACE["4"];
 
 // 잘린 값 축의 끝 격자선 왼쪽에 그리는 지그재그(잘림 표시): 걸음 수, 걸음 가로 폭, 위아래 흔들림
 const BREAK_STEPS = 4;
@@ -43,7 +43,7 @@ function yGrid(sy, { left, plotW, cut, skip }) {
   return sy.ticks
     .map((t, i) => {
       const isCut = t === cut;
-      const label = `<text x="${r(left - SPACE["1-5"])}" y="${r(centerBaseline(sy.at(t), TEXT['11']))}" class="chart-tick end">${sy.labels[i]}</text>`;
+      const label = `<text x="${r(left - SPACE["1-5"])}" y="${r(centerBaseline(sy.at(t), TEXT))}" class="chart-tick end">${sy.labels[i]}</text>`;
       if (skip.includes(t) && !isCut) return label;
       const from = isCut ? left + BREAK_STEPS * BREAK_STEP : left;
       const line = `<line x1="${r(from)}" x2="${r(left + plotW)}" y1="${r(sy.at(t))}" y2="${r(sy.at(t))}" class="chart-grid"/>`;
@@ -57,14 +57,14 @@ function yGrid(sy, { left, plotW, cut, skip }) {
 // basis: estimate
 // 세로축 제목: 그림 영역 위에서 줄바꿈한 각 줄
 function yAxisTitle(lines, top) {
-  return lines.map((line, i) => `<text x="${PAD}" y="${r(top + TEXT['11'] + i * STYLE.meta.line)}" class="chart-unit start">${renderRich(line)}</text>`).join('');
+  return lines.map((line, i) => `<text x="${PAD}" y="${r(top + TEXT + i * STYLE.meta.line)}" class="chart-unit start">${renderRich(line)}</text>`).join('');
 }
 
 // cost: time O(1), heap O(1), stack O(1)
 // basis: estimate
 /** 값이 하나도 없는 선, 계단, 누적분포의 그림 영역 가운데 글. 틀과 축은 대체 범위로 그려지고 표식은 없다(0으로 그리지 않는다). */
 export function noDataNote({ sx, top, plotBottom }) {
-  return `<text x="${r(sx.start + sx.length / 2)}" y="${r(centerBaseline((top + plotBottom) / 2, TEXT['11']))}" text-anchor="middle" class="chart-missing">${COPY.noData}</text>`;
+  return `<text x="${r(sx.start + sx.length / 2)}" y="${r(centerBaseline((top + plotBottom) / 2, TEXT))}" text-anchor="middle" class="chart-missing">${COPY.noData}</text>`;
 }
 
 // cost: time O(d + t + n²), heap O(d + out), stack O(1)
@@ -80,7 +80,7 @@ export function plotFrame(figure, top, { xs, ys, endRoom = 0, minPlotH = 0, mark
   // 끝 이름이 많거나 길면 그림 영역이 그 이름들이 겹치지 않고 들어갈 만큼 자란다. 이름을 줄이거나 숨기지 않는다.
   const plotH = Math.max(SIZE.chart['plot-h'], minPlotH);
   const width = chart.layout?.width ?? WIDTH;
-  const titleLines = chart.y ? chart.layout ? wrap(chart.y, width - PAD * 2, { size: TEXT['11'] }) : [chart.y] : [];
+  const titleLines = chart.y ? chart.layout ? wrap(chart.y, width - PAD * 2, { size: TEXT }) : [chart.y] : [];
   const plotTop = top + (titleLines.length ? Y_TITLE_GAP + (titleLines.length - 1) * STYLE.meta.line : 0);
   // 산점도와 누적분포는 가로축이 값 축이라 scale 줄을 따른다. 선과 계단의 가로축은 위치라 늘 linear다.
   const xKind = ['scatter', 'ecdf'].includes(figure.chartType) ? chart.scale : 'linear';
@@ -99,7 +99,7 @@ export function plotFrame(figure, top, { xs, ys, endRoom = 0, minPlotH = 0, mark
   }
   const sy = { ...yScale, at: (v) => plotTop + plotH - yScale.at(v) };
   // 내용의 왼쪽 끝은 제목, 범례, 세로축 제목이 있으면 PAD, 없으면 세로축 눈금 글자의 왼쪽 끝이다. 오른쪽 끝은 그만큼 남긴다.
-  const tickW = Math.max(...yScale.labels.map((label) => measure(label, TEXT['11'], 'num')));
+  const tickW = Math.max(...yScale.labels.map((label) => measure(label, TEXT, 'num')));
   const left = PAD + (chart.layout ? Math.max(SIZE.chart.axis, tickW + SPACE["1-5"]) : SIZE.chart.axis);
   const hasHeader = Boolean(figure.title || figure.subtitle || chart.series.length || chart.y);
   const right = width - Math.min(hasHeader ? PAD : Infinity, left - SPACE["1-5"] - tickW) - endRoom;

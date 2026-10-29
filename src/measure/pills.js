@@ -7,8 +7,8 @@ const SPACE = values.spacing;
 /** 알약 높이. 선 라벨, 배지, 상태 알약, 관계 그래프 이름이 같은 높이다. */
 export const PILL_H = values.spacing.figure.pill.height;
 
-/** 알약 안 글. 배지는 흑백에서도 도형의 뜻을 글자로 남기는 자리라 본문 글보다 작지 않다. 크기는 작은 표시(text.figure-meta)이고 status.css와 figure.css의 `.badge`가 같은 토큰을 그린다. */
-export const BADGE_STYLE = Object.freeze({ size: values.text["figure-meta"], face: 'semibold' });
+/** 알약 안 글. 배지는 흑백에서도 도형의 뜻을 글자로 남기는 자리라 본문 글보다 작지 않다. 크기는 설명 단계(text.caption 13)이고 status.css와 figure.css의 `.badge`가 같은 토큰을 그린다. */
+export const BADGE_STYLE = Object.freeze({ size: values.text.caption, face: 'semibold' });
 /** 배지와 개수 알약의 좌우 안쪽 간격 합 */
 const BADGE_PAD = SPACE["3-5"];
 

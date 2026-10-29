@@ -47,21 +47,21 @@ export function placeNames(points, right, bounds) {
   const placed = [];
   const clashes = [];
   for (const point of points) {
-    const width = measure(point.text, TEXT['11']);
+    const width = measure(point.text, TEXT);
     const rightRoom = right - point.x - NAME_OFFSET;
     const leftRoom = point.x - (bounds?.left ?? 0) - NAME_OFFSET;
     const wantsLeft = width > rightRoom && (!bounds || leftRoom > rightRoom);
     // 줄 폭의 하한은 가장 긴 낱말이다. 좁은 쪽에서도 낱말 안은 끊지 않고, 낱말이 들어가지 않는 쪽의 상자는 inBounds가 걸러 다른 쪽이나 위아래로 옮긴 자리가 고려된다.
-    const longest = Math.max(...point.text.split(' ').map((word) => measure(word, TEXT['11'])));
+    const longest = Math.max(...point.text.split(' ').map((word) => measure(word, TEXT)));
     const options = [wantsLeft, !wantsLeft].flatMap((toLeft) => {
       const room = toLeft ? point.x - (bounds?.left ?? 0) - NAME_OFFSET : right - point.x - NAME_OFFSET;
-      const lines = bounds ? wrap(point.text, Math.max(longest, room), { size: TEXT['11'] }) : [point.text];
-      const nameW = bounds ? Math.max(...lines.map((line) => measure(line, TEXT['11']))) : width;
+      const lines = bounds ? wrap(point.text, Math.max(longest, room), { size: TEXT }) : [point.text];
+      const nameW = bounds ? Math.max(...lines.map((line) => measure(line, TEXT))) : width;
       return SHIFTS.map((shift) => ({ width: nameW, height: lines.length * NAME_STEP, toLeft, shift, lines, side: toLeft ? 'left' : 'right' }));
     });
     // 옆자리가 모두 막히면 점 바로 위, 아래 가운데를 본다. 줄 폭은 그림 영역 폭이 하한인 가장 긴 낱말까지다.
-    const stackLines = bounds ? wrap(point.text, Math.max(longest, right - bounds.left), { size: TEXT['11'] }) : [point.text];
-    const stackW = Math.max(...stackLines.map((line) => measure(line, TEXT['11'])));
+    const stackLines = bounds ? wrap(point.text, Math.max(longest, right - bounds.left), { size: TEXT }) : [point.text];
+    const stackW = Math.max(...stackLines.map((line) => measure(line, TEXT)));
     for (const side of ['above', 'below']) options.push({ width: stackW, height: stackLines.length * NAME_STEP, toLeft: false, shift: 0, lines: stackLines, side });
     const boxes = options.map((option) => boxOf(point, option, bounds && { left: bounds.left, right }));
     const inBounds = (box) => !bounds || (box.x0 >= bounds.left && box.x1 <= right && box.y0 >= bounds.top && box.y1 <= bounds.bottom);

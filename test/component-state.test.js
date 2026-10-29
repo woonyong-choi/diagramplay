@@ -12,11 +12,11 @@ import { seriesBoundary, seriesOutline } from '../src/chart/metrics.js';
 import { build, diagramplay, toHtml, toSvg } from './support.js';
 
 test('bright_series_boundary_supplies_color_without_overriding_shared_stroke', () => {
-  const chart = { series: [{ role: 'main' }, {}, { role: 'reference' }] };
-  assert.equal(seriesBoundary(chart, 0), '');
-  assert.equal(seriesBoundary(chart, 2), '');
-  const boundary = seriesBoundary(chart, 1);
-  assert.ok(boundary.includes(`--chart-boundary: ${seriesOutline(chart, 1)}`));
+  // 직접 라벨이 필요한 계열(3·4번 회색)만 같은 계열의 경계를 가진다. 파랑·주황과 기대값 계열은 없다.
+  const chart = { series: [{ role: 'main' }, {}, {}, {}, { role: 'reference' }] };
+  for (const index of [0, 1, 4]) assert.equal(seriesBoundary(chart, index), '', `series ${index}`);
+  const boundary = seriesBoundary(chart, 3);
+  assert.ok(boundary.includes(`--chart-boundary: ${seriesOutline(chart, 3)}`));
   assert.doesNotMatch(boundary, /style="stroke:/);
 });
 
@@ -27,7 +27,7 @@ const GRAPH = diagramplay(`
   grid g "G" cols=2 {
     item a "A" col=0
   }
-  box s "S" tone=yellow appearance=outline
+  box s "S" tone=orange appearance=outline
   box f "F" tone=blue appearance=filled
   s -> f "go"
   view graph {
@@ -85,12 +85,12 @@ test('figureRoles_changed_shared_default_fails_explicitly', () => {
 });
 
 test('paintCss supplies only used tone variables; the shared stylesheet owns appearance', () => {
-  const css = paintCss({ items: [{ tone: 'blue', content: { layouts: [{ rows: [{ row: { tone: 'red', appearance: 'filled' } }] }] } }], groups: [{ tone: 'green' }, { tone: 'blue' }] });
+  const css = paintCss({ items: [{ tone: 'blue', content: { layouts: [{ rows: [{ row: { tone: 'silver', appearance: 'filled' } }] }] } }], groups: [{ tone: 'orange' }, { tone: 'blue' }] });
   const rules = postcss.parse(css);
-  assert.deepEqual(rules.nodes.map((rule) => rule.selector), ['.fl .tn-blue', '.fl .tn-green', '.fl .tn-red']);
+  assert.deepEqual(rules.nodes.map((rule) => rule.selector), ['.fl .tn-blue', '.fl .tn-orange', '.fl .tn-silver']);
   rules.walkDecls((declaration) => {
     assert.match(declaration.prop, /^--paint-(fill|outline|ink)$/);
-    assert.match(declaration.value, /^var\(--color-paint-(blue|green|red)-(fill|outline|ink)\)$/);
+    assert.match(declaration.value, /^var\(--color-paint-(blue|orange|silver)-(fill|outline|ink)\)$/);
   });
   assert.equal(paintCss({ items: [{}], groups: [] }), '');
 });
@@ -111,7 +111,7 @@ test('S1 켜짐과 평소 모습은 효과 한 벌(--fx-*)을 움직이는 SVG�
   assert.ok(frames.some((k) => k.includes('fill: var(--fx-face-on)') && !k.includes('stroke')) && frames.some((k) => k.includes('fill: var(--fx-face);')), 'the animated SVG lights a field and a cell by that lit face only');
   assert.match(svg, /\.fl-node\.ap-outline\s*\{\s*--fx-edge-rest: var\(--paint-outline\)/, 'the shared appearance changes only the rest values');
   assert.match(svg, /\.fl-node\.ap-filled\s*\{\s*--fx-face: var\(--paint-fill\)/);
-  assert.match(svg, /\.tn-yellow\s*\{[^}]*--paint-outline: var\(--color-paint-yellow-outline\)/);
+  assert.match(svg, /\.tn-orange\s*\{[^}]*--paint-outline: var\(--color-paint-orange-outline\)/);
   assert.match(svg, /\.tn-blue\s*\{[^}]*--paint-fill: var\(--color-paint-blue-fill\)/);
 });
 

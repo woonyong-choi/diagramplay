@@ -57,7 +57,7 @@ const totalAt = (ctx, stack) => (ctx.isPercent ? 100 : Math.max(0, stack.positiv
 // 값 축. 누적은 양쪽 합과 기준선을 덮고, 퍼센트는 0~100에 고정이다. 합계 글자가 막대 끝 옆에 놓이므로 그 폭만큼 오른쪽을 남긴다.
 function stackScale(ctx, stacks) {
   const { chart, isPercent } = ctx;
-  const reaches = () => stacks.map((stack) => ({ value: totalAt(ctx, stack), extra: TOTAL_GAP + measure(totalText(ctx, stack), TEXT['11'], 'numSemibold') }));
+  const reaches = () => stacks.map((stack) => ({ value: totalAt(ctx, stack), extra: TOTAL_GAP + measure(totalText(ctx, stack), TEXT, 'numSemibold') }));
   if (isPercent) return rowValueScale(chart, { kind: 'linear', min: 0, max: 100, reaches });
   const extent = stackExtent(chart.rows, chart.series.map((s) => s.id));
   const ruled = chart.rules.map((rule) => rule.value);
@@ -125,7 +125,7 @@ function segmentMarks(ctx, part, at) {
   const text = isRunOwner ? run.text : pieceText(ctx, part);
   const [left, right] = isRunOwner ? [ctx.scale.at(run.from), ctx.scale.at(run.to)] : [box.x, box.x + box.w];
   const room = Math.abs(right - left);
-  const fits = (!isGrouped || isRunOwner) && part.value !== 0 && text !== '' && room >= measure(text, TEXT['11'], 'numSemibold') + SPACE["1"] * 2;
+  const fits = (!isGrouped || isRunOwner) && part.value !== 0 && text !== '' && room >= measure(text, TEXT, 'numSemibold') + SPACE["1"] * 2;
   const label = insideText(chart, { text, x: (left + right) / 2, cy: box.y + BAND / 2, paint, fits, id: markId(chart, i, k, '.k') });
   return `<g class="cr-${at.k}"><g class="cs-${i}">${rect}${overlay}${label}</g></g>`;
 }
@@ -145,7 +145,7 @@ function statusMark(ctx, stack, at) {
   const hidden = stack.state === 'ok' ? ' visibility="hidden"' : '';
   // 음수 쪽이 있어 0에 기준선이 서면 글을 선에 붙이지 않고 합계 글자와 같은 틈만큼 띄운다. 기준선이 없으면 막대가 시작하는 자리에 맞춘다.
   const x = ctx.scale.at(0) + (hasZeroLine(ctx.scale) ? TOTAL_GAP : 0);
-  return inkGroup(at.k, `<text x="${r(x)}" y="${r(centerBaseline(at.y + BAND / 2, TEXT['11']))}" class="chart-missing"${hidden}${markAttrs(chart, markId(chart, 0, at.k, '.s'), { isText: true })}>${escapeXml(message)}</text>`);
+  return inkGroup(at.k, `<text x="${r(x)}" y="${r(centerBaseline(at.y + BAND / 2, TEXT))}" class="chart-missing"${hidden}${markAttrs(chart, markId(chart, 0, at.k, '.s'), { isText: true })}>${escapeXml(message)}</text>`);
 }
 
 // cost: time O(s), heap O(out), stack O(1)
