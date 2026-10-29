@@ -135,9 +135,6 @@ async function attemptScene(figure, inputs, variant) {
   widenForChips(scene, timeline);
   planChips(scene, timeline, limits);
   attachMarks(scene, timeline);
-  // 태그 색은 원본에 처음 나온 순서로 정한다(docs/design/figure-syntax.md 카드 줄).
-  const rows = [...figure.nodes.flatMap((node) => node.content ?? []), ...figure.steps.flatMap((s) => s.beats.flatMap((b) => b.ops.map((o) => o.row)))];
-  scene.tagOrder = rows.filter((row) => row?.tag && !row.tone).map((row) => row.tag);
   const { hiddenChipWarnings } = checkFigure({ figure, scene, timeline }, local);
   return { scene, timeline, local, hiddenChipWarnings };
 }

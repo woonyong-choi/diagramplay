@@ -1,6 +1,6 @@
 // 카드 안에 보이는 내용(`show`와 값 줄)을 그린다. 내용마다 층을 하나씩 두고 박자가 보일 층을 고른다. 크기와 글 자리는 measure/content.js가 정한 그대로고, 글은 카드 머리와 같은 drawTexts가 그린다.
 // 카드 면과 머리는 draw/card.js가 그리고, 이 파일은 그 면 안쪽에 놓이는 내용 면 하나와 그 위의 줄(태그 알약, 관계 그래프의 선과 알약)만 맡는다.
-import { autoTone, toneColors } from '../color/tone.js';
+import { NEUTRAL, toneColors } from '../color/tone.js';
 import { roundCoord as r } from '../format/text.js';
 import { values } from '@woonyong-choi/design-tokens/tokens.js';
 import { faceOf, lookClass } from './look.js';
@@ -16,18 +16,10 @@ const contentLook = (layout) => layout.rows.map(({ row }) => faceOf(row)).find((
 // vars: t = 태그 종류 수
 // basis: estimate
 /**
- * 그림 하나에서 태그 색을 고정하는 그릇. tone 없는 태그는 원본에 처음 나온 순서대로 범주 색 순서(color/tone.js autoTone)로 색을 받는다.
- * @param tagOrder 원본 시간 흐름에 처음 나온 순서의 tone 없는 태그 목록
+ * 태그 알약의 면 색. tone을 적은 태그는 그 색이고, 적지 않은 태그는 무채색(NEUTRAL)이다. 메인 주황은 켜진 경로와 이동 점에만 쓴다.
  */
-export function createTones(tagOrder = []) {
-  const tones = new Map();
-  const next = (tag) => tones.has(tag) || tones.set(tag, autoTone(tones.size));
-  for (const tag of tagOrder) next(tag);
-  return (row) => {
-    if (row.tone) return toneColors(row.tone).fill;
-    next(row.tag);
-    return toneColors(tones.get(row.tag)).fill;
-  };
+export function createTones() {
+  return (row) => toneColors(row.tone ?? NEUTRAL).fill;
 }
 
 // cost: time O(k·r·n), heap O(out), stack O(1)

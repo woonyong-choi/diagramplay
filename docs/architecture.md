@@ -73,7 +73,7 @@
 - `timeline.marks`: `{ [키]: [[from, to, si], ...] }`. 조용한 선이 보이는 구간이다(`quiet:번호`). 같은 장면 안에서만 합치고 길이 0 구간도 남기며, 세 번째 값이 구간을 소유한 장면이다. 점이 지나는 동안의 선은 이동 목록(`hops`)에서 구하고, 켜 둔 도형과 부분은 구간(`nodesOn`, `partsOn`)이 가진다.
 - `timeline.pulses`: `[{ key, at, si }]` 시각 순. 키는 `value:값 줄 번호`나 `row:도형:줄 번호`이고 `si`는 출처 장면이다. 펄스 모양은 `src/timeline/pulse.js`다(`PULSE`, `PULSE_MS`, `envelopeKeys`).
 - `timeline.presentation[si]`: 장면마다 표시 길이(화면 ms). 논리 길이를 `speed`로 나눈 값과 마지막 펄스·선 이탈에 `PULSE_MS`를 더한 값 가운데 큰 것이고, 컴파일러가 한 번 정해(`timeline/marks.js`의 `presentationOf`) 재생기와 SVG가 읽는다([재생](design/playback.md#장면과-재생-방식)).
-- `scene`: `{ items, groups, edges, lifelines, notes, activations, destructions, fragments, panels, width, height, tagOrder }`. 도형, 그룹, 선에는 `view`(보기의 내부 열쇠 `v1`, `v2`처럼 순서가 붙은 이름)가 있고 선에는 `strategy`가 있다. 같은 카드가 여러 보기에 그려지면 `items`에 같은 `id`가 여러 번 있다. `panels[]`는 `{ index, view, strategy, box: { x, y, w, h }, label?, labelAt? }`이고 `box.w`는 판의 자연 폭이다.
+- `scene`: `{ items, groups, edges, lifelines, notes, activations, destructions, fragments, panels, width, height }`. 도형, 그룹, 선에는 `view`(보기의 내부 열쇠 `v1`, `v2`처럼 순서가 붙은 이름)가 있고 선에는 `strategy`가 있다. 같은 카드가 여러 보기에 그려지면 `items`에 같은 `id`가 여러 번 있다. `panels[]`는 `{ index, view, strategy, box: { x, y, w, h }, label?, labelAt? }`이고 `box.w`는 판의 자연 폭이다.
 - 재생기가 해야 할 일: 같은 `id`의 요소는 `querySelectorAll`로 모두 찾고, 시각의 상태는 `periods`의 같은 규칙으로 정하고, 펄스는 `timeline.pulses`로 건다. 애니메이션 끝 이벤트는 논리 상태를 정하지 않는다.
 
 장면 생성은 `compile/scene.js`가 맡고 최초 빌드와 재배치가 같은 카드 크기·배치·충돌 검사를 사용한다.

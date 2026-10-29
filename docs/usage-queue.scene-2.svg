@@ -11,19 +11,14 @@
   --color-gray-529: #787878;
   --color-gray-910: #171717;
   --color-gray-933: #111111;
-  --color-gray-1000: #000000;
   --color-outline: var(--color-gray-529);
   --color-line: var(--color-category-gray-line);
   --color-state-active: var(--color-main-light-border);
   --color-state-active-text: var(--color-main-light-ink);
+  --color-state-on-active: var(--color-gray-0);
   --color-ui-focus: var(--color-action-link);
   --color-data-grid: var(--color-gray-212);
   --color-data-category-1: var(--color-category-orange-fill);
-  --color-data-category-2: var(--color-category-blue-fill);
-  --color-data-category-outline-1: var(--color-category-orange-line);
-  --color-data-category-outline-2: var(--color-category-blue-line);
-  --color-data-category-on-1: var(--color-category-orange-on);
-  --color-data-category-on-2: var(--color-category-blue-on);
   --color-figure-icon: var(--color-category-gray-ink);
   --color-figure-queue-empty: var(--color-gray-59);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
@@ -31,7 +26,7 @@
   --color-figure-outline: var(--color-category-gray-line);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
   --color-figure-canvas: var(--color-ui-card);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -39,12 +34,7 @@
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
   --color-action-link: var(--color-main-light-ink);
-  --color-category-blue-fill: #72a3fe;
-  --color-category-blue-line: #6292eb;
-  --color-category-blue-on: var(--color-gray-1000);
   --color-category-orange-fill: #ff6900;
-  --color-category-orange-line: #ff6900;
-  --color-category-orange-on: var(--color-gray-0);
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   --color-main-light-border: #ff6900;
@@ -53,6 +43,7 @@
   --color-main-dark-border: #ff8904;
   --color-main-dark-ink: #ff8904;
   --color-main-dark-tint-3: #513f2e;
+  --color-main-dark-on: var(--color-gray-0);
   --font-figure-sans: FigSans, FigSansSym, FigSansMath, ui-sans-serif, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
   --font-figure-mono: FigMono, FigSans, FigSansSym, FigSansMath, ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-prose-block-radius: var(--radius-xl);
@@ -64,13 +55,12 @@
   --primitive-ink: #303336;
   --primitive-muted: #55606e;
   --primitive-line: #dfe3e8;
-  --primitive-search-hover: #d9e6ff;
-  --primitive-help-hover: #ebf1ff;
+  --primitive-help-hover: #eff0f2;
   --primitive-figure-dark-node: #303136;
   --primitive-figure-dark-edge: #50535b;
   --primitive-figure-dark-separator: #454850;
-  --primitive-figure-dark-hover: #343e50;
-  --primitive-figure-dark-selection: #274174;
+  --primitive-figure-dark-hover: #3e3f44;
+  --primitive-figure-dark-selection: #513f2e;
   --primitive-figure-dark-muted: #a9adb6;
   --primitive-figure-dark-outline: #868686;
   --primitive-figure-number-fill: #303336;
@@ -93,6 +83,7 @@
   --color-outline: var(--primitive-figure-dark-outline);
   --color-state-active: var(--color-main-dark-border);
   --color-state-active-text: var(--color-main-dark-ink);
+  --color-state-on-active: var(--color-main-dark-on);
   --color-data-grid: var(--primitive-figure-dark-edge);
   --color-figure-queue-empty: var(--color-gray-910);
   --color-figure-number-fill: var(--color-gray-59);
@@ -106,10 +97,7 @@
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
   --color-action-link: var(--color-main-dark-ink);
-  --color-category-blue-fill: #81a9fd;
-  --color-category-blue-line: #81a9fd;
   --color-category-orange-fill: #ff8904;
-  --color-category-orange-line: #ff8904;
   --color-category-gray-line: #a0a2a7;
   --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
@@ -119,6 +107,7 @@
   --color-outline: var(--primitive-figure-dark-outline);
   --color-state-active: var(--color-main-dark-border);
   --color-state-active-text: var(--color-main-dark-ink);
+  --color-state-on-active: var(--color-main-dark-on);
   --color-data-grid: var(--primitive-figure-dark-edge);
   --color-figure-queue-empty: var(--color-gray-910);
   --color-figure-number-fill: var(--color-gray-59);
@@ -132,10 +121,7 @@
   --color-ui-muted: var(--primitive-figure-dark-muted);
   --color-ui-line: var(--primitive-figure-dark-separator);
   --color-action-link: var(--color-main-dark-ink);
-  --color-category-blue-fill: #81a9fd;
-  --color-category-blue-line: #81a9fd;
   --color-category-orange-fill: #ff8904;
-  --color-category-orange-line: #ff8904;
   --color-category-gray-line: #a0a2a7;
   --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
@@ -144,12 +130,13 @@
   --color-outline: var(--color-gray-529);
   --color-state-active: var(--color-main-light-border);
   --color-state-active-text: var(--color-main-light-ink);
+  --color-state-on-active: var(--color-gray-0);
   --color-data-grid: var(--color-gray-212);
   --color-figure-queue-empty: var(--color-gray-59);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -157,10 +144,7 @@
   --color-ui-muted: var(--primitive-muted);
   --color-ui-line: var(--primitive-line);
   --color-action-link: var(--color-main-light-ink);
-  --color-category-blue-fill: #72a3fe;
-  --color-category-blue-line: #6292eb;
   --color-category-orange-fill: #ff6900;
-  --color-category-orange-line: #ff6900;
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   color-scheme: light;
@@ -632,7 +616,6 @@
 .fl .sa1 { opacity: 1; visibility: visible; }
 .fl .sa2 { opacity: 1; }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="307" height="307" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 
@@ -645,17 +628,17 @@
 <g id="e-2" class="fl-edge quiet a5 a5"><defs><marker id="fl-arrow-2" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="p-2" d="M 137.3 62 L 137.3 70 Q 137.3 78, 145.3 78 L 230 78 Q 242 78, 242 90 L 242 102" class="fl-path" marker-end="url(#fl-arrow-2)"/></g>
 <defs><path id="tp-0" class="fl-track-path" d="M 104 62 L 104 102" fill="none"/><path id="tp-1" class="fl-track-path" d="M 104 166 L 104 206" fill="none"/></defs><g class="fl-value"><g class="queue-fill" opacity="0" visibility="hidden" data-v="0" data-t="1"><rect x="66" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0625;0.125" values="hidden;visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0625;0.125" values="0;1;0"/></g><g class="queue-fill" opacity="0" visibility="hidden" data-v="0" data-t="2"><rect x="66" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><rect x="86" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0625;0.125;0.25;0.3125;0.375" values="visible;hidden;visible;hidden;visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0625;0.125;0.25;0.3125;0.375" values="1;0;1;0;1;0"/></g><g class="queue-fill" opacity="0" visibility="hidden" data-v="0" data-t="3"><rect x="66" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><rect x="86" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><rect x="106" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.25;0.3125;0.375;0.5;0.5625;0.625" values="hidden;visible;hidden;visible;hidden;visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.25;0.3125;0.375;0.5;0.5625;0.625" values="0;1;0;1;0;1;0"/></g><g class="queue-fill" opacity="0" visibility="hidden" data-v="0" data-t="4"><rect x="66" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><rect x="86" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><rect x="106" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><rect x="126" y="140" width="16" height="14" rx="4" class="fl-queue-slot"/><animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.5;0.5625;0.625" values="hidden;visible;hidden;visible"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.5;0.5625;0.625" values="0;1;0;1"/></g></g>
 <g class="fl-value"><text x="174" y="270.7" class="value" text-anchor="end" opacity="0" visibility="hidden" data-v="1" data-t="0">0<animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.15" values="visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.15" values="1;0"/></text><text x="174" y="270.7" class="value" text-anchor="end" opacity="0" visibility="hidden" data-v="1" data-t="1">1<animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.15;0.4" values="hidden;visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.15;0.4" values="0;1;0"/></text><text x="174" y="270.7" class="value" text-anchor="end" opacity="0" visibility="hidden" data-v="1" data-t="2">2<animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.4;0.65" values="hidden;visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.4;0.65" values="0;1;0"/></text><text x="174" y="270.7" class="value" text-anchor="end" opacity="0" visibility="hidden" data-v="1" data-t="3">3<animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.65;0.9" values="hidden;visible;hidden"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.65;0.9" values="0;1;0"/></text><text x="174" y="270.7" class="value" text-anchor="end" opacity="0" visibility="hidden" data-v="1" data-t="4">4<animate attributeName="visibility" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.9" values="hidden;visible"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.9" values="0;1"/></text></g>
-<g class="fl-packet p0-0" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0875" values="1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0875;1" keySplines="0 0 1 1;0 0 1 1" keyPoints="0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-1" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.125;0.2125" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.125;0.2125;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-2" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.25;0.3375" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.25;0.3375;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-3" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.375;0.4625" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.375;0.4625;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-4" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.5;0.5875" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;0.5875;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-5" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.625;0.7125" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.625;0.7125;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-6" opacity="0" fill="var(--color-data-category-on-1)"><circle r="10" fill="var(--color-data-category-1)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-1)" stroke="var(--color-data-category-outline-1)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.8125;0.9" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.8125;0.9;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
-<g class="fl-packet p0-7" opacity="0" fill="var(--color-data-category-on-2)"><circle r="10" fill="var(--color-data-category-2)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-2)" stroke="var(--color-data-category-outline-2)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0625;0.15" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0625;0.15;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
-<g class="fl-packet p0-8" opacity="0" fill="var(--color-data-category-on-2)"><circle r="10" fill="var(--color-data-category-2)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-2)" stroke="var(--color-data-category-outline-2)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.3125;0.4" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3125;0.4;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
-<g class="fl-packet p0-9" opacity="0" fill="var(--color-data-category-on-2)"><circle r="10" fill="var(--color-data-category-2)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-2)" stroke="var(--color-data-category-outline-2)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.5625;0.65" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5625;0.65;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
-<g class="fl-packet p0-10" opacity="0" fill="var(--color-data-category-on-2)"><circle r="10" fill="var(--color-data-category-2)" opacity="0.2"/><circle r="4.5" fill="var(--color-data-category-2)" stroke="var(--color-data-category-outline-2)" stroke-width="1.5"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.8125;0.9" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.8125;0.9;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
+<g class="fl-packet p0-0" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0875" values="1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0875;1" keySplines="0 0 1 1;0 0 1 1" keyPoints="0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-1" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.125;0.2125" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.125;0.2125;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-2" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.25;0.3375" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.25;0.3375;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-3" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.375;0.4625" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.375;0.4625;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-4" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.5;0.5875" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;0.5875;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-5" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.625;0.7125" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.625;0.7125;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-6" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.8125;0.9" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.8125;0.9;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-0" xlink:href="#tp-0"/></animateMotion></g>
+<g class="fl-packet p0-7" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.0625;0.15" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0625;0.15;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
+<g class="fl-packet p0-8" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.3125;0.4" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3125;0.4;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
+<g class="fl-packet p0-9" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.5625;0.65" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5625;0.65;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
+<g class="fl-packet p0-10" opacity="0" fill="var(--color-state-on-active)"><circle r="10" fill="var(--color-state-active)" opacity="0.2"/><circle r="4.5" fill="var(--color-state-active)"/><animate attributeName="opacity" dur="8s" repeatCount="indefinite" calcMode="discrete" keyTimes="0;0.8125;0.9" values="0;1;0"/><animateMotion dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.8125;0.9;1" keySplines="0 0 1 1;0 0 1 1;0 0 1 1" keyPoints="0;0;1;1"><mpath href="#tp-1" xlink:href="#tp-1"/></animateMotion></g>
 
 </g>
 <g class="fl-still" transform="translate(0 0)">

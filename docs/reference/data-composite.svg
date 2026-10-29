@@ -19,6 +19,7 @@
   --color-ui-focus: var(--color-action-link);
   --color-data-grid: var(--color-gray-212);
   --color-data-category-1: var(--color-category-orange-fill);
+  --color-data-category-3: var(--color-category-gray-fill);
   --color-figure-icon: var(--color-category-gray-ink);
   --color-figure-queue-empty: var(--color-gray-59);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
@@ -26,7 +27,7 @@
   --color-figure-outline: var(--color-category-gray-line);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
   --color-figure-canvas: var(--color-ui-card);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -35,6 +36,7 @@
   --color-ui-line: var(--primitive-line);
   --color-action-link: var(--color-main-light-ink);
   --color-category-orange-fill: #ff6900;
+  --color-category-gray-fill: #8b8f95;
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   --color-main-light-border: #ff6900;
@@ -54,13 +56,12 @@
   --primitive-ink: #303336;
   --primitive-muted: #55606e;
   --primitive-line: #dfe3e8;
-  --primitive-search-hover: #d9e6ff;
-  --primitive-help-hover: #ebf1ff;
+  --primitive-help-hover: #eff0f2;
   --primitive-figure-dark-node: #303136;
   --primitive-figure-dark-edge: #50535b;
   --primitive-figure-dark-separator: #454850;
-  --primitive-figure-dark-hover: #343e50;
-  --primitive-figure-dark-selection: #274174;
+  --primitive-figure-dark-hover: #3e3f44;
+  --primitive-figure-dark-selection: #513f2e;
   --primitive-figure-dark-muted: #a9adb6;
   --primitive-figure-dark-outline: #868686;
   --primitive-figure-number-fill: #303336;
@@ -97,6 +98,7 @@
   --color-ui-line: var(--primitive-figure-dark-separator);
   --color-action-link: var(--color-main-dark-ink);
   --color-category-orange-fill: #ff8904;
+  --color-category-gray-fill: #a0a2a7;
   --color-category-gray-line: #a0a2a7;
   --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
@@ -120,6 +122,7 @@
   --color-ui-line: var(--primitive-figure-dark-separator);
   --color-action-link: var(--color-main-dark-ink);
   --color-category-orange-fill: #ff8904;
+  --color-category-gray-fill: #a0a2a7;
   --color-category-gray-line: #a0a2a7;
   --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
@@ -133,7 +136,7 @@
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -142,6 +145,7 @@
   --color-ui-line: var(--primitive-line);
   --color-action-link: var(--color-main-light-ink);
   --color-category-orange-fill: #ff6900;
+  --color-category-gray-fill: #8b8f95;
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   color-scheme: light;
@@ -602,12 +606,11 @@
 .fl .a2 { opacity: 0; visibility: hidden; }
 .fl .a3 { opacity: 0; }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="648.1" height="215" class="fl-canvas-surface"/>
 <g transform="translate(0 0)">
 
 <g id="n-0" class="fl-node fl-shape-table" tabindex="0" role="img" aria-label="orders; id PK bigint; tenant_id FK1 NN bigint; user_id FK1 NN bigint; PK (id); FK1 (tenant_id, user_id) references users (tenant_id, id) RESTRICT" data-id="orders"><rect x="16" y="16" width="197.4" height="106" rx="8" class="fl-stroke a0"/><clipPath id="tc-0"><rect x="16" y="16" width="197.4" height="106" rx="8"/></clipPath><g clip-path="url(#tc-0)"><rect x="17" y="17" width="195.4" height="27" class="part-head"/><g class="fl-part" data-part="orders.id"><rect x="17" y="44" width="195.4" height="26" class="part-bg a1"/><text x="34" y="61.7" class="cell">id<tspan class="key" dx="6">PK</tspan></text><text x="195.4" y="61.7" class="cell type" text-anchor="end">bigint</text></g><g class="fl-part" data-part="orders.tenant_id"><rect x="17" y="70" width="195.4" height="26" class="part-bg a1"/><text x="34" y="87.7" class="cell">tenant_id<tspan class="key" dx="6">FK1 NN</tspan></text><text x="195.4" y="87.7" class="cell type" text-anchor="end">bigint</text></g><g class="fl-part" data-part="orders.user_id"><rect x="17" y="96" width="195.4" height="26" class="part-bg a1"/><text x="34" y="113.7" class="cell">user_id<tspan class="key" dx="6">FK1 NN</tspan></text><text x="195.4" y="113.7" class="cell type" text-anchor="end">bigint</text></g></g><line x1="16" x2="213.4" y1="44" y2="44" class="col-line"/><line x1="16" x2="213.4" y1="70" y2="70" class="col-line"/><line x1="16" x2="213.4" y1="96" y2="96" class="col-line"/><text x="114.7" y="34.7" class="label" text-anchor="middle">orders</text></g>
-<g id="n-1" class="fl-node fl-shape-table" tabindex="0" role="img" aria-label="users; tenant_id PK UNQ1 bigint; id PK bigint; email UNQ1 NN text; PK (tenant_id, id); UNQ1 (tenant_id, email)" data-id="users"><rect x="425.6" y="42" width="207.5" height="158" rx="8" class="fl-stroke a0"/><clipPath id="tc-1"><rect x="425.6" y="42" width="207.5" height="158" rx="8"/></clipPath><g clip-path="url(#tc-1)"><rect x="426.6" y="43" width="205.5" height="27" class="part-head"/><g class="fl-part" data-part="users.tenant_id"><rect x="426.6" y="70" width="205.5" height="26" class="part-bg a1"/><text x="443.6" y="87.7" class="cell">tenant_id<tspan class="key" dx="6">PK UNQ1</tspan></text><text x="615.1" y="87.7" class="cell type" text-anchor="end">bigint</text></g><g class="fl-part" data-part="users.id"><rect x="426.6" y="96" width="205.5" height="26" class="part-bg a1"/><text x="443.6" y="113.7" class="cell">id<tspan class="key" dx="6">PK</tspan></text><text x="615.1" y="113.7" class="cell type" text-anchor="end">bigint</text></g><g class="fl-part" data-part="users.email"><rect x="426.6" y="122" width="205.5" height="26" class="part-bg a1"/><text x="443.6" y="139.7" class="cell">email<tspan class="key" dx="6">UNQ1 NN</tspan></text><text x="615.1" y="139.7" class="cell type" text-anchor="end">text</text></g></g><line x1="425.6" x2="633.1" y1="70" y2="70" class="col-line"/><line x1="425.6" x2="633.1" y1="96" y2="96" class="col-line"/><line x1="425.6" x2="633.1" y1="122" y2="122" class="col-line"/><text x="529.3" y="60.7" class="label" text-anchor="middle">users</text><rect x="435.6" y="158" width="187.5" height="32" rx="6" opacity="0" class="fl-card a3"/><g id="n-1-c0" opacity="0" visibility="hidden" class="fl-layer a2"><rect x="443.6" y="165" width="18.9" height="18" rx="4" fill="var(--color-data-category-1)" fill-opacity="0.15"/><text x="453.1" y="178.7" class="tag" text-anchor="middle">행</text><text x="467.5" y="178.7" class="row">tenant_id 3 · id 7</text></g></g>
+<g id="n-1" class="fl-node fl-shape-table" tabindex="0" role="img" aria-label="users; tenant_id PK UNQ1 bigint; id PK bigint; email UNQ1 NN text; PK (tenant_id, id); UNQ1 (tenant_id, email)" data-id="users"><rect x="425.6" y="42" width="207.5" height="158" rx="8" class="fl-stroke a0"/><clipPath id="tc-1"><rect x="425.6" y="42" width="207.5" height="158" rx="8"/></clipPath><g clip-path="url(#tc-1)"><rect x="426.6" y="43" width="205.5" height="27" class="part-head"/><g class="fl-part" data-part="users.tenant_id"><rect x="426.6" y="70" width="205.5" height="26" class="part-bg a1"/><text x="443.6" y="87.7" class="cell">tenant_id<tspan class="key" dx="6">PK UNQ1</tspan></text><text x="615.1" y="87.7" class="cell type" text-anchor="end">bigint</text></g><g class="fl-part" data-part="users.id"><rect x="426.6" y="96" width="205.5" height="26" class="part-bg a1"/><text x="443.6" y="113.7" class="cell">id<tspan class="key" dx="6">PK</tspan></text><text x="615.1" y="113.7" class="cell type" text-anchor="end">bigint</text></g><g class="fl-part" data-part="users.email"><rect x="426.6" y="122" width="205.5" height="26" class="part-bg a1"/><text x="443.6" y="139.7" class="cell">email<tspan class="key" dx="6">UNQ1 NN</tspan></text><text x="615.1" y="139.7" class="cell type" text-anchor="end">text</text></g></g><line x1="425.6" x2="633.1" y1="70" y2="70" class="col-line"/><line x1="425.6" x2="633.1" y1="96" y2="96" class="col-line"/><line x1="425.6" x2="633.1" y1="122" y2="122" class="col-line"/><text x="529.3" y="60.7" class="label" text-anchor="middle">users</text><rect x="435.6" y="158" width="187.5" height="32" rx="6" opacity="0" class="fl-card a3"/><g id="n-1-c0" opacity="0" visibility="hidden" class="fl-layer a2"><rect x="443.6" y="165" width="18.9" height="18" rx="4" fill="var(--color-data-category-3)" fill-opacity="0.15"/><text x="453.1" y="178.7" class="tag" text-anchor="middle">행</text><text x="467.5" y="178.7" class="row">tenant_id 3 · id 7</text></g></g>
 <g id="e-0" class="fl-edge " role="img" aria-label="orders [0..*] references users [1]: FK1 · RESTRICT"><defs><marker id="fl-arrow-0" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="p-0" d="M 213.4 96 L 425.6 96" class="fl-path" marker-end="url(#fl-arrow-0)"/><text class="edgelabel fl-end-label " data-end="from" x="226.9" y="115.7">0..*</text><text class="edgelabel fl-end-label " data-end="to" x="418.9" y="115.7">1</text></g>
 
 

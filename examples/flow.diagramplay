@@ -48,7 +48,7 @@ scene "두 채널의 주문"
 
 scene "동시 주문" mode=loop speed=1.5 for=8s
   track web, app, partner -> api -> stocked -> lock -> db "주문" every=2s time=2400ms
-  track partner -> api -> pay at=1s every=3s time=2s tone=blue lost=60%
+  track partner -> api -> pay at=1s every=3s time=2s tone=silver lost=60%
 
 scene "재고 확인 뒤 차감" keep="stock" set="holder=none"
   web -> api "주문"

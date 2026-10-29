@@ -19,6 +19,7 @@
   --color-ui-focus: var(--color-action-link);
   --color-data-grid: var(--color-gray-212);
   --color-data-category-1: var(--color-category-orange-fill);
+  --color-data-category-3: var(--color-category-gray-fill);
   --color-figure-icon: var(--color-category-gray-ink);
   --color-figure-queue-empty: var(--color-gray-59);
   --color-figure-number-fill: var(--primitive-figure-number-fill);
@@ -26,7 +27,7 @@
   --color-figure-outline: var(--color-category-gray-line);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
   --color-figure-canvas: var(--color-ui-card);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -35,6 +36,7 @@
   --color-ui-line: var(--primitive-line);
   --color-action-link: var(--color-main-light-ink);
   --color-category-orange-fill: #ff6900;
+  --color-category-gray-fill: #8b8f95;
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   --color-main-anchor: #ff6900;
@@ -57,13 +59,12 @@
   --primitive-ink: #303336;
   --primitive-muted: #55606e;
   --primitive-line: #dfe3e8;
-  --primitive-search-hover: #d9e6ff;
-  --primitive-help-hover: #ebf1ff;
+  --primitive-help-hover: #eff0f2;
   --primitive-figure-dark-node: #303136;
   --primitive-figure-dark-edge: #50535b;
   --primitive-figure-dark-separator: #454850;
-  --primitive-figure-dark-hover: #343e50;
-  --primitive-figure-dark-selection: #274174;
+  --primitive-figure-dark-hover: #3e3f44;
+  --primitive-figure-dark-selection: #513f2e;
   --primitive-figure-dark-muted: #a9adb6;
   --primitive-figure-dark-outline: #868686;
   --primitive-figure-number-fill: #303336;
@@ -102,6 +103,7 @@
   --color-ui-line: var(--primitive-figure-dark-separator);
   --color-action-link: var(--color-main-dark-ink);
   --color-category-orange-fill: #ff8904;
+  --color-category-gray-fill: #a0a2a7;
   --color-category-gray-line: #a0a2a7;
   --color-category-gray-ink: #a0a2a7;
   color-scheme: dark;
@@ -117,7 +119,7 @@
   --color-figure-number-fill: var(--primitive-figure-number-fill);
   --color-figure-number-ink: var(--primitive-figure-number-ink);
   --color-figure-selection-fill: var(--color-main-light-tint-3);
-  --color-figure-flash: var(--primitive-search-hover);
+  --color-figure-flash: var(--color-main-light-tint-3);
   --color-figure-active-surface: var(--primitive-help-hover);
   --color-ui-card: var(--color-gray-0);
   --color-ink: var(--primitive-ink);
@@ -126,6 +128,7 @@
   --color-ui-line: var(--primitive-line);
   --color-action-link: var(--color-main-light-ink);
   --color-category-orange-fill: #ff6900;
+  --color-category-gray-fill: #8b8f95;
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   color-scheme: light;
@@ -609,13 +612,12 @@
 .fl .sa1 { opacity: 1; visibility: visible; }
 .fl .sa2 { opacity: 1; }
 </style>
-<defs></defs>
 <rect x="0.5" y="0.5" width="713.7" height="472" class="fl-canvas-surface"/>
 <g class="fl-motion" transform="translate(0 0)">
 <g id="g-0" class="fl-group" data-id="system"><rect x="402.7" y="16" width="240" height="360" rx="8" class="frame-box fl-stroke "/><text x="420.7" y="35.4" class="frame">Saturn</text></g>
 
 <g id="n-0" class="fl-node fl-shape-person" tabindex="0" role="img" aria-label="Developer" data-id="user"><rect x="196.5" y="33" width="120.5" height="46" rx="8" class="fl-stroke a0"/><g class="fl-symbol fl-symbol-concept"><g class="fl-icon" transform="translate(214.5 45) scale(0.83333)"><g transform="translate(0 0) scale(0.75)"><g color="#3d4856"><g transform="scale(0.666667)"><g stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="15.6" r="9.4" fill="#3f7fe0" stroke="#3f7fe0" stroke-width="4.4"/><path d="M7.5 41V37.4C7.5 28.6 14.6 21.4 24 21.4C33.4 21.4 40.5 28.6 40.5 37.4V41Q40.5 43 38.5 43H9.5Q7.5 43 7.5 41Z" fill="#3f7fe0" stroke="#3f7fe0" stroke-width="4.4"/><circle cx="24" cy="15.6" r="9.4" fill="#5d9cf5"/><path d="M7.5 41V37.4C7.5 28.6 14.6 21.4 24 21.4C33.4 21.4 40.5 28.6 40.5 37.4V41Q40.5 43 38.5 43H9.5Q7.5 43 7.5 41Z" fill="#5d9cf5"/></g></g></g></g></g></g><text x="270.8" y="59.7" class="label" text-anchor="middle">Developer</text></g>
-<g id="n-1" class="fl-node fl-shape-box" tabindex="0" role="img" aria-label="Screen" data-id="tui"><rect x="442.7" y="96" width="176" height="106" rx="8" class="fl-stroke a0"/><rect x="442.7" y="96" width="176" height="106" rx="8" class="fl-pulse" opacity="0" aria-hidden="true"><animate attributeName="opacity" dur="6.792s" repeatCount="1" fill="freeze" calcMode="linear" keyTimes="0;0.38163;0.3934;0.40518;0.44052;1" values="0;0;1;1;0;0"/></rect><text x="530.7" y="122.7" class="label" text-anchor="middle">Screen</text><rect x="452.7" y="140" width="156" height="52" rx="6" opacity="0" class="fl-card a2"/><g id="n-1-c0" opacity="0" visibility="hidden" class="fl-layer a1"><path d="M458.7 140H602.7a6 6 0 0 1 6 6V186a6 6 0 0 1 -6 6H458.7a6 6 0 0 1 -6 -6V146a6 6 0 0 1 6 -6Z" class="fl-flash" opacity="0" data-rf="tui:0"><animate attributeName="opacity" dur="6.792s" repeatCount="1" fill="freeze" calcMode="linear" keyTimes="0;0.38163;0.3934;0.40518;0.44052;1" values="0;0;1;1;0;0"/></path><rect x="460.7" y="147" width="34.2" height="18" rx="4" fill="var(--color-data-category-1)" fill-opacity="0.15"/><text x="477.8" y="160.7" class="tag" text-anchor="middle">YOU</text><text x="499.9" y="160.7" class="row">why does this test</text><text x="460.7" y="180.7" class="row">fail?</text></g></g>
+<g id="n-1" class="fl-node fl-shape-box" tabindex="0" role="img" aria-label="Screen" data-id="tui"><rect x="442.7" y="96" width="176" height="106" rx="8" class="fl-stroke a0"/><rect x="442.7" y="96" width="176" height="106" rx="8" class="fl-pulse" opacity="0" aria-hidden="true"><animate attributeName="opacity" dur="6.792s" repeatCount="1" fill="freeze" calcMode="linear" keyTimes="0;0.38163;0.3934;0.40518;0.44052;1" values="0;0;1;1;0;0"/></rect><text x="530.7" y="122.7" class="label" text-anchor="middle">Screen</text><rect x="452.7" y="140" width="156" height="52" rx="6" opacity="0" class="fl-card a2"/><g id="n-1-c0" opacity="0" visibility="hidden" class="fl-layer a1"><path d="M458.7 140H602.7a6 6 0 0 1 6 6V186a6 6 0 0 1 -6 6H458.7a6 6 0 0 1 -6 -6V146a6 6 0 0 1 6 -6Z" class="fl-flash" opacity="0" data-rf="tui:0"><animate attributeName="opacity" dur="6.792s" repeatCount="1" fill="freeze" calcMode="linear" keyTimes="0;0.38163;0.3934;0.40518;0.44052;1" values="0;0;1;1;0;0"/></path><rect x="460.7" y="147" width="34.2" height="18" rx="4" fill="var(--color-data-category-3)" fill-opacity="0.15"/><text x="477.8" y="160.7" class="tag" text-anchor="middle">YOU</text><text x="499.9" y="160.7" class="row">why does this test</text><text x="460.7" y="180.7" class="row">fail?</text></g></g>
 <g id="n-2" class="fl-node fl-shape-box" tabindex="0" role="img" aria-label="Engine" data-id="engine"><rect x="480.7" y="266" width="100" height="46" rx="8" class="fl-stroke a0"/><rect x="480.7" y="266" width="100" height="46" rx="8" class="fl-pulse" opacity="0" aria-hidden="true"><animate attributeName="opacity" dur="6.792s" repeatCount="1" fill="freeze" calcMode="linear" keyTimes="0;0.49941;0.51119;0.52297;0.5583;1" values="0;0;1;1;0;0"/></rect><text x="530.7" y="293.7" class="label" text-anchor="middle">Engine</text></g>
 <g id="n-3" class="fl-node fl-shape-external" tabindex="0" role="img" aria-label="Codex CLI" data-id="codex"><rect x="217" y="409" width="100" height="46" rx="8" class="fl-stroke ext a0"/><rect x="217" y="409" width="100" height="46" rx="8" class="fl-pulse" opacity="0" aria-hidden="true"><animate attributeName="opacity" dur="6.792s" repeatCount="1" fill="freeze" calcMode="linear" keyTimes="0;0.94111;0.95289;0.96466;1" values="0;0;1;1;0"/></rect><text x="267" y="436.7" class="label" text-anchor="middle">Codex CLI</text></g>
 <g id="e-0" class="fl-edge a3"><defs><marker id="fl-arrow-0" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="p-0" d="M 317 56 L 404.7 56 Q 426.7 56, 426.7 78 L 426.7 141 Q 426.7 149, 434.7 149 L 442.7 149" class="fl-path" marker-end="url(#fl-arrow-0)"/></g>
@@ -631,7 +633,7 @@
 <g id="still-g-0" class="fl-group" data-id="system"><rect x="402.7" y="16" width="240" height="360" rx="8" class="frame-box fl-stroke "/><text x="420.7" y="35.4" class="frame">Saturn</text></g>
 
 <g id="still-n-0" class="fl-node fl-shape-person" tabindex="0" role="img" aria-label="Developer" data-id="user"><rect x="196.5" y="33" width="120.5" height="46" rx="8" class="fl-stroke sa0"/><g class="fl-symbol fl-symbol-concept"><g class="fl-icon" transform="translate(214.5 45) scale(0.83333)"><g transform="translate(0 0) scale(0.75)"><g color="#3d4856"><g transform="scale(0.666667)"><g stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="15.6" r="9.4" fill="#3f7fe0" stroke="#3f7fe0" stroke-width="4.4"/><path d="M7.5 41V37.4C7.5 28.6 14.6 21.4 24 21.4C33.4 21.4 40.5 28.6 40.5 37.4V41Q40.5 43 38.5 43H9.5Q7.5 43 7.5 41Z" fill="#3f7fe0" stroke="#3f7fe0" stroke-width="4.4"/><circle cx="24" cy="15.6" r="9.4" fill="#5d9cf5"/><path d="M7.5 41V37.4C7.5 28.6 14.6 21.4 24 21.4C33.4 21.4 40.5 28.6 40.5 37.4V41Q40.5 43 38.5 43H9.5Q7.5 43 7.5 41Z" fill="#5d9cf5"/></g></g></g></g></g></g><text x="270.8" y="59.7" class="label" text-anchor="middle">Developer</text></g>
-<g id="still-n-1" class="fl-node fl-shape-box" tabindex="0" role="img" aria-label="Screen" data-id="tui"><rect x="442.7" y="96" width="176" height="106" rx="8" class="fl-stroke sa0"/><text x="530.7" y="122.7" class="label" text-anchor="middle">Screen</text><rect x="452.7" y="140" width="156" height="52" rx="6" opacity="0" class="fl-card sa2"/><g id="still-n-1-c0" opacity="0" visibility="hidden" class="fl-layer sa1"><rect x="460.7" y="147" width="34.2" height="18" rx="4" fill="var(--color-data-category-1)" fill-opacity="0.15"/><text x="477.8" y="160.7" class="tag" text-anchor="middle">YOU</text><text x="499.9" y="160.7" class="row">why does this test</text><text x="460.7" y="180.7" class="row">fail?</text></g></g>
+<g id="still-n-1" class="fl-node fl-shape-box" tabindex="0" role="img" aria-label="Screen" data-id="tui"><rect x="442.7" y="96" width="176" height="106" rx="8" class="fl-stroke sa0"/><text x="530.7" y="122.7" class="label" text-anchor="middle">Screen</text><rect x="452.7" y="140" width="156" height="52" rx="6" opacity="0" class="fl-card sa2"/><g id="still-n-1-c0" opacity="0" visibility="hidden" class="fl-layer sa1"><rect x="460.7" y="147" width="34.2" height="18" rx="4" fill="var(--color-data-category-3)" fill-opacity="0.15"/><text x="477.8" y="160.7" class="tag" text-anchor="middle">YOU</text><text x="499.9" y="160.7" class="row">why does this test</text><text x="460.7" y="180.7" class="row">fail?</text></g></g>
 <g id="still-n-2" class="fl-node fl-shape-box" tabindex="0" role="img" aria-label="Engine" data-id="engine"><rect x="480.7" y="266" width="100" height="46" rx="8" class="fl-stroke sa0"/><text x="530.7" y="293.7" class="label" text-anchor="middle">Engine</text></g>
 <g id="still-n-3" class="fl-node fl-shape-external" tabindex="0" role="img" aria-label="Codex CLI" data-id="codex"><rect x="217" y="409" width="100" height="46" rx="8" class="fl-stroke ext sa0"/><text x="267" y="436.7" class="label" text-anchor="middle">Codex CLI</text></g>
 <g id="still-e-0" class="fl-edge "><defs><marker id="still-fl-arrow-0" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible"><path class="fl-arrowhead" d="M 1.1 0.25 L 4 2.5 L 1.1 4.75 Z" stroke-width="1"/></marker></defs><path id="still-p-0" d="M 317 56 L 404.7 56 Q 426.7 56, 426.7 78 L 426.7 141 Q 426.7 149, 434.7 149 L 442.7 149" class="fl-path" marker-end="url(#still-fl-arrow-0)"/></g>
