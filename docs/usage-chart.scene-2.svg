@@ -45,7 +45,7 @@
   --color-category-gray-line: #8b8f95;
   --color-category-gray-ink: #62666c;
   --color-main-light-border: #ff6900;
-  --color-main-light-ink: #ca3500;
+  --color-main-light-ink: #ff6900;
   --color-main-light-tint-3: #ffedd4;
   --color-main-dark-border: #ff8904;
   --color-main-dark-ink: #ff8904;
